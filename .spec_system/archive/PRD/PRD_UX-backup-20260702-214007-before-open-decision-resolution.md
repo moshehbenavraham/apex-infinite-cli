@@ -1,6 +1,6 @@
 # Apex Infinite CLI - UX Requirements Document
 
-**Companion to**: [PRD.md](PRD.md)
+**Companion to**: [PRD.md](../../PRD/PRD.md)
 **Created**: 2026-07-02
 **Status**: Authoritative standalone UX source for the Apex Infinite CLI UI upgrade
 
@@ -99,7 +99,7 @@ process is externally terminated.
 ### Current Implementation Baseline
 
 The current implementation is a single-file Click application in
-`apex-infinite-cli/apex_infinite.py`.
+`src/apex_infinite/cli.py`.
 
 - Runtime dependencies already include Click, Rich, OpenAI Python SDK,
   python-dotenv, PyYAML, SQLite from the Python standard library, and Codex CLI.
@@ -172,11 +172,11 @@ ui:
 New or planned CLI overrides:
 
 ```bash
-python apex_infinite.py --theme crt-amber
-python apex_infinite.py --plain
-python apex_infinite.py --ascii
-python apex_infinite.py --compact
-python apex_infinite.py --event-stream /tmp/apex-infinite-events.jsonl
+apex-infinite --theme crt-amber
+apex-infinite --plain
+apex-infinite --ascii
+apex-infinite --compact
+apex-infinite --event-stream /tmp/apex-infinite-events.jsonl
 ```
 
 Configuration precedence:
@@ -256,7 +256,7 @@ Clean-room limits:
 
 ### Flow 1: Interactive Project Selection And Startup
 
-**Trigger**: Operator runs `python apex_infinite.py` with no `--path`.
+**Trigger**: Operator runs `apex-infinite` with no `--path`.
 **Goal**: Choose a project and enter the autonomous loop with clear context.
 
 ```text
@@ -438,7 +438,7 @@ surface, or future wrapper view.
 
 | Screen | Entry/Route | Purpose | Key Components |
 |--------|-------------|---------|----------------|
-| Interactive Project Selection | `python apex_infinite.py` with no `--path` | Select project, starting command, and CEO instruction | Project list, number/path prompt, validation error |
+| Interactive Project Selection | `apex-infinite` with no `--path` | Select project, starting command, and CEO instruction | Project list, number/path prompt, validation error |
 | Config Error Surface | Startup/config load | Fail before loop execution on invalid setup | Error label, invalid field, accepted values, source file |
 | Boot Status Panel | Normal and dry-run startup | Establish operational context | Project, provider, model, config path, theme, max iterations, dry-run, start command |
 | Iteration Frame | Main loop | Group one autonomous cycle | Iteration, operation, elapsed time, provider/model, project, dry-run |
@@ -467,7 +467,7 @@ surface, or future wrapper view.
 ## 5. Navigation Structure
 
 ```text
-apex_infinite.py
+src/apex_infinite/cli.py
 |-- Interactive startup
 |   |-- Project selection
 |   |-- Start command prompt

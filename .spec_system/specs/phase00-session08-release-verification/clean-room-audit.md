@@ -35,10 +35,10 @@ resource manifests, build scripts, GPL code, or terminal-emulator code.
 | Check | Result | Evidence |
 |-------|--------|----------|
 | Reference tree ignored | PASS | `.gitignore` contains `/EXAMPLE/`; local `EXAMPLE/cool-retro-term/` exists only as ignored reference material. |
-| Forbidden-copy rules documented | PASS | `visual-wrapper-boundary.md` defines forbidden source, QML, shader, asset, font, profile, resource, build-script, and terminal-emulator copying. |
-| Optional dependency lane documented | PASS | `visual-wrapper-productization.md` keeps `requirements-wrapper.txt` separate and says not to move PySide6 into `requirements.txt`. |
+| Forbidden-copy rules documented | PASS | `docs/visual-wrapper-boundary.md` defines forbidden source, QML, shader, asset, font, profile, resource, build-script, and terminal-emulator copying. |
+| Optional dependency lane documented | PASS | `docs/visual-wrapper-productization.md` keeps `requirements-wrapper.txt` separate and says not to move PySide6 into `requirements.txt`. |
 | License gates documented | PASS | Wrapper productization docs list LGPLv3/commercial review, notices, AppImage replacement/relink, source availability, and SHA256 gates. |
-| Base CLI dependency boundary | PASS | Scan of `requirements.txt`, `apex_infinite.py`, `apex_infinite_events.py`, and `apex_infinite_ui.py` found no PySide6, Qt Quick, QML, wrapper, or Nuitka references. |
+| Base CLI dependency boundary | PASS | Scan of `requirements.txt`, `src/apex_infinite/cli.py`, `src/apex_infinite/events.py`, and `src/apex_infinite/ui.py` found no PySide6, Qt Quick, QML, wrapper, or Nuitka references. |
 | Security posture input | PASS | `.spec_system/SECURITY-COMPLIANCE.md` records clean-room and optional wrapper findings that T020 must refresh after verification. |
 
 ---
@@ -54,7 +54,7 @@ T016.
 | Reference path/name scan | PASS | Tracked CLI/docs/workflow paths contain no reference asset, shader, generated shader blob, resource manifest, build script, terminal-widget, or copied QML names. |
 | Binary/reference extension scan | PASS | No tracked `.png`, `.jpg`, `.gif`, `.icns`, `.qsb`, `.frag`, `.vert`, `.qrc`, `.pro`, or `.desktop` files under release-scoped paths. |
 | Excluded component keyword scan | PASS | Hits are documentation of exclusions and backup options, not implementation imports or tracked copied material. |
-| Base dependency/import scan | PASS | `requirements.txt`, `apex_infinite.py`, `apex_infinite_events.py`, and `apex_infinite_ui.py` contain no PySide6, Qt, QML, or Nuitka references. |
+| Base dependency/import scan | PASS | `requirements.txt`, `src/apex_infinite/cli.py`, `src/apex_infinite/events.py`, and `src/apex_infinite/ui.py` contain no PySide6, Qt, QML, or Nuitka references. |
 | Dependency vulnerability audit | PASS | `pip-audit -r requirements.txt -r requirements-dev.txt -r requirements-wrapper.txt` reported no known vulnerabilities. |
 
 ---
@@ -64,7 +64,7 @@ T016.
 | Release Area | Source Evidence | Release Position | Verification Owner |
 |--------------|-----------------|------------------|--------------------|
 | Source wrapper entrypoint | `python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` | Source-shippable; T011 smoke passed and T021 rerun passed | T011, T021 |
-| QML lint | `./.venv/bin/pyside6-qmllint apex_infinite_visual/qml/Main.qml` | Source-shippable; lint exits 0 with known non-blocking warnings and T021 rerun passed | T011, T021 |
+| QML lint | `pyside6-qmllint src/apex_infinite_visual/qml/Main.qml` | Source-shippable; lint exits 0 with known non-blocking warnings and T021 rerun passed | T011, T021 |
 | Optional PySide6 import | `tests/test_visual_wrapper_productization.py` import-guard tests | Source-shippable; base import remains headless-safe | T009, T011, T018 |
 | Guarded wrapper command | `build_apex_cli_command()` tests and launcher inspection | Source-shippable; wrapper uses `--event-stream - --machine-output` | T009, T013, T017 |
 | Failure states | Productization tests for missing CLI, missing PySide6, malformed JSONL, timeout, stderr, non-zero exit, and stop | Source-shippable; tests passed | T009, T011 |

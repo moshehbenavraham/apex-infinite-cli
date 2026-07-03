@@ -19,7 +19,7 @@ session, and Sessions 01 and 02 complete. Session 03 is the earliest unfinished
 candidate and provides subprocess lifecycle facts that Session 04 will need for
 the event-stream boundary.
 
-The work stays scoped to `apex-infinite-cli/`. It preserves prompt routing,
+The work stays scoped to `./`. It preserves prompt routing,
 SQLite schema compatibility, normalized history keys, `cc_response`, dry-run
 behavior, verbose execution output, timeout text, stderr fallback, non-zero
 exit wrapping, missing-binary handling, and generic exception reporting.
@@ -62,10 +62,10 @@ exit wrapping, missing-binary handling, and generic exception reporting.
 
 ### Environment Requirements
 
-- CLI dependencies from `apex-infinite-cli/requirements.txt` and
-  `apex-infinite-cli/requirements-dev.txt`.
+- CLI dependencies from `requirements.txt` and
+  `requirements-dev.txt`.
 - Local test environment can run `pytest`, `black`, and `pylint` through
-  `apex-infinite-cli/.venv/bin/`.
+  `.`.
 - No provider API keys, real LLM calls, or real Codex subprocesses are required
   for tests; use fake runners, monkeypatching, and temporary DB paths.
 - Authored files remain ASCII-only with Unix LF line endings.
@@ -125,11 +125,11 @@ Start with characterization tests around current `execute_codex()` and history
 rendering so compatibility is explicit before behavior-preserving rewrites.
 Then add the smallest subprocess execution boundary that makes live status
 testable. The likely implementation is either an injectable runner helper or a
-small `subprocess.Popen` wrapper inside `apex-infinite-cli/apex_infinite.py`
+small `subprocess.Popen` wrapper inside `src/apex_infinite/cli.py`
 that returns raw captured stdout, stderr, and return-code facts while keeping
 `execute_codex()` as the public workflow boundary.
 
-Extend `apex-infinite-cli/apex_infinite_ui.py` rather than bypassing it. Add
+Extend `src/apex_infinite/ui.py` rather than bypassing it. Add
 renderer-facing execution facts for elapsed seconds, process state, timeout,
 and completion state, and update `print_history()` into a ledger-style display
 that uses the existing injected `Console(record=True, width=...)` test pattern.
@@ -162,17 +162,17 @@ rewrite legacy rows, or store display labels.
 
 | File | Purpose | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/tests/test_subprocess_execution.py` | Focused subprocess and `execute_codex()` compatibility tests using fake runners and monkeypatching | ~240 |
-| `apex-infinite-cli/tests/test_history_rendering.py` | Compact and verbose history ledger tests for empty, short, long, sparse legacy, plain, ASCII, compact, and width cases | ~220 |
+| `tests/test_subprocess_execution.py` | Focused subprocess and `execute_codex()` compatibility tests using fake runners and monkeypatching | ~240 |
+| `tests/test_history_rendering.py` | Compact and verbose history ledger tests for empty, short, long, sparse legacy, plain, ASCII, compact, and width cases | ~220 |
 
 ### Files To Modify
 
 | File | Changes | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/apex_infinite.py` | Add a testable subprocess execution boundary, live/durable elapsed status wiring, and preserved `execute_codex()` return semantics | ~180 |
-| `apex-infinite-cli/apex_infinite_ui.py` | Add subprocess elapsed/process-state rendering and redesign history as a compact ledger with verbose expansion | ~220 |
-| `apex-infinite-cli/tests/test_renderer.py` | Extend raw-storage safety and renderer semantic coverage for execution status and history display-only summaries | ~80 |
-| `apex-infinite-cli/tests/test_cli_options.py` | Extend CLI coverage for `--history --verbose` routing and unchanged prompt routing around display changes | ~60 |
+| `src/apex_infinite/cli.py` | Add a testable subprocess execution boundary, live/durable elapsed status wiring, and preserved `execute_codex()` return semantics | ~180 |
+| `src/apex_infinite/ui.py` | Add subprocess elapsed/process-state rendering and redesign history as a compact ledger with verbose expansion | ~220 |
+| `tests/test_renderer.py` | Extend raw-storage safety and renderer semantic coverage for execution status and history display-only summaries | ~80 |
+| `tests/test_cli_options.py` | Extend CLI coverage for `--history --verbose` routing and unchanged prompt routing around display changes | ~60 |
 
 ---
 
@@ -228,9 +228,9 @@ rewrite legacy rows, or store display labels.
 - [ ] Unix LF line endings
 - [ ] Code follows project conventions
 - [ ] Primary operator surfaces contain product-facing copy only
-- [ ] `pytest tests/ -v` passes from `apex-infinite-cli/`
-- [ ] `black --check apex_infinite.py apex_infinite_ui.py tests/` passes
-- [ ] `pylint apex_infinite.py apex_infinite_ui.py` passes
+- [ ] `pytest tests/ -v` passes from `./`
+- [ ] `black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/` passes
+- [ ] `pylint src/apex_infinite/cli.py src/apex_infinite/ui.py` passes
 
 ---
 
@@ -238,10 +238,10 @@ rewrite legacy rows, or store display labels.
 
 ### Working Assumptions
 
-- Session 03 remains scoped to `apex-infinite-cli/` even though the repo is
+- Session 03 remains scoped to `./` even though the repo is
   not configured as a formal monorepo. Evidence: the analyzer reports
   `monorepo: false`, the master PRD says CLI sessions target
-  `apex-infinite-cli/` by path, and `CONVENTIONS.md` names that directory as
+  `./` by path, and `CONVENTIONS.md` names that directory as
   the primary development target. Planning can proceed because all deliverables
   are concrete files under that path.
 - It is acceptable to introduce a small process-runner boundary if tests show
@@ -336,9 +336,9 @@ Top behavioral risks for this session:
 
 ### Runtime Verification
 
-- Run `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v`.
-- Run `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py tests/`.
-- Run `cd apex-infinite-cli && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py`.
+- Run `python -m pytest tests/ -v`.
+- Run `python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/`.
+- Run `python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py`.
 - Run ASCII and LF checks over changed authored files.
 
 ### Edge Cases

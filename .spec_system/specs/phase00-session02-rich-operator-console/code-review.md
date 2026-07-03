@@ -12,13 +12,13 @@
 - `.spec_system/specs/phase00-session02-rich-operator-console/spec.md` - untracked session artifact
 - `.spec_system/specs/phase00-session02-rich-operator-console/tasks.md` - untracked session artifact
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - untracked session artifact
-- `apex-infinite-cli/README_apex-infinite-cli.md` - tracked-modified
-- `apex-infinite-cli/apex_infinite.py` - tracked-modified
-- `apex-infinite-cli/apex_infinite_ui.py` - tracked-modified
-- `apex-infinite-cli/tests/test_cli_options.py` - tracked-modified
-- `apex-infinite-cli/tests/test_renderer.py` - tracked-modified
-- `apex-infinite-cli/tests/test_ui_config.py` - tracked-modified
-- `apex-infinite-cli/tests/test_operator_console.py` - untracked test file
+- `README.md` - tracked-modified
+- `src/apex_infinite/cli.py` - tracked-modified
+- `src/apex_infinite/ui.py` - tracked-modified
+- `tests/test_cli_options.py` - tracked-modified
+- `tests/test_renderer.py` - tracked-modified
+- `tests/test_ui_config.py` - tracked-modified
+- `tests/test_operator_console.py` - untracked test file
 
 **Inventory commands**: `git status`, `git diff HEAD`, `git diff --cached`,
 `git ls-files --others --exclude-standard`
@@ -60,19 +60,19 @@ Codex subprocess return strings.
 
 ## Verification
 
-- Tests: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v` -
+- Tests: `python -m pytest tests/ -v` -
   PASS - 109 tests passed.
-- Formatter: `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py tests/` -
+- Formatter: `python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/` -
   PASS - 9 files would be left unchanged.
-- Linter: `cd apex-infinite-cli && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py` -
+- Linter: `python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py` -
   PASS - pylint rated the code 10.00/10.
 - Type checker: N/A - project conventions state Python type safety is not
   configured.
-- Analyzer smoke: `bash scripts/analyze-project.sh --json | jq .` - PASS -
+- Analyzer smoke: `bash .spec_system/scripts/analyze-project.sh --json | jq .` - PASS -
   current session resolves to `phase00-session02-rich-operator-console`.
-- Prereq smoke: `bash scripts/check-prereqs.sh --json --env | jq .` - PASS -
+- Prereq smoke: `bash .spec_system/scripts/check-prereqs.sh --json --env | jq .` - PASS -
   overall status `pass`.
-- Plugin payload sync: `bash scripts/sync-plugin-payload.sh --check` - PASS -
+- Plugin payload sync: `bash .spec_system/scripts/analyze-project.sh --json` - PASS -
   plugin payload is current.
 - ASCII scan: changed-file non-ASCII scan - PASS.
 - LF scan: changed-file CRLF scan - PASS.

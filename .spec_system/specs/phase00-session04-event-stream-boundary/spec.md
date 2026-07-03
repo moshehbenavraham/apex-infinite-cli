@@ -19,7 +19,7 @@ session, and Sessions 01 through 03 complete. Session 04 is the earliest
 unfinished candidate and is the prerequisite for documentation polish and the
 later Linux wrapper spike.
 
-The work stays scoped to `apex-infinite-cli/` and its CLI documentation. It
+The work stays scoped to `./` and its CLI documentation. It
 preserves prompt routing, manager normalization, SQLite schema compatibility,
 `cc_response`, normal human output, dry-run behavior, subprocess return text,
 and base terminal-only dependencies.
@@ -68,8 +68,8 @@ and base terminal-only dependencies.
 
 ### Environment Requirements
 
-- CLI dependencies from `apex-infinite-cli/requirements.txt` and development
-  dependencies from `apex-infinite-cli/requirements-dev.txt`.
+- CLI dependencies from `requirements.txt` and development
+  dependencies from `requirements-dev.txt`.
 - Local tests can use `CliRunner`, temporary event files, fake LLM clients,
   fake Codex process runners, monkeypatching, and recorded consoles.
 - No real provider API keys, network calls, or real Codex subprocess launches
@@ -93,7 +93,7 @@ and base terminal-only dependencies.
 - CLI disables terminal bell and desktop notifications when
   `--machine-output` is active.
 - Developer can import an event emitter API from
-  `apex-infinite-cli/apex_infinite_events.py`.
+  `src/apex_infinite/events.py`.
 - Event payloads include raw lifecycle facts for config/UI resolution,
   startup, iteration start, history summary, manager decision, prompt dispatch,
   Codex start, Codex finish, Codex failure states, DB log, help pause,
@@ -133,7 +133,7 @@ and base terminal-only dependencies.
 
 ### Architecture
 
-Create a small `apex-infinite-cli/apex_infinite_events.py` module that owns the
+Create a small `src/apex_infinite/events.py` module that owns the
 event data shape, JSON serialization, file/stdout stream handling, flushing,
 and raw-payload validation. Keep this module independent from Rich renderer
 types so future wrappers can depend on it without importing terminal UI code.
@@ -188,23 +188,23 @@ add narrower state names only when tests and docs define the contract.
 
 | File | Purpose | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/apex_infinite_events.py` | Importable event emitter API, JSONL writer, stdout/file sink validation, payload safety checks, and no-op emitter | ~220 |
-| `apex-infinite-cli/tests/test_event_stream.py` | Event API, CLI flag validation, dry-run event order, stdout isolation, flushing, and raw-payload safety tests | ~280 |
-| `apex-infinite-cli/docs/event-stream.md` | Wrapper-facing event stream contract, event names, payload principles, CLI examples, and safety notes | ~180 |
+| `src/apex_infinite/events.py` | Importable event emitter API, JSONL writer, stdout/file sink validation, payload safety checks, and no-op emitter | ~220 |
+| `tests/test_event_stream.py` | Event API, CLI flag validation, dry-run event order, stdout isolation, flushing, and raw-payload safety tests | ~280 |
+| `docs/event-stream.md` | Wrapper-facing event stream contract, event names, payload principles, CLI examples, and safety notes | ~180 |
 
 ### Files To Modify
 
 | File | Changes | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/apex_infinite.py` | Add `--event-stream`, `--machine-output`, event emitter lifecycle, loop emissions, subprocess emissions, DB log emissions, and notification suppression | ~260 |
-| `apex-infinite-cli/apex_infinite_ui.py` | Add a no-human-output renderer adapter or equivalent suppression hook for machine-output mode | ~90 |
-| `apex-infinite-cli/tests/test_cli_options.py` | Cover event flag validation, machine-output guardrails, and loop wiring with fake emitters | ~120 |
-| `apex-infinite-cli/tests/test_subprocess_execution.py` | Cover Codex start, finish, dry-run, timeout, missing-binary, non-zero, and generic-error event emissions | ~120 |
-| `apex-infinite-cli/tests/test_renderer.py` | Cover no-human-output adapter behavior and stdout-safe rendering suppression | ~80 |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Document event-stream usage, `--machine-output`, stdout guardrails, and raw event safety | ~100 |
-| `apex-infinite-cli/docs/operator-runbook.md` | Add operator guidance for event files, machine-output mode, wrapper consumption, and failure handling | ~80 |
-| `apex-infinite-cli/docs/prompt-contract.md` | Clarify event and machine-output behavior do not change manager parsing or Codex prompt generation | ~60 |
-| `apex-infinite-cli/docs/troubleshooting.md` | Add event-stream misuse, write failure, stdout collision, and machine-output troubleshooting | ~70 |
+| `src/apex_infinite/cli.py` | Add `--event-stream`, `--machine-output`, event emitter lifecycle, loop emissions, subprocess emissions, DB log emissions, and notification suppression | ~260 |
+| `src/apex_infinite/ui.py` | Add a no-human-output renderer adapter or equivalent suppression hook for machine-output mode | ~90 |
+| `tests/test_cli_options.py` | Cover event flag validation, machine-output guardrails, and loop wiring with fake emitters | ~120 |
+| `tests/test_subprocess_execution.py` | Cover Codex start, finish, dry-run, timeout, missing-binary, non-zero, and generic-error event emissions | ~120 |
+| `tests/test_renderer.py` | Cover no-human-output adapter behavior and stdout-safe rendering suppression | ~80 |
+| `README.md` | Document event-stream usage, `--machine-output`, stdout guardrails, and raw event safety | ~100 |
+| `docs/operator-runbook.md` | Add operator guidance for event files, machine-output mode, wrapper consumption, and failure handling | ~80 |
+| `docs/prompt-contract.md` | Clarify event and machine-output behavior do not change manager parsing or Codex prompt generation | ~60 |
+| `docs/troubleshooting.md` | Add event-stream misuse, write failure, stdout collision, and machine-output troubleshooting | ~70 |
 
 ---
 
@@ -265,9 +265,9 @@ add narrower state names only when tests and docs define the contract.
 - [ ] Code follows project conventions
 - [ ] Primary human surfaces contain product-facing copy only
 - [ ] Machine stdout contains JSONL only when machine-output mode is active
-- [ ] `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v` passes
-- [ ] `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py apex_infinite_events.py tests/` passes
-- [ ] `cd apex-infinite-cli && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py apex_infinite_events.py` passes
+- [ ] `python -m pytest tests/ -v` passes
+- [ ] `python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py src/apex_infinite/events.py tests/` passes
+- [ ] `python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py src/apex_infinite/events.py` passes
 
 ---
 
@@ -275,10 +275,10 @@ add narrower state names only when tests and docs define the contract.
 
 ### Working Assumptions
 
-- Session 04 targets `apex-infinite-cli/` inside a single repository rather
+- Session 04 targets `./` inside a single repository rather
   than formal monorepo package metadata. Evidence: analyzer reports
   `monorepo: false`, PRD constraints say CLI sessions should target the
-  `apex-infinite-cli/` path, and Phase 00 stubs omit package metadata. Planning
+  `./` path, and Phase 00 stubs omit package metadata. Planning
   can proceed because all deliverables are path-scoped.
 
 ### Conflict Resolutions
@@ -350,25 +350,25 @@ Top behavioral risks for this session:
 
 - Test `EventEmitter`, no-op emitter, stdout/file sinks, invalid event names,
   invalid payloads, JSON serialization, newline separation, and flush calls in
-  `apex-infinite-cli/tests/test_event_stream.py`.
+  `tests/test_event_stream.py`.
 - Test `execute_codex()` event emissions for dry-run, start, completion,
   non-zero exit, timeout, missing binary, generic error, and preserved return
-  text in `apex-infinite-cli/tests/test_subprocess_execution.py`.
+  text in `tests/test_subprocess_execution.py`.
 - Test no-human-output adapter semantics in renderer tests.
 
 ### Integration Tests
 
 - Use `CliRunner` with temporary config, temporary project path, fake loop, and
   fake emitter to verify `--event-stream`, `--machine-output`, and invalid
-  combinations in `apex-infinite-cli/tests/test_cli_options.py`.
+  combinations in `tests/test_cli_options.py`.
 - Use a dry-run loop with monkeypatched LLM and DB functions to verify event
   order, event names, payload fields, and no real provider or Codex calls.
 - Verify prompt-routing tests remain unchanged and passing.
 
 ### Runtime Verification
 
-- Run `python apex_infinite.py --path <tmp-project> --start implement --dry-run --event-stream <tmp-jsonl>` with monkeypatched or test fixtures and inspect JSONL line count, names, and flushing behavior.
-- Run `python apex_infinite.py --path <tmp-project> --start implement --dry-run --machine-output --event-stream -` in tests and assert stdout parses as JSONL only.
+- Run `apex-infinite --path <tmp-project> --start implement --dry-run --event-stream <tmp-jsonl>` with monkeypatched or test fixtures and inspect JSONL line count, names, and flushing behavior.
+- Run `apex-infinite --path <tmp-project> --start implement --dry-run --machine-output --event-stream -` in tests and assert stdout parses as JSONL only.
 - Run the full CLI pytest suite plus Black and Pylint for changed modules.
 
 ### Edge Cases

@@ -41,7 +41,7 @@
   current `HEAD`.
 - Sessions 01 through 07 validation reports all show `**Result**: PASS`.
 - Local release tools are available: Python 3.12.3 in
-  `apex-infinite-cli/.venv/`, `bats`, `jq`, `git`, `black`, `pylint`,
+  local virtualenv, `bats`, `jq`, `git`, `black`, `pylint`,
   `pyside6-qmllint`, and `pip-audit`.
 
 **Files Changed**:
@@ -58,7 +58,7 @@
 - Command/check: `for d in .spec_system/specs/phase00-session0{1,2,3,4,5,6,7}-*/validation.md; do printf '%s: ' "$d"; grep -F -m1 '**Result**:' "$d" || true; done`
   - Result: PASS - all seven validation reports returned `**Result**: PASS`.
   - Evidence: Required prerequisite sessions have validation evidence.
-- Command/check: `test -x apex-infinite-cli/.venv/bin/python && apex-infinite-cli/.venv/bin/python --version && command -v bats || true && command -v jq && command -v git && test -x apex-infinite-cli/.venv/bin/black && echo black-ok && test -x apex-infinite-cli/.venv/bin/pylint && echo pylint-ok && test -x apex-infinite-cli/.venv/bin/pyside6-qmllint && echo qmllint-ok && test -x apex-infinite-cli/.venv/bin/pip-audit && echo pip-audit-ok || true`
+- Command/check: `test -x python && python --version && command -v bats || true && command -v jq && command -v git && test -x python -m black && echo black-ok && test -x python -m pylint && echo pylint-ok && test -x pyside6-qmllint && echo qmllint-ok && test -x python -m pip_audit && echo pip-audit-ok || true`
   - Result: PASS - Python, Bats, jq, git, black, pylint, QML lint, and pip-audit were found.
   - Evidence: Release verification tools are locally available.
 - UI product-surface check: N/A - no user-facing UI changed.
@@ -89,13 +89,13 @@
 - Command/check: `git ls-files | grep '^EXAMPLE/' || true`
   - Result: PASS - command produced no output.
   - Evidence: No ignored reference tree files are tracked.
-- Command/check: `git ls-files apex-infinite-cli apex-infinite-cli .github/workflows | rg -n 'cool-retro-term|EXAMPLE/|allNoise512|crt256|\\.qsb$|\\.png$|\\.icns$|\\.frag$|\\.vert$|resources\\.qrc$|cool-retro-term\\.pro$|app\\.pro$|snapcraft\\.yaml$|build-appimage\\.sh$|fontmanager|fontlistmodel|qmltermwidget|QTermWidget|TerminalWindow|ApplicationSettings|BurnInEffect|ShaderTerminal|PreprocessedTerminal|TerminalFrame|TerminalTabs|TerminalContainer|SettingsGeneralTab|SettingsEffectsTab|SettingsAdvancedTab|SettingsTerminalTab' || true`
+- Command/check: `find . -type f | rg -n 'cool-retro-term|EXAMPLE/|allNoise512|crt256|\\.qsb$|\\.png$|\\.icns$|\\.frag$|\\.vert$|resources\\.qrc$|cool-retro-term\\.pro$|app\\.pro$|snapcraft\\.yaml$|build-appimage\\.sh|fontmanager|fontlistmodel|qmltermwidget|QTermWidget|TerminalWindow|ApplicationSettings|BurnInEffect|ShaderTerminal|PreprocessedTerminal|TerminalFrame|TerminalTabs|TerminalContainer|SettingsGeneralTab|SettingsEffectsTab|SettingsAdvancedTab' || true`
   - Result: PASS - command produced no output.
   - Evidence: No tracked release-scoped paths match copied reference names or forbidden reference file names.
-- Command/check: `git ls-files apex-infinite-cli apex-infinite-cli .github/workflows | while IFS= read -r f; do case "$f" in *.png|*.jpg|*.jpeg|*.gif|*.icns|*.qsb|*.frag|*.vert|*.qrc|*.pro|*.desktop) printf 'BINARY_OR_REFERENCE_EXT %s\n' "$f";; esac; done`
+- Command/check: `find . -type f | while IFS= read -r f; do case "$f" in *.png|*.jpg|*.jpeg|*.gif|*.icns|*.qsb|*.frag|*.vert|*.qrc|*.pro|*.desktop) printf 'BINARY_OR_REFERENCE_EXT %s\n' "$f";; esac; done`
   - Result: PASS - command produced no output.
   - Evidence: No release-scoped tracked binary/reference extensions found.
-- Command/check: `rg -n 'PyQt|pywebview|xterm\\.js|qmltermwidget|QTermWidget|terminal-emulator code|copied terminal' apex-infinite-cli/apex_infinite.py apex-infinite-cli/apex_infinite_events.py apex-infinite-cli/apex_infinite_ui.py apex-infinite-cli/apex_infinite_visual apex-infinite-cli/requirements*.txt apex-infinite-cli | sed -n '1,220p'`
+- Command/check: `rg -n 'PyQt|pywebview|xterm\\.js|qmltermwidget|QTermWidget|terminal-emulator code|copied terminal' src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py src/apex_infinite_visual requirements*.txt docs | sed -n '1,220p'`
   - Result: PASS - hits are in documentation of exclusions and backup paths only.
   - Evidence: No implementation import or dependency path uses excluded terminal-widget or copied-terminal material.
 - UI product-surface check: N/A - no user-facing UI changed.
@@ -124,18 +124,18 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T017 complete and updated progress.
 
 **Verification**:
-- Command/check: `rg -n -- '--plain|--ascii|--compact|--theme' apex-infinite-cli/README_apex-infinite-cli.md apex-infinite-cli`
+- Command/check: `rg -n -- '--plain|--ascii|--compact|--theme' README.md docs`
   - Result: PASS - README, runbook, transcripts, productization, prompt-contract, and troubleshooting docs cover UI flags and fallback controls.
   - Evidence: Matches include CLI options, runbook examples, constrained-output guidance, and transcript modes.
-- Command/check: `rg -n -- '--event-stream|--machine-output|history|SQLite|transcript|troubleshooting|requirements-wrapper|PySide6|license|LGPL|prompt-contract|fallback' apex-infinite-cli/README_apex-infinite-cli.md apex-infinite-cli`
+- Command/check: `rg -n -- '--event-stream|--machine-output|history|SQLite|transcript|troubleshooting|requirements-wrapper|PySide6|license|LGPL|prompt-contract|fallback' README.md docs`
   - Result: PASS - event stream, history, wrapper, dependency, license, transcript, and troubleshooting coverage exists.
   - Evidence: Matches include guarded stdout JSONL, SQLite raw-storage docs, optional wrapper lane, PySide6/QML obligations, and troubleshooting sections.
-- Command/check: `test -s apex-infinite-cli/docs/transcripts/dry-run-plain.txt && test -s apex-infinite-cli/docs/transcripts/history-ledger.txt && test -s apex-infinite-cli/docs/transcripts/machine-output-events.jsonl`
+- Command/check: `test -s docs/transcripts/dry-run-plain.txt && test -s docs/transcripts/history-ledger.txt && test -s docs/transcripts/machine-output-events.jsonl`
   - Result: PASS - all three release transcript samples are present and non-empty.
   - Evidence: Deterministic plain, history, and machine-output examples exist.
 - Command/check: stale final-status scan for `Session 07 productizes source/dev`, `binary publishing remains gated`, `Session 08 owns final release verification`, `Phase 00 has not run`, `Planned event-stream payloads are not implemented yet`, and `No automated Python vulnerability audit`
   - Result: PASS with follow-up - stale cumulative status text was identified for T020 refresh.
-  - Evidence: Hits are in `.spec_system/SECURITY-COMPLIANCE.md`, README/runbook wrapper status, and `visual-wrapper-productization.md`.
+  - Evidence: Hits are in `.spec_system/SECURITY-COMPLIANCE.md`, README/runbook wrapper status, and `docs/visual-wrapper-productization.md`.
 - UI product-surface check: N/A - no user-facing UI changed.
 - UI craft check: N/A - no UI changed.
 
@@ -162,13 +162,13 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T018 complete and updated progress.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/pip-audit --version`
+- Command/check: `python -m pip_audit --version`
   - Result: PASS - output was `pip-audit 2.10.1`.
   - Evidence: Dependency vulnerability audit tool is available locally.
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/pip-audit -r requirements.txt -r requirements-dev.txt -r requirements-wrapper.txt`
+- Command/check: `python -m pip_audit -r requirements.txt -r requirements-dev.txt -r requirements-wrapper.txt`
   - Result: PASS - command exited 0 and reported `No known vulnerabilities found`.
   - Evidence: Base, dev, and optional wrapper requirement sets have current local vulnerability-audit evidence.
-- Command/check: `rg -n 'PySide6|Qt|QML|Nuitka|pyside6|qml|qtquick|QtQuick' apex-infinite-cli/requirements.txt apex-infinite-cli/apex_infinite.py apex-infinite-cli/apex_infinite_events.py apex-infinite-cli/apex_infinite_ui.py || true`
+- Command/check: `rg -n 'PySide6|Qt|QML|Nuitka|pyside6|qml|qtquick|QtQuick' requirements.txt src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py || true`
   - Result: PASS - command produced no output.
   - Evidence: Base dependency and import surfaces remain terminal-only and headless-safe.
 - Command/check: wrapper dependency/license documentation scan across `requirements-wrapper.txt`, README, runbook, and wrapper docs.
@@ -199,10 +199,10 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T019 complete and updated progress.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_cli_options.py::test_notify_does_not_emit_terminal_bell_to_redirected_stdout -v`
+- Command/check: `python -m pytest tests/test_cli_options.py::test_notify_does_not_emit_terminal_bell_to_redirected_stdout -v`
   - Result: PASS - output ended with `1 passed in 0.34s`.
   - Evidence: Focused regression still proves redirected stdout receives no terminal bell.
-- Command/check: `git diff -- apex-infinite-cli/apex_infinite.py apex-infinite-cli/tests/test_cli_options.py`
+- Command/check: `git diff -- src/apex_infinite/cli.py tests/test_cli_options.py`
   - Result: PASS - diff is limited to the `sys.stdout.isatty()` bell guard and focused regression test.
   - Evidence: No unrelated compatibility changes were introduced.
 - UI product-surface check: PASS - notification behavior remains active for interactive terminals and desktop notifications; non-TTY logs no longer receive live-only control bytes.
@@ -229,9 +229,9 @@
 - `.spec_system/specs/phase00-session08-release-verification/compatibility-fixes.md` - added final compatibility posture review.
 - `.spec_system/specs/phase00-session08-release-verification/clean-room-audit.md` - updated source-shippable and binary-gated release position.
 - `.spec_system/SECURITY-COMPLIANCE.md` - refreshed cumulative security posture.
-- `apex-infinite-cli/README_apex-infinite-cli.md` - updated wrapper source/binary status.
-- `apex-infinite-cli/docs/operator-runbook.md` - updated wrapper source/binary status.
-- `apex-infinite-cli/docs/visual-wrapper-productization.md` - updated release position and packaging handoff.
+- `README.md` - updated wrapper source/binary status.
+- `docs/operator-runbook.md` - updated wrapper source/binary status.
+- `docs/visual-wrapper-productization.md` - updated release position and packaging handoff.
 - `.spec_system/specs/phase00-session08-release-verification/implementation-notes.md` - added T020 evidence.
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T020 complete and updated progress.
 
@@ -265,13 +265,13 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T021 complete and updated progress.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v`
+- Command/check: `python -m pytest tests/ -v`
   - Result: PASS - 222 tests collected and 222 passed in 10.86s.
   - Evidence: Full CLI, event, history, renderer, subprocess, prompt, UI config, and wrapper test suite passed.
-- Command/check: `bats tests/`
+- Command/check: `python -m pytest tests/ -v`
   - Result: PASS - 61 Bats tests passed.
   - Evidence: Root script and reference autonomy tests passed.
-- Command/check: `bash scripts/sync-plugin-payload.sh --check && bash scripts/analyze-project.sh --json | jq . && bash scripts/check-prereqs.sh --json --env | jq .`
+- Command/check: `bash .spec_system/scripts/analyze-project.sh --json && bash .spec_system/scripts/analyze-project.sh --json | jq . && bash .spec_system/scripts/check-prereqs.sh --json --env | jq .`
   - Result: PASS - plugin payload current; analyzer current session is Session 08; prereqs overall pass.
   - Evidence: Root workflow state and generated payload checks passed.
 - Command/check: Python quality/QML/wrapper command from T011.
@@ -313,7 +313,7 @@
 - Command/check: `git diff --check`
   - Result: PASS - command produced no output.
   - Evidence: Modified tracked files have no diff whitespace errors.
-- Command/check: `bash scripts/sync-plugin-payload.sh --check`
+- Command/check: `bash .spec_system/scripts/analyze-project.sh --json`
   - Result: PASS - output was `Plugin payload is current.`
   - Evidence: Generated plugin payload remains in sync.
 - Command/check: changed-file ASCII/LF/whitespace scan across modified and untracked files.
@@ -346,7 +346,7 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T011 complete and updated progress.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_events.py apex_infinite_ui.py apex_infinite_visual tests && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_events.py apex_infinite_ui.py apex_infinite_visual && ./.venv/bin/python -m py_compile apex_infinite.py apex_infinite_events.py apex_infinite_ui.py apex_infinite_visual/*.py && ./.venv/bin/pyside6-qmllint apex_infinite_visual/qml/Main.qml && QT_QPA_PLATFORM=offscreen ./.venv/bin/python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300`
+- Command/check: `python -m black --check src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py apex_infinite_visual tests && python -m pylint src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py apex_infinite_visual && python -m py_compile src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py src/apex_infinite_visual/*.py && pyside6-qmllint src/apex_infinite_visual/qml/Main.qml && QT_QPA_PLATFORM=offscreen python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300`
   - Result: PASS - command exited 0.
   - Evidence: Black unchanged 20 files; pylint 10.00/10; bytecode compile passed; QML lint exited 0 with unqualified-access warnings; offscreen smoke exited 0.
 - UI product-surface check: PASS - offscreen wrapper smoke completed without showing blocking diagnostics in normal launch.
@@ -370,25 +370,25 @@
 - Reran the full smoke matrix successfully in `/tmp/tmp.FegBh5VPsv`.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - suppress terminal bell for non-TTY stdout in `notify()`.
-- `apex-infinite-cli/tests/test_cli_options.py` - added focused regression test for redirected stdout notification behavior.
+- `src/apex_infinite/cli.py` - suppress terminal bell for non-TTY stdout in `notify()`.
+- `tests/test_cli_options.py` - added focused regression test for redirected stdout notification behavior.
 - `.spec_system/specs/phase00-session08-release-verification/release-verification.md` - recorded T012 PASS evidence and smoke row statuses.
 - `.spec_system/specs/phase00-session08-release-verification/compatibility-fixes.md` - recorded fix F001.
 - `.spec_system/specs/phase00-session08-release-verification/implementation-notes.md` - added T012 evidence.
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T012 complete and updated progress.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_cli_options.py::test_notify_does_not_emit_terminal_bell_to_redirected_stdout -v`
+- Command/check: `python -m pytest tests/test_cli_options.py::test_notify_does_not_emit_terminal_bell_to_redirected_stdout -v`
   - Result: PASS - 1 focused regression test passed.
   - Evidence: Test proves redirected stdout receives no terminal bell from `notify()`.
-- Command/check: T012 smoke matrix rerun from `apex-infinite-cli/` with isolated `HOME=<tmp>` per loop smoke.
+- Command/check: T012 smoke matrix rerun from `./` with isolated `HOME=<tmp>` per loop smoke.
   - Result: PASS - all matrix rows passed.
   - Evidence: `/tmp/tmp.FegBh5VPsv/results.txt` records PASS for help flags, dry-run prompt, empty history, verbose history, ASCII, compact, all five themes, `NO_COLOR`, `TERM=dumb`, redirected no-ANSI/ASCII, and invalid-theme clear error.
 - UI product-surface check: PASS - smoke output showed product-facing startup, history summary, manager decision, prompt preview, dry-run execution, DB log, and safety stop labels without debug/scaffolding copy.
 - UI craft check: PASS - plain, ASCII, compact, constrained, and theme modes kept critical labels visible; no ANSI or non-ASCII/control bytes remained in redirected conservative output.
 
 **BQC Fixes**:
-- Failure path completeness: prevented a notification BEL control byte from leaking into non-TTY logs while preserving desktop notification execution (`apex-infinite-cli/apex_infinite.py`).
+- Failure path completeness: prevented a notification BEL control byte from leaking into non-TTY logs while preserving desktop notification execution (`src/apex_infinite/cli.py`).
 
 ### Task T013 - Run event-stream smoke checks
 
@@ -410,7 +410,7 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T013 complete and updated progress.
 
 **Verification**:
-- Command/check: T013 event-stream smoke script from `apex-infinite-cli/`.
+- Command/check: T013 event-stream smoke script from `./`.
   - Result: PASS - all event-stream checks passed.
   - Evidence: `/tmp/tmp.A15goG7gW8/results.txt` records 19 valid events for file JSONL, 19 valid events for machine stdout JSONL, no unsafe token matches, empty machine-output stderr, and unguarded stdout event stream exit 2.
 - Command/check: Unsafe payload scans for ANSI, Rich markup, human-output collisions, visual token names, copied reference identifiers, and secret-like values.
@@ -438,7 +438,7 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T014 complete and updated progress.
 
 **Verification**:
-- Command/check: `HOME=<tmp> ./.venv/bin/python apex_infinite.py --path /home/aiwithapex/projects/apex-spec-system-open --start plansession --dry-run --max-iterations 1 --plain --event-stream <tmp>/plansession-events.jsonl`
+- Command/check: `HOME=<tmp> apex-infinite --path /home/aiwithapex/projects/apex-infinite-cli --start plansession --dry-run --max-iterations 1 --plain --event-stream <tmp>/plansession-events.jsonl`
   - Result: PASS - command exited 0 with empty stderr.
   - Evidence: `/tmp/tmp.ZIrzsR5zae` captured stdout and events; prompt output contained `Run the apex-spec skill command /plansession`.
 - Command/check: JSONL schema validation of `<tmp>/plansession-events.jsonl`.
@@ -471,13 +471,13 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T015 complete and updated progress.
 
 **Verification**:
-- Command/check: `HOME=<tmp> ./.venv/bin/python apex_infinite.py --path /home/aiwithapex/projects/apex-spec-system-open --start implement --dry-run --max-iterations 1 --plain --ascii`
+- Command/check: `HOME=<tmp> apex-infinite --path /home/aiwithapex/projects/apex-infinite-cli --start implement --dry-run --max-iterations 1 --plain --ascii`
   - Result: PASS - command exited 0 with empty stderr.
   - Evidence: Temp DB created at `/tmp/tmp.qdf69f9Uva/home/.apex-infinite/history.db`.
 - Command/check: Python SQLite schema and raw-row scan.
   - Result: PASS - DB has columns `id,path,cc_response,ai_decision_output,ai_decision_reason,help_or_done_msg,created_at`; one row stored; raw scan passed.
   - Evidence: Stored `ai_decision_output` was `implement` and reason was `User-specified start command`.
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_history_rendering.py -v`
+- Command/check: `python -m pytest tests/test_history_rendering.py -v`
   - Result: PASS - 12 history-rendering tests passed.
   - Evidence: Output ended with `12 passed in 0.38s`.
 - UI product-surface check: N/A - no user-facing UI changed.
@@ -490,7 +490,7 @@
 **Duration**: 2 minutes
 
 **Notes**:
-- Ran the complete CLI pytest suite from `apex-infinite-cli/`.
+- Ran the complete CLI pytest suite from `./`.
 - No failures, skips, or compatibility fixes were required.
 
 **Files Changed**:
@@ -499,7 +499,7 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T009 complete and updated progress.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v`
+- Command/check: `python -m pytest tests/ -v`
   - Result: PASS - 221 tests collected and 221 passed.
   - Evidence: Pytest completed in 10.83s with exit code 0.
 - UI product-surface check: PASS - wrapper and terminal UI product-surface tests passed as part of the 221-test suite.
@@ -522,16 +522,16 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T010 complete and updated progress.
 
 **Verification**:
-- Command/check: `bats tests/`
+- Command/check: `python -m pytest tests/ -v`
   - Result: PASS - 61 Bats tests passed.
   - Evidence: TAP output ended at `ok 61 workflow docs do not contain interactive handoff phrases`.
-- Command/check: `bash scripts/sync-plugin-payload.sh --check`
+- Command/check: `bash .spec_system/scripts/analyze-project.sh --json`
   - Result: PASS - plugin payload is current.
   - Evidence: Command output was `Plugin payload is current.`
-- Command/check: `bash scripts/analyze-project.sh --json | jq .`
+- Command/check: `bash .spec_system/scripts/analyze-project.sh --json | jq .`
   - Result: PASS - analyzer emitted valid JSON for `phase00-session08-release-verification`.
   - Evidence: `current_session_dir_exists` is true and seven sessions are completed.
-- Command/check: `bash scripts/check-prereqs.sh --json --env | jq .`
+- Command/check: `bash .spec_system/scripts/check-prereqs.sh --json --env | jq .`
   - Result: PASS - prereq checker reported `overall: pass`.
   - Evidence: `.spec_system`, jq 1.7, and git 2.43.0 detected; no issues.
 - UI product-surface check: N/A - no user-facing UI changed.
@@ -558,10 +558,10 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T008 complete and updated progress.
 
 **Verification**:
-- Command/check: `rg -n "PySide6|QML|qt|AppImage|SHA256|source/relink|license|LGPL|commercial|requirements-wrapper|dry-run|auto-close|timeout|malformed|stderr|Process failed|Timed out|CLI missing|plain fallback|effect|font|reduced|theme|fixture|event-stream|machine-output" apex-infinite-cli/apex_infinite_visual apex-infinite-cli/requirements-wrapper.txt apex-infinite-cli/tests/test_visual_wrapper_spike.py apex-infinite-cli/tests/test_visual_wrapper_productization.py apex-infinite-cli/visual-wrapper-*.md | sed -n '1,260p'`
+- Command/check: `rg -n "PySide6|QML|qt|AppImage|SHA256|source/relink|license|LGPL|commercial|requirements-wrapper|dry-run|auto-close|timeout|malformed|stderr|Process failed|Timed out|CLI missing|plain fallback|effect|font|reduced|theme|fixture|event-stream|machine-output" src/apex_infinite_visual requirements-wrapper.txt tests/test_visual_wrapper_spike.py tests/test_visual_wrapper_productization.py visual-wrapper-*.md | sed -n '1,260p'`
   - Result: PASS - source wrapper, tests, optional dependency, license, and binary gate evidence are present.
   - Evidence: Hits include PySide6/QML, guarded event-stream command, source smoke, failure states, settings controls, LGPL/commercial, AppImage, SHA256, and source/relink.
-- Command/check: Targeted reads of `tests/test_visual_wrapper_productization.py`, `apex_infinite_visual/main.py`, and `apex_infinite_visual/launcher.py`.
+- Command/check: Targeted reads of `tests/test_visual_wrapper_productization.py`, `src/apex_infinite_visual/main.py`, and `src/apex_infinite_visual/launcher.py`.
   - Result: PASS - wrapper command construction, import isolation, settings, failure states, and cleanup behavior have testable surfaces.
   - Evidence: `clean-room-audit.md` now maps source-shippable and binary-gated checks to T009, T011, T013, T018, T020, and T021.
 - UI product-surface check: N/A - no user-facing UI changed.
@@ -588,10 +588,10 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T007 complete and updated progress.
 
 **Verification**:
-- Command/check: `rg -n "ANSI|Rich|markup|frame|glyph|token|secret|api|history|SQLite|cc_response|event|payload|validate|secret-looking|visual" apex-infinite-cli/tests/test_history_rendering.py apex-infinite-cli/tests/test_event_stream.py apex-infinite-cli/apex_infinite_events.py apex-infinite-cli/apex_infinite.py | sed -n '1,260p'`
+- Command/check: `rg -n "ANSI|Rich|markup|frame|glyph|token|secret|api|history|SQLite|cc_response|event|payload|validate|secret-looking|visual" tests/test_history_rendering.py tests/test_event_stream.py src/apex_infinite/events.py src/apex_infinite/cli.py | sed -n '1,260p'`
   - Result: PASS - current code and tests expose the safety points needed for release verification.
   - Evidence: Hits include event payload validation, secret-like key/value checks, ANSI/Rich/frame rejection, and history raw-row tests.
-- Command/check: Targeted reads of `tests/test_event_stream.py`, `tests/test_history_rendering.py`, and `apex_infinite_events.py`.
+- Command/check: Targeted reads of `tests/test_event_stream.py`, `tests/test_history_rendering.py`, and `src/apex_infinite/events.py`.
   - Result: PASS - event and history behavior can be verified without live provider or Codex execution.
   - Evidence: Tests cover JSONL writing, stdout guardrails, payload validation, history render modes, and no persistence of display derivations.
 - UI product-surface check: N/A - no user-facing UI changed.
@@ -619,13 +619,13 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T006 complete and updated progress.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python apex_infinite.py --help | sed -n '1,180p'`
+- Command/check: `apex-infinite --help | sed -n '1,180p'`
   - Result: PASS - help output lists all smoke-target flags.
   - Evidence: Output includes `--theme`, `--plain`, `--ascii`, `--compact`, `--event-stream`, and `--machine-output`.
-- Command/check: `rg -n "theme|plain|ascii|compact|event_stream|machine_output|NO_COLOR|TERM|is_terminal|dry_run|history" apex-infinite-cli/apex_infinite.py apex-infinite-cli/apex_infinite_ui.py apex-infinite-cli/tests/test_cli_options.py apex-infinite-cli/tests/test_ui_config.py | sed -n '1,240p'`
+- Command/check: `rg -n "theme|plain|ascii|compact|event_stream|machine_output|NO_COLOR|TERM|is_terminal|dry_run|history" src/apex_infinite/cli.py src/apex_infinite/ui.py tests/test_cli_options.py tests/test_ui_config.py | sed -n '1,240p'`
   - Result: PASS - implementation and tests contain the expected option and environment coverage points.
   - Evidence: Hits include click options, UI resolution, `NO_COLOR`, `TERM=dumb`, non-terminal console handling, history, and event guard tests.
-- Command/check: `rg -n "crt-green|crt-amber|ibm-dos|plain|auto" apex-infinite-cli/apex_infinite_ui.py apex-infinite-cli/tests/test_ui_config.py apex-infinite-cli/config.yaml`
+- Command/check: `rg -n "crt-green|crt-amber|ibm-dos|plain|auto" src/apex_infinite/ui.py tests/test_ui_config.py src/apex_infinite/config.yaml`
   - Result: PASS - built-in theme names and tests match the smoke matrix.
   - Evidence: `BUILT_IN_THEME_NAMES` lists `auto`, `crt-green`, `crt-amber`, `ibm-dos`, and `plain`.
 - UI product-surface check: N/A - no user-facing UI changed.
@@ -686,10 +686,10 @@
 - Command/check: `grep -n '^/EXAMPLE/' .gitignore && test -d EXAMPLE/cool-retro-term && printf 'example tree present and ignored by rule\n' || true`
   - Result: PASS - `.gitignore` contains `/EXAMPLE/` and the local reference tree exists under that ignored path.
   - Evidence: Output reported line 8 and `example tree present and ignored by rule`.
-- Command/check: `rg -n "Forbidden Copying|EXAMPLE|reference-only|PySide6|LGPL|AppImage|SHA256|source/relink|requirements-wrapper|base CLI|graphical|QTermWidget|qmltermwidget|copied|shader|GPL" apex-infinite-cli/docs/visual-wrapper-boundary.md apex-infinite-cli/docs/visual-wrapper-productization.md apex-infinite-cli/docs/visual-wrapper-spike.md .spec_system/SECURITY-COMPLIANCE.md .gitignore | sed -n '1,220p'`
+- Command/check: `rg -n "Forbidden Copying|EXAMPLE|reference-only|PySide6|LGPL|AppImage|SHA256|source/relink|requirements-wrapper|base CLI|graphical|QTermWidget|qmltermwidget|copied|shader|GPL" docs/visual-wrapper-boundary.md docs/visual-wrapper-productization.md docs/visual-wrapper-spike.md .spec_system/SECURITY-COMPLIANCE.md .gitignore | sed -n '1,220p'`
   - Result: PASS - boundary, license, optional dependency, packaging, and no-copy terms are documented.
   - Evidence: Hits include forbidden copying, base CLI graphical exclusions, PySide6 LGPL/commercial gates, AppImage, SHA256, source/relink, and `requirements-wrapper`.
-- Command/check: `rg -n "PySide6|QtQuick|Qt Quick|qml|apex_infinite_visual|Nuitka" apex-infinite-cli/requirements.txt apex-infinite-cli/apex_infinite.py apex-infinite-cli/apex_infinite_events.py apex-infinite-cli/apex_infinite_ui.py || true`
+- Command/check: `rg -n "PySide6|QtQuick|Qt Quick|qml|apex_infinite_visual|Nuitka" requirements.txt src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py || true`
   - Result: PASS - command produced no output.
   - Evidence: Base CLI runtime files and base requirements have no wrapper dependency references.
 - UI product-surface check: N/A - no user-facing UI changed.
@@ -716,12 +716,12 @@
 - `.spec_system/specs/phase00-session08-release-verification/tasks.md` - marked T003 complete and updated progress.
 
 **Verification**:
-- Command/check: `rg -n "theme|plain|ascii|compact|event-stream|machine-output|history|prompt|wrapper|PySide6|LGPL|AppImage|SHA256|NO_COLOR|TERM=dumb|license|dependency|troubleshoot|transcript" apex-infinite-cli/README_apex-infinite-cli.md apex-infinite-cli .spec_system/PRD .github/workflows apex-infinite-cli/requirements*.txt | sed -n '1,260p'`
+- Command/check: `rg -n "theme|plain|ascii|compact|event-stream|machine-output|history|prompt|wrapper|PySide6|LGPL|AppImage|SHA256|NO_COLOR|TERM=dumb|license|dependency|troubleshoot|transcript" README.md docs .spec_system/PRD requirements*.txt | sed -n '1,260p'`
   - Result: PASS - required release topics were found across README, docs, transcripts, PRD, workflows, and requirements.
   - Evidence: Hits include UI modes, event stream guardrails, history, prompt contract, PySide6, AppImage, SHA256, LGPL, and troubleshooting.
-- Command/check: `rg -n "name:|pytest|bats|black|pylint|sync-plugin|pip-audit|shellcheck|pyside6|qmllint|AppImage|release|upload" .github/workflows`
-  - Result: PASS - local verification matrix can map to workflow checks for quality, test, integration, security, and release.
-  - Evidence: Workflow hits include Bats, sync check, shellcheck/shfmt, ASCII/LF, security, and release file/version gates.
+- Command/check: `rg -n "pytest|black|pylint|pip-audit|pyside6|qmllint|AppImage|release" README.md docs pyproject.toml requirements*.txt`
+  - Result: PASS - local verification matrix can map to quality, test, security, and release checks.
+  - Evidence: Hits include pytest, black, pylint, dependency audit, QML lint, and release guidance.
 - Command/check: `rg -n "^#|^##|PASS|Tests Passing|Quality gate|Clean-room|Security|Next command" .spec_system/specs/phase00-session0{1,2,3,4,5,6,7}-*/validation.md | sed -n '1,260p'`
   - Result: PASS - prior validation reports contain PASS evidence, test evidence, security posture, and handoffs.
   - Evidence: Sessions 01 through 07 validations are available and Session 07 records source wrapper PASS.

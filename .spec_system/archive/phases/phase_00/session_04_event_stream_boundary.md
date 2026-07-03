@@ -75,27 +75,27 @@ renderers and wrappers.
 <!-- FOLDED_SESSION_SOURCE_START -->
 
 This section carries forward the actionable session material formerly stored in
-`docs/ongoing-projects/apex-infinite-cli-upgrade-plan.md`. The Phase 00 PRD
+`.spec_system/archive/phases/phase_00/PRD_phase_00.md`. The Phase 00 PRD
 contains the verbatim archive; this stub keeps the session-specific details and
 full-path `EXAMPLE/` references close to the session executor.
 
 ### EXAMPLE Reference Links
 
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/main.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/main.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/main.cpp](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/main.cpp)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/.gitmodules](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/.gitmodules)
+- [EXAMPLE/cool-retro-term/app/qml/main.qml](../../../../EXAMPLE/cool-retro-term/app/qml/main.qml)
+- [EXAMPLE/cool-retro-term/app/main.cpp](../../../../EXAMPLE/cool-retro-term/app/main.cpp)
+- [EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml](../../../../EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml)
+- [EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml](../../../../EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml)
+- [EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml](../../../../EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml)
+- [EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml](../../../../EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TimeManager.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TimeManager.qml)
+- [EXAMPLE/cool-retro-term/app/qml/Storage.qml](../../../../EXAMPLE/cool-retro-term/app/qml/Storage.qml)
+- [EXAMPLE/cool-retro-term/app/fileio.cpp](../../../../EXAMPLE/cool-retro-term/app/fileio.cpp)
+- [EXAMPLE/cool-retro-term/app/fileio.h](../../../../EXAMPLE/cool-retro-term/app/fileio.h)
+- [EXAMPLE/cool-retro-term/.gitmodules](../../../../EXAMPLE/cool-retro-term/.gitmodules)
 
 ### Detailed Session Split Source
 
@@ -142,32 +142,32 @@ needed by future renderers and wrappers.
 
 **EXAMPLE Reference Paths**:
 - Study root application and window creation flow for lifecycle event grouping:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/main.qml`
+  `EXAMPLE/cool-retro-term/app/qml/main.qml`
 - Study root C++ to QML wiring, arguments, application metadata, and import
   paths:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/main.cpp`
+  `EXAMPLE/cool-retro-term/app/main.cpp`
 - Study application-wide settings as the event/context model checklist:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`
+  `EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`
 - Study lifecycle flow from window to tabs to terminal surface:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml`
+  `EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml`
 - Study render-stage separation for event names, not implementation:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TimeManager.qml`
 - Study persisted settings and file import/export boundaries for event payload
   stability:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp`,
+  `EXAMPLE/cool-retro-term/app/qml/Storage.qml`,
+  `EXAMPLE/cool-retro-term/app/fileio.cpp`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h`
+  `EXAMPLE/cool-retro-term/app/fileio.h`
 - Study submodule declarations only to confirm what not to depend on:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/.gitmodules`
+  `EXAMPLE/cool-retro-term/.gitmodules`
 
 **Acceptance Checks**:
 - Rich output and future wrappers can consume the same lifecycle facts.

@@ -23,11 +23,11 @@ CLI runtime dependencies.
 
 | File | Purpose | Lines |
 |------|---------|-------|
-| `apex-infinite-cli/docs/visual-wrapper-boundary.md` | Clean-room visual-wrapper rules, ignored reference boundary, optional PySide6/Qt Quick/QML direction, exclusions, and backup path | 184 |
-| `apex-infinite-cli/docs/transcripts/README_transcripts.md` | Transcript index, sample-use rules, and related documentation links | 55 |
-| `apex-infinite-cli/docs/transcripts/dry-run-plain.txt` | Deterministic plain dry-run sample for fallback output | 66 |
-| `apex-infinite-cli/docs/transcripts/history-ledger.txt` | Deterministic history ledger sample for compact and verbose display semantics | 52 |
-| `apex-infinite-cli/docs/transcripts/machine-output-events.jsonl` | Deterministic machine-output JSONL event sequence | 19 |
+| `docs/visual-wrapper-boundary.md` | Clean-room visual-wrapper rules, ignored reference boundary, optional PySide6/Qt Quick/QML direction, exclusions, and backup path | 184 |
+| `docs/transcripts/README_transcripts.md` | Transcript index, sample-use rules, and related documentation links | 55 |
+| `docs/transcripts/dry-run-plain.txt` | Deterministic plain dry-run sample for fallback output | 66 |
+| `docs/transcripts/history-ledger.txt` | Deterministic history ledger sample for compact and verbose display semantics | 52 |
+| `docs/transcripts/machine-output-events.jsonl` | Deterministic machine-output JSONL event sequence | 19 |
 | `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/code-review.md` | Code review and repair report | 92 |
 | `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/security-compliance.md` | Security and GDPR compliance report | 92 |
 | `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/validation.md` | Validation evidence and final PASS report | 202 |
@@ -36,19 +36,19 @@ CLI runtime dependencies.
 
 | File | Changes |
 |------|---------|
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Added UI config, built-in themes, custom theme overrides, display flags, event-stream examples, transcript links, and deep-dive navigation |
-| `apex-infinite-cli/docs/operator-runbook.md` | Added theme selection, fallback modes, CI/log guidance, remote-shell guidance, constrained-terminal handling, event-stream operating modes, and sample references |
-| `apex-infinite-cli/docs/event-stream.md` | Added transcript links, wrapper consumption guidance, stdout isolation rules, payload safety notes, and no-Rich-parsing boundary |
-| `apex-infinite-cli/docs/history-db.md` | Documented render-time status labels, stored-state precedence, truncation, verbose output, raw SQLite storage, and transcript links |
-| `apex-infinite-cli/docs/prompt-contract.md` | Confirmed UI, history, event-stream, machine-output, and wrapper docs do not alter manager prompts, summarizer prompts, routing normalization, or prompt building |
-| `apex-infinite-cli/docs/troubleshooting.md` | Added fallback rendering, non-UTF terminal, narrow-width, `NO_COLOR`, `TERM=dumb`, redirected-output, remote-shell, event-stream misuse, and wrapper parsing guidance |
-| `docs/CREDITS.md` | Replaced direct-code wording with clean-room conceptual-inspiration wording |
+| `README.md` | Added UI config, built-in themes, custom theme overrides, display flags, event-stream examples, transcript links, and deep-dive navigation |
+| `docs/operator-runbook.md` | Added theme selection, fallback modes, CI/log guidance, remote-shell guidance, constrained-terminal handling, event-stream operating modes, and sample references |
+| `docs/event-stream.md` | Added transcript links, wrapper consumption guidance, stdout isolation rules, payload safety notes, and no-Rich-parsing boundary |
+| `docs/history-db.md` | Documented render-time status labels, stored-state precedence, truncation, verbose output, raw SQLite storage, and transcript links |
+| `docs/prompt-contract.md` | Confirmed UI, history, event-stream, machine-output, and wrapper docs do not alter manager prompts, summarizer prompts, routing normalization, or prompt building |
+| `docs/troubleshooting.md` | Added fallback rendering, non-UTF terminal, narrow-width, `NO_COLOR`, `TERM=dumb`, redirected-output, remote-shell, event-stream misuse, and wrapper parsing guidance |
+| `docs/visual-wrapper-boundary.md` | Replaced direct-code wording with clean-room conceptual-inspiration wording |
 | `.spec_system/state.json` | Recorded Session 05 planning, validation, and completion state |
-| `.spec_system/PRD/phase_00/PRD_phase_00.md` | Marked Session 05 complete and updated phase progress to 5/8 |
-| `.spec_system/PRD/phase_00/session_05_docs_samples_and_runbooks.md` | Marked prerequisites and success criteria complete |
+| `.spec_system/archive/phases/phase_00/PRD_phase_00.md` | Marked Session 05 complete and updated phase progress to 5/8 |
+| `.spec_system/archive/phases/phase_00/session_05_docs_samples_and_runbooks.md` | Marked prerequisites and success criteria complete |
 | `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/spec.md` | Updated session status and final handoff |
 | `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` | Updated final handoff after validation and completion |
-| `README.md`, `SKILL.md`, `AGENTS.md`, `plugins/apex-spec/.codex-plugin/plugin.json` | Bumped project version from `2.1.11-codex` to `2.1.12-codex` |
+| `README.md`, `pyproject.toml`, `CHANGELOG.md` | Recorded standalone package version metadata and release notes |
 
 ---
 

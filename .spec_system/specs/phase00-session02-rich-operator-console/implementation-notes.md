@@ -22,7 +22,7 @@
 
 **Environment verified**:
 - [x] Prerequisites confirmed
-- [x] Tools available through `apex-infinite-cli/.venv/bin`
+- [x] Tools available through local Python environment
 - [x] Directory structure ready
 
 ---
@@ -51,7 +51,7 @@
 - Command/check: `sed -n '1,240p' .spec_system/specs/phase00-session01-config-and-renderer-boundary/validation.md`
   - Result: PASS - validation report records PASS across task completion, deliverables, ASCII/LF, tests, conventions, security, behavioral quality, and UI product surface.
   - Evidence: report states `Result: PASS`, `Tasks Complete | PASS`, and `Tests Passing | PASS`.
-- Command/check: `rg -n "def |class |@dataclass|BUILT_IN_THEMES|print_" apex-infinite-cli/apex_infinite_ui.py`
+- Command/check: `rg -n "def |class |@dataclass|BUILT_IN_THEMES|print_" src/apex_infinite/ui.py`
   - Result: PASS - current renderer contracts and helper boundaries were mapped before editing.
   - Evidence: output lists `ThemeTokens`, `GlyphSet`, `UiSettings`, `StartupSnapshot`, `CodexCommandSnapshot`, `ApexRenderer`, and existing `print_*` helpers.
 - UI product-surface check: N/A - setup and evidence review task.
@@ -66,7 +66,7 @@
 **Duration**: 1 minute
 
 **Notes**:
-- Mapped the current display integration points in `apex_infinite.py` before
+- Mapped the current display integration points in `src/apex_infinite/cli.py` before
   adding richer context.
 - Startup wiring is in `main()`: config and UI settings resolve first, then
   `StartupSnapshot` is passed to `renderer.print_startup()`.
@@ -84,10 +84,10 @@
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T002 call-site map and evidence.
 
 **Verification**:
-- Command/check: `rg -n "def |@click|db_log\\(|print_|execute_codex|llm_|build_codex_prompt|renderer" apex-infinite-cli/apex_infinite.py`
+- Command/check: `rg -n "def |@click|db_log\\(|print_|execute_codex|llm_|build_codex_prompt|renderer" src/apex_infinite/cli.py`
   - Result: PASS - all current renderer and DB logging call sites were identified.
   - Evidence: output lists renderer calls in signal handling, history mode, `execute_codex()`, `infinite_loop()`, and `main()`, plus `db_log()` call sites.
-- Command/check: `sed -n '946,1110p' apex-infinite-cli/apex_infinite.py`
+- Command/check: `sed -n '946,1110p' src/apex_infinite/cli.py`
   - Result: PASS - inspected the autonomous loop around iteration, help, completion, prompt, execution, DB log, and max-iteration branches.
   - Evidence: loop currently renders before and after manager/Codex work and calls `db_log()` after successful branch decisions.
 - UI product-surface check: N/A - call-site mapping task.
@@ -110,11 +110,11 @@
 - Added a small fixture smoke test so the new module is exercised immediately.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_operator_console.py` - created operator-console test fixture module and fixture smoke coverage.
+- `tests/test_operator_console.py` - created operator-console test fixture module and fixture smoke coverage.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T003 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_operator_console.py -q`
   - Result: PASS - operator-console fixture smoke coverage passed.
   - Evidence: 3 tests passed.
 - UI product-surface check: N/A - test fixture setup task.
@@ -138,15 +138,15 @@
   of Session 01 panel titles and severity prefixes.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - added theme-token fields, built-in token values, semantic label maps, and Codex state label text.
-- `apex-infinite-cli/tests/test_renderer.py` - updated renderer assertions for new semantic labels.
+- `src/apex_infinite/ui.py` - added theme-token fields, built-in token values, semantic label maps, and Codex state label text.
+- `tests/test_renderer.py` - updated renderer assertions for new semantic labels.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T004 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_ui_config.py tests/test_renderer.py tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_ui_config.py tests/test_renderer.py tests/test_operator_console.py -q`
   - Result: PASS - theme resolver, renderer, and operator-console fixture tests pass with new labels and token fields.
   - Evidence: 29 tests passed.
-- Command/check: `rg -n "SEMANTIC_LABELS|CODEX_STATE_LABELS|dry_run|separator" apex-infinite-cli/apex_infinite_ui.py`
+- Command/check: `rg -n "SEMANTIC_LABELS|CODEX_STATE_LABELS|dry_run|separator" src/apex_infinite/ui.py`
   - Result: PASS - semantic labels and refined token fields exist in the renderer boundary.
   - Evidence: command locates label maps, Codex state labels, token fields, and built-in values.
 - UI product-surface check: PASS - labels are product-facing operational states, not renderer diagnostics.
@@ -173,14 +173,14 @@
   backward-compatible by adapting integer calls into an `IterationSnapshot`.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - added `IterationSnapshot` and adapted `print_iteration()` to consume snapshots or the legacy integer call shape.
+- `src/apex_infinite/ui.py` - added `IterationSnapshot` and adapted `print_iteration()` to consume snapshots or the legacy integer call shape.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T005 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
   - Result: PASS - renderer tests still pass with the new snapshot-compatible iteration path.
   - Evidence: 12 tests passed.
-- Command/check: `rg -n "class IterationSnapshot|def print_iteration|def _status_rows" apex-infinite-cli/apex_infinite_ui.py`
+- Command/check: `rg -n "class IterationSnapshot|def print_iteration|def _status_rows" src/apex_infinite/ui.py`
   - Result: PASS - snapshot contract and renderer consumption path are present.
   - Evidence: command locates the dataclass, public renderer method, and status row helper.
 - UI product-surface check: PASS - iteration context is limited to operational facts requested by PRD UX.
@@ -206,14 +206,14 @@
   do not render decorative separators.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - added status-strip helpers and separator suppression rules.
+- `src/apex_infinite/ui.py` - added status-strip helpers and separator suppression rules.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T006 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
   - Result: PASS - renderer and operator-console fixture tests pass after status-strip and separator changes.
   - Evidence: 12 tests passed.
-- Command/check: `rg -n "print_status_strip|_print_effect_separator|_effects_enabled|horizontal=\"-\"" apex-infinite-cli/apex_infinite_ui.py`
+- Command/check: `rg -n "print_status_strip|_print_effect_separator|_effects_enabled|horizontal=\"-\"" src/apex_infinite/ui.py`
   - Result: PASS - status-strip and separator helper code exists in the renderer boundary.
   - Evidence: command locates the public status-strip method, effect checks, and ASCII separator glyph.
 - UI product-surface check: PASS - iteration facts are product-facing status fields and do not expose debug diagnostics.
@@ -241,15 +241,15 @@
   binary, and generic error paths.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - added `DbLogSnapshot`, `print_db_log()`, Codex state label text, and label-aware render methods.
-- `apex-infinite-cli/tests/test_renderer.py` - updated assertions for new semantic labels.
+- `src/apex_infinite/ui.py` - added `DbLogSnapshot`, `print_db_log()`, Codex state label text, and label-aware render methods.
+- `tests/test_renderer.py` - updated assertions for new semantic labels.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T007 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
   - Result: PASS - semantic renderer coverage passes with new labels.
   - Evidence: 12 tests passed.
-- Command/check: `rg -n "print_db_log|print_json_fallback|CODEX_STATE_TEXT|TIMEOUT|DRY RUN|LOGGED" apex-infinite-cli/apex_infinite_ui.py apex-infinite-cli/tests/test_renderer.py`
+- Command/check: `rg -n "print_db_log|print_json_fallback|CODEX_STATE_TEXT|TIMEOUT|DRY RUN|LOGGED" src/apex_infinite/ui.py tests/test_renderer.py`
   - Result: PASS - critical state labels and DB log rendering hooks are present.
   - Evidence: command locates renderer states and test assertions.
 - UI product-surface check: PASS - critical states use operational labels from the PRD UX vocabulary.
@@ -267,7 +267,7 @@
 **Duration**: 1 minute
 
 **Notes**:
-- Kept DB persistence in `apex_infinite.py` unchanged while adding
+- Kept DB persistence in `src/apex_infinite/cli.py` unchanged while adding
   display-only DB log confirmation to the renderer boundary.
 - Added `DbLogSnapshot` as a separate rendered fact object rather than mixing
   rendered labels into stored history rows.
@@ -275,16 +275,16 @@
   write rendering hooks.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - added display-only DB log snapshot and rendering method.
-- `apex-infinite-cli/tests/test_renderer.py` - retained raw-history safety assertions while updating semantic-label expectations.
+- `src/apex_infinite/ui.py` - added display-only DB log snapshot and rendering method.
+- `tests/test_renderer.py` - retained raw-history safety assertions while updating semantic-label expectations.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T008 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_renderer.py::test_sqlite_history_stores_raw_values_without_renderer_labels -q`
+- Command/check: `python -m pytest tests/test_renderer.py::test_sqlite_history_stores_raw_values_without_renderer_labels -q`
   - Result: PASS - stored history row values remain raw and contain no renderer labels, ANSI escapes, Rich markup, frame glyphs, or non-ASCII characters.
   - Evidence: 1 test passed.
-- Command/check: `rg -n "INSERT INTO history|print_db_log|DbLogSnapshot" apex-infinite-cli/apex_infinite.py apex-infinite-cli/apex_infinite_ui.py`
-  - Result: PASS - SQLite insert logic remains in `apex_infinite.py`; DB log rendering is isolated to renderer helpers.
+- Command/check: `rg -n "INSERT INTO history|print_db_log|DbLogSnapshot" src/apex_infinite/cli.py src/apex_infinite/ui.py`
+  - Result: PASS - SQLite insert logic remains in `src/apex_infinite/cli.py`; DB log rendering is isolated to renderer helpers.
   - Evidence: command locates unchanged insert SQL separately from `DbLogSnapshot` and `print_db_log()`.
 - UI product-surface check: PASS - DB write confirmation is product-facing operational feedback, not a raw database debug dump.
 - UI craft check: PASS - displayed DB write facts are concise and do not alter durable data.
@@ -310,15 +310,15 @@
   or debug status are exposed.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - redesigned `print_startup()` output as a boot/status panel.
-- `apex-infinite-cli/tests/test_renderer.py` - updated startup semantic-label expectations.
+- `src/apex_infinite/ui.py` - redesigned `print_startup()` output as a boot/status panel.
+- `tests/test_renderer.py` - updated startup semantic-label expectations.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T009 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
   - Result: PASS - renderer startup coverage passes with the new boot panel.
   - Evidence: 12 tests passed.
-- Command/check: `rg -n "Apex Infinite Operator Console|Effects|Glyphs|Output fallback" apex-infinite-cli/apex_infinite_ui.py apex-infinite-cli/tests/test_renderer.py`
+- Command/check: `rg -n "Apex Infinite Operator Console|Effects|Glyphs|Output fallback" src/apex_infinite/ui.py tests/test_renderer.py`
   - Result: PASS - startup panel facts and semantic title are present.
   - Evidence: command locates startup title, effect/glyph rows, fallback row, and test assertions.
 - UI product-surface check: PASS - first startup surface shows operator context only.
@@ -343,14 +343,14 @@
   existing tests and gradual call-site migration.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - added iteration frame/status-strip rendering.
+- `src/apex_infinite/ui.py` - added iteration frame/status-strip rendering.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T010 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
   - Result: PASS - iteration frame tests pass at supported fixture widths.
   - Evidence: 12 tests passed.
-- Command/check: `rg -n "Iteration Frame|print_status_strip|_status_rows" apex-infinite-cli/apex_infinite_ui.py apex-infinite-cli/tests/test_renderer.py`
+- Command/check: `rg -n "Iteration Frame|print_status_strip|_status_rows" src/apex_infinite/ui.py tests/test_renderer.py`
   - Result: PASS - frame title, status-strip method, and status row helper are present.
   - Evidence: command locates implementation and test assertions.
 - UI product-surface check: PASS - iteration frame shows workflow status facts only.
@@ -368,7 +368,7 @@
 **Duration**: 1 minute
 
 **Notes**:
-- Added `build_iteration_snapshot()` in `apex_infinite.py` to build
+- Added `build_iteration_snapshot()` in `src/apex_infinite/cli.py` to build
   renderer-only loop context from existing config, path, iteration, dry-run,
   operation, and monotonic elapsed time facts.
 - Wired `infinite_loop()` to pass a full `IterationSnapshot` into
@@ -377,14 +377,14 @@
   unchanged.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - added iteration snapshot helper and loop wiring.
+- `src/apex_infinite/cli.py` - added iteration snapshot helper and loop wiring.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T011 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_cli_options.py tests/test_renderer.py -q`
+- Command/check: `python -m pytest tests/test_cli_options.py tests/test_renderer.py -q`
   - Result: PASS - CLI wiring and renderer tests pass after loop snapshot integration.
   - Evidence: 14 tests passed.
-- Command/check: `rg -n "build_iteration_snapshot|IterationSnapshot|run_started_at|renderer.print_iteration" apex-infinite-cli/apex_infinite.py`
+- Command/check: `rg -n "build_iteration_snapshot|IterationSnapshot|run_started_at|renderer.print_iteration" src/apex_infinite/cli.py`
   - Result: PASS - loop context helper and call-site wiring are present.
   - Evidence: command locates import, helper, run timer, and snapshot call.
 - UI product-surface check: PASS - loop context displays existing operator facts only.
@@ -402,7 +402,7 @@
 **Duration**: 1 minute
 
 **Notes**:
-- Added `build_db_log_snapshot()` in `apex_infinite.py` to build
+- Added `build_db_log_snapshot()` in `src/apex_infinite/cli.py` to build
   renderer-only history write context after `db_log()` succeeds.
 - Added `renderer.print_db_log()` calls after successful normal iteration,
   help-pause, and completion history writes.
@@ -410,15 +410,15 @@
   unchanged.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - added DB log snapshot helper and post-commit renderer calls.
-- `apex-infinite-cli/apex_infinite_ui.py` - added display-only DB log renderer in the previous renderer-boundary step.
+- `src/apex_infinite/cli.py` - added DB log snapshot helper and post-commit renderer calls.
+- `src/apex_infinite/ui.py` - added display-only DB log renderer in the previous renderer-boundary step.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T012 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_renderer.py::test_sqlite_history_stores_raw_values_without_renderer_labels tests/test_cli_options.py -q`
+- Command/check: `python -m pytest tests/test_renderer.py::test_sqlite_history_stores_raw_values_without_renderer_labels tests/test_cli_options.py -q`
   - Result: PASS - raw DB history safety and CLI wiring tests pass after DB log display wiring.
   - Evidence: 6 tests passed.
-- Command/check: `rg -n "db_log\\(|print_db_log|build_db_log_snapshot" apex-infinite-cli/apex_infinite.py`
+- Command/check: `rg -n "db_log\\(|print_db_log|build_db_log_snapshot" src/apex_infinite/cli.py`
   - Result: PASS - each display confirmation follows a `db_log()` call.
   - Evidence: command locates help, completion, and normal iteration `db_log()` calls plus renderer confirmations.
 - UI product-surface check: PASS - DB write notice confirms durable logging without exposing schema or transaction internals.
@@ -443,15 +443,15 @@
   keep the raw returned string unchanged.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - improved manager decision, prompt preview, and agent response rendering.
-- `apex-infinite-cli/tests/test_renderer.py` - updated semantic renderer assertions.
+- `src/apex_infinite/ui.py` - improved manager decision, prompt preview, and agent response rendering.
+- `tests/test_renderer.py` - updated semantic renderer assertions.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T013 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
   - Result: PASS - renderer tests pass after panel changes.
   - Evidence: 12 tests passed.
-- Command/check: `rg -n "Length|Preview|Mode|Output|_truncate\\(output_value|Manager Decision|Prompt Preview|Agent Response" apex-infinite-cli/apex_infinite_ui.py apex-infinite-cli/tests/test_renderer.py`
+- Command/check: `rg -n "Length|Preview|Mode|Output|_truncate\\(output_value|Manager Decision|Prompt Preview|Agent Response" src/apex_infinite/ui.py tests/test_renderer.py`
   - Result: PASS - deterministic prompt and response labels are present.
   - Evidence: command locates length/preview/mode rows and manager truncation.
 - UI product-surface check: PASS - panels show decision, prompt, and response facts without debug scaffolding.
@@ -477,14 +477,14 @@
   non-zero/missing/generic failures as `ERROR`.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - added Codex state label maps, severity mapping, and state text rows.
+- `src/apex_infinite/ui.py` - added Codex state label maps, severity mapping, and state text rows.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T014 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_renderer.py tests/test_cli_options.py -q`
+- Command/check: `python -m pytest tests/test_renderer.py tests/test_cli_options.py -q`
   - Result: PASS - renderer and CLI option coverage pass after Codex state rendering changes.
   - Evidence: 14 tests passed.
-- Command/check: `rg -n "CODEX_STATE_LABELS|CODEX_STATE_TEXT|_codex_severity|non-zero|timeout|missing|dry-run" apex-infinite-cli/apex_infinite_ui.py apex-infinite-cli/apex_infinite.py`
+- Command/check: `rg -n "CODEX_STATE_LABELS|CODEX_STATE_TEXT|_codex_severity|non-zero|timeout|missing|dry-run" src/apex_infinite/ui.py src/apex_infinite/cli.py`
   - Result: PASS - Codex state labels and existing execute paths are present.
   - Evidence: command locates label maps, severity helper, and existing `execute_codex()` states.
 - UI product-surface check: PASS - Codex command states use clear operator labels.
@@ -509,15 +509,15 @@
   console paths in plain output unless the operator explicitly forces a theme.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - added fallback-aware separator rules and plain-block rendering updates.
-- `apex-infinite-cli/tests/test_renderer.py` - updated plain/ASCII semantic label expectations.
+- `src/apex_infinite/ui.py` - added fallback-aware separator rules and plain-block rendering updates.
+- `tests/test_renderer.py` - updated plain/ASCII semantic label expectations.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T015 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_ui_config.py tests/test_renderer.py tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_ui_config.py tests/test_renderer.py tests/test_operator_console.py -q`
   - Result: PASS - config fallback, renderer, and operator-console fixture tests pass.
   - Evidence: 29 tests passed.
-- Command/check: `rg -n "_effects_enabled|_print_effect_separator|settings\\.plain|settings\\.compact|TERM=dumb|NO_COLOR" apex-infinite-cli/apex_infinite_ui.py apex-infinite-cli/tests/test_ui_config.py`
+- Command/check: `rg -n "_effects_enabled|_print_effect_separator|settings\\.plain|settings\\.compact|TERM=dumb|NO_COLOR" src/apex_infinite/ui.py tests/test_ui_config.py`
   - Result: PASS - fallback and environment-constraint paths are present and tested.
   - Evidence: command locates separator guard logic and resolver tests for `NO_COLOR`, `TERM=dumb`, and non-terminal output.
 - UI product-surface check: PASS - critical labels remain visible in compact plain/ASCII output.
@@ -544,14 +544,14 @@
   or runbook content was added.
 
 **Files Changed**:
-- `apex-infinite-cli/README_apex-infinite-cli.md` - documented richer operator console behavior and fallback guarantees.
+- `README.md` - documented richer operator console behavior and fallback guarantees.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T016 evidence.
 
 **Verification**:
-- Command/check: `LC_ALL=C rg -n "operator console|BOOT|ITERATION|dry_run|separator|SQLite history" README_apex-infinite-cli.md`
+- Command/check: `LC_ALL=C rg -n "operator console|BOOT|ITERATION|dry_run|separator|SQLite history" README.md`
   - Result: PASS - README contains the new operator-console and fallback notes.
   - Evidence: command located the added sections and token list.
-- Command/check: `LC_ALL=C rg -n "[^\\x00-\\x7F]" README_apex-infinite-cli.md || true`
+- Command/check: `LC_ALL=C rg -n "[^\\x00-\\x7F]" README.md || true`
   - Result: PASS - no non-ASCII characters were found in the README.
   - Evidence: command produced no non-ASCII matches.
 - UI product-surface check: N/A - documentation task.
@@ -573,14 +573,14 @@
   `supported_width` fixture.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_operator_console.py` - added width-parametrized operator-console section and critical-state tests.
+- `tests/test_operator_console.py` - added width-parametrized operator-console section and critical-state tests.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T017 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_operator_console.py -q`
   - Result: PASS - operator-console coverage passed.
   - Evidence: 13 tests passed.
-- Command/check: `./.venv/bin/python -m pytest tests/test_operator_console.py tests/test_renderer.py tests/test_ui_config.py tests/test_cli_options.py tests/test_prompts.py -q`
+- Command/check: `python -m pytest tests/test_operator_console.py tests/test_renderer.py tests/test_ui_config.py tests/test_cli_options.py tests/test_prompts.py -q`
   - Result: PASS - expanded CLI test set passed with operator-console coverage included.
   - Evidence: 109 tests passed.
 - UI product-surface check: PASS - tests assert product-facing labels for normal and critical states.
@@ -606,14 +606,14 @@
   renderer content.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_operator_console.py` - added fallback-mode coverage and separator suppression assertions.
+- `tests/test_operator_console.py` - added fallback-mode coverage and separator suppression assertions.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T018 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_operator_console.py -q`
   - Result: PASS - fallback coverage passed.
   - Evidence: 13 tests passed.
-- Command/check: `./.venv/bin/python -m pytest tests/test_ui_config.py tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_ui_config.py tests/test_operator_console.py -q`
   - Result: PASS - resolver fallback and operator fallback tests pass together.
   - Evidence: 31 tests passed.
 - UI product-surface check: PASS - fallback tests keep critical labels visible without debug output.
@@ -639,14 +639,14 @@
   `BOOT`, `ITERATION`, and `DRY RUN`.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_renderer.py` - extended raw-history safety coverage for DB log rendering.
+- `tests/test_renderer.py` - extended raw-history safety coverage for DB log rendering.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T019 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_renderer.py -q`
+- Command/check: `python -m pytest tests/test_renderer.py -q`
   - Result: PASS - renderer and raw-history safety coverage passed.
   - Evidence: 9 tests passed.
-- Command/check: `./.venv/bin/python -m pytest tests/test_renderer.py::test_sqlite_history_stores_raw_values_without_renderer_labels -q`
+- Command/check: `python -m pytest tests/test_renderer.py::test_sqlite_history_stores_raw_values_without_renderer_labels -q`
   - Result: PASS - targeted raw-history safety test passed.
   - Evidence: 1 test passed.
 - UI product-surface check: N/A - raw-data boundary test task.
@@ -672,15 +672,15 @@
   the same Codex prompt and custom instructions still pass through unchanged.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_ui_config.py` - added preset token coverage.
-- `apex-infinite-cli/tests/test_cli_options.py` - added loop context wiring and prompt routing coverage.
+- `tests/test_ui_config.py` - added preset token coverage.
+- `tests/test_cli_options.py` - added loop context wiring and prompt routing coverage.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T020 evidence.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/test_ui_config.py tests/test_cli_options.py tests/test_prompts.py -q`
+- Command/check: `python -m pytest tests/test_ui_config.py tests/test_cli_options.py tests/test_prompts.py -q`
   - Result: PASS - UI config, CLI wiring, and prompt/routing tests passed.
   - Evidence: 87 tests passed.
-- Command/check: `./.venv/bin/python -m pytest tests/test_operator_console.py tests/test_renderer.py tests/test_ui_config.py tests/test_cli_options.py tests/test_prompts.py -q`
+- Command/check: `python -m pytest tests/test_operator_console.py tests/test_renderer.py tests/test_ui_config.py tests/test_cli_options.py tests/test_prompts.py -q`
   - Result: PASS - expanded CLI test set passed.
   - Evidence: 109 tests passed.
 - UI product-surface check: PASS - tests verify renderer receives product-facing context facts rather than debug internals.
@@ -698,7 +698,7 @@
 **Duration**: 1 minute
 
 **Notes**:
-- Ran the full CLI test, formatter, and linter gate from `apex-infinite-cli/`.
+- Ran the full CLI test, formatter, and linter gate from `./`.
 - The first full gate passed 109 pytest tests but Black reported three files
   needed formatting; ran Black on those files.
 - The second full gate passed tests and Black but pylint reported one renderer
@@ -710,15 +710,15 @@
   implementation tasks completed.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - Black formatting, scoped renderer facade pylint disable, and helper refactor.
-- `apex-infinite-cli/tests/test_operator_console.py` - Black formatting.
-- `apex-infinite-cli/tests/test_cli_options.py` - Black formatting.
+- `src/apex_infinite/ui.py` - Black formatting, scoped renderer facade pylint disable, and helper refactor.
+- `tests/test_operator_console.py` - Black formatting.
+- `tests/test_cli_options.py` - Black formatting.
 - `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` - recorded T021 evidence.
 - `.spec_system/specs/phase00-session02-rich-operator-console/spec.md` - updated session status and next workflow handoff.
 - `.spec_system/specs/phase00-session02-rich-operator-console/tasks.md` - marked T021 complete and completed the session checklist.
 
 **Verification**:
-- Command/check: `./.venv/bin/python -m pytest tests/ -v && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py tests/ && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py`
+- Command/check: `python -m pytest tests/ -v && python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/ && python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py`
   - Result: PASS - full CLI test, formatter, and linter gate passed.
   - Evidence: 109 tests passed; Black reported 9 files would be left unchanged; pylint rated the code 10.00/10.
 - Command/check: `files=$( { git diff --name-only; git ls-files --others --exclude-standard; } | sort -u | while IFS= read -r f; do [ -f "$f" ] && printf '%s\\n' "$f"; done ); if LC_ALL=C rg -n "[^\\x00-\\x7F]" $files; then printf 'FAIL non-ASCII found\\n'; exit 1; else printf 'PASS non-ASCII scan\\n'; fi`

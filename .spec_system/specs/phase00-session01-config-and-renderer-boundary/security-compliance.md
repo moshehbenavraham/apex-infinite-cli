@@ -7,15 +7,15 @@
 ## Scope
 
 **Files reviewed**:
-- `apex-infinite-cli/apex_infinite.py` - CLI wiring, renderer routing, subprocess, SQLite display paths
-- `apex-infinite-cli/apex_infinite_ui.py` - UI settings resolver and renderer helpers
-- `apex-infinite-cli/config.yaml` - display configuration defaults
-- `apex-infinite-cli/README_apex-infinite-cli.md` - user-facing display and history documentation
-- `apex-infinite-cli/tests/conftest.py` - test import path helper
-- `apex-infinite-cli/tests/test_prompts.py` - prompt compatibility tests, Black formatting only
-- `apex-infinite-cli/tests/test_ui_config.py` - UI config resolver tests
-- `apex-infinite-cli/tests/test_cli_options.py` - Click option wiring tests
-- `apex-infinite-cli/tests/test_renderer.py` - renderer and SQLite history safety tests
+- `src/apex_infinite/cli.py` - CLI wiring, renderer routing, subprocess, SQLite display paths
+- `src/apex_infinite/ui.py` - UI settings resolver and renderer helpers
+- `src/apex_infinite/config.yaml` - display configuration defaults
+- `README.md` - user-facing display and history documentation
+- `tests/conftest.py` - test import path helper
+- `tests/test_prompts.py` - prompt compatibility tests, Black formatting only
+- `tests/test_ui_config.py` - UI config resolver tests
+- `tests/test_cli_options.py` - Click option wiring tests
+- `tests/test_renderer.py` - renderer and SQLite history safety tests
 - `.spec_system/specs/phase00-session01-config-and-renderer-boundary/*.md` and `.spec_system/state.json` - workflow artifacts checked for hardcoded secrets and encoding issues
 
 **Review method**: Static analysis of changed files, test evidence, dependency-change inspection, and product-surface smoke commands.
@@ -27,10 +27,10 @@
 - Command/check: `git diff --name-only HEAD | rg '(^|/)(requirements.*|pyproject\.toml|poetry\.lock|uv\.lock|Pipfile\.lock|package-lock\.json|pnpm-lock\.yaml|yarn\.lock)$' || true`
   - Result: PASS - no dependency or lock files changed.
   - Evidence: command produced no output.
-- Command/check: `./.venv/bin/python apex_infinite.py --path . --plain --ascii --compact --max-iterations 0 --dry-run --ceo secret-value`
+- Command/check: `apex-infinite --path . --plain --ascii --compact --max-iterations 0 --dry-run --ceo secret-value`
   - Result: PASS - normal startup surface showed `CEO instructions: provided`, not the supplied secret text.
   - Evidence: output included startup and safety-stop facts and did not include `secret-value`.
-- Command/check: `./.venv/bin/python -m pytest tests/ -v`
+- Command/check: `python -m pytest tests/ -v`
   - Result: PASS - renderer/history tests prove raw SQLite values are not replaced by rendered labels, ANSI escapes, Rich markup, frame glyphs, or renderer status labels.
   - Evidence: 93 tests passed, including `test_sqlite_history_stores_raw_values_without_renderer_labels`.
 

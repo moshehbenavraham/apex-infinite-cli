@@ -8,7 +8,7 @@
 
 This archived file (`.spec_system/archive/phases/phase_00/PRD_phase_00.md`)
 consolidates the former folded source plan from
-`docs/ongoing-projects/apex-infinite-cli-upgrade-plan.md`. The standalone plan
+`.spec_system/archive/phases/phase_00/PRD_phase_00.md`. The standalone plan
 can be removed without losing detail; this file and the archived session stubs
 record the completed Phase 00 execution interface.
 
@@ -16,7 +16,7 @@ record the completed Phase 00 execution interface.
 
 ## Overview
 
-Upgrade `apex-infinite-cli/` from a functional autonomous workflow runner into
+Upgrade `./` from a functional autonomous workflow runner into
 a polished, testable operator console with an optional Linux visual wrapper
 path. Preserve manager routing, prompt contracts, SQLite compatibility,
 normalized project path keys, Codex subprocess semantics, and raw durable data.
@@ -80,11 +80,11 @@ Completed sessions:
 - Master PRD defines Phase 00 as the next not-started phase.
 - `.spec_system/state.json` (`state.json`) has `current_phase` set to 0,
   records no completed sessions, and has `monorepo: false`.
-- `apex-infinite-cli/` baseline behavior and prompt-routing tests are the
+- `./` baseline behavior and prompt-routing tests are the
   compatibility reference.
 - The source plan defines the full 8-session upgrade scope.
 - `EXAMPLE/cool-retro-term` remains ignored by Git and reference-only.
-- Phase 00 sessions target `apex-infinite-cli/`; session stubs omit package
+- Phase 00 sessions target `./`; session stubs omit package
   metadata because no formal workspace manager is configured.
 
 ### Resolved Conflicts
@@ -102,26 +102,26 @@ Completed sessions:
 
 ## Current State Findings
 
-- `apex-infinite-cli/apex_infinite.py` is a single-file Click app with global
+- `src/apex_infinite/cli.py` is a single-file Click app with global
   `Console()` output, SQLite history, LLM calls, manager routing, signal
   handling, desktop notification, and `codex exec` subprocess execution.
 - `execute_codex()` uses `subprocess.run(..., capture_output=True)`. Live
   display must preserve stdout, stderr, exit code, timeout, stderr fallback,
   verbose output, `FileNotFoundError`, and generic exception behavior.
-- `apex-infinite-cli/config.yaml` contains provider and Codex settings only; it
+- `src/apex_infinite/config.yaml` contains provider and Codex settings only; it
   has no `ui` section.
-- `apex-infinite-cli/requirements.txt` already includes `rich`, `click`,
+- `requirements.txt` already includes `rich`, `click`,
   `openai`, `python-dotenv`, and `pyyaml`; the Rich milestone needs no new
   runtime dependency.
 - Existing tests are prompt- and routing-focused in
-  `apex-infinite-cli/tests/test_prompts.py`.
+  `tests/test_prompts.py`.
 - Missing test coverage: Click option parsing, UI config defaults, renderer
   helpers, history rendering, environment color behavior, subprocess display.
-- Existing docs live in `apex-infinite-cli/README_apex-infinite-cli.md`,
-  `apex-infinite-cli/docs/operator-runbook.md`,
-  `apex-infinite-cli/docs/history-db.md`,
-  `apex-infinite-cli/docs/prompt-contract.md`, and
-  `apex-infinite-cli/docs/troubleshooting.md`.
+- Existing docs live in `README.md`,
+  `docs/operator-runbook.md`,
+  `docs/history-db.md`,
+  `docs/prompt-contract.md`, and
+  `docs/troubleshooting.md`.
 - History DB compatibility requires preserving `~/.apex-infinite/history.db`
   and the legacy `cc_response` column without migration or rename.
 
@@ -164,7 +164,7 @@ a retro CRT operator console: amber and green phosphor presets, IBM DOS style
 contrast, compact status readouts, strong terminal framing, and subtle
 scanline-like separation.
 
-Do not require users to run `apex-infinite-cli` inside `cool-retro-term`. The
+Do not require users to run `apex-infinite` inside `cool-retro-term`. The
 upgraded experience must remain standalone.
 
 ### Visual Milestones
@@ -283,7 +283,7 @@ Target feel: mission-control terminal for autonomous development sessions.
 
 ## Configuration Contract
 
-Add `ui` to `apex-infinite-cli/config.yaml`:
+Add `ui` to `src/apex_infinite/config.yaml`:
 
 ```yaml
 ui:
@@ -299,11 +299,11 @@ ui:
 Add CLI overrides:
 
 ```bash
-python apex_infinite.py --theme crt-amber
-python apex_infinite.py --plain
-python apex_infinite.py --ascii
-python apex_infinite.py --compact
-python apex_infinite.py --event-stream /tmp/apex-infinite-events.jsonl
+apex-infinite --theme crt-amber
+apex-infinite --plain
+apex-infinite --ascii
+apex-infinite --compact
+apex-infinite --event-stream /tmp/apex-infinite-events.jsonl
 ```
 
 Precedence:
@@ -426,7 +426,7 @@ the current single-file CLI without changing workflow behavior.
   response panels, DB notices, interrupts, completion, and history display
   through renderer helpers.
 - Start with the smallest testable boundary; extract a module only when lower
-  risk than extending `apex_infinite.py`.
+  risk than extending `src/apex_infinite/cli.py`.
 
 **Tests**:
 
@@ -577,14 +577,14 @@ contract, and clean-room visual boundary after behavior exists.
 
 **Scope**:
 
-- Update `apex-infinite-cli/README_apex-infinite-cli.md` with UI flags, config
+- Update `README.md` with UI flags, config
   examples, theme descriptions, event-stream usage, and examples.
 - Update the operator runbook with theme guidance and plain-output guidance for
   CI, logs, remote shells, constrained terminals, `NO_COLOR`, redirected
   output, and `TERM=dumb`.
-- Update `apex-infinite-cli/docs/history-db.md` for status labels, truncation
+- Update `docs/history-db.md` for status labels, truncation
   rules, or verbose history behavior.
-- Update `apex-infinite-cli/docs/prompt-contract.md` with matching
+- Update `docs/prompt-contract.md` with matching
   prompt-contract changes, or state that UI/event-stream changes do not alter
   `MANAGER_SYSTEM_PROMPT`, `SUMMARIZER_SYSTEM_PROMPT`, or
   `build_codex_prompt()`.
@@ -749,7 +749,7 @@ testing, release, and clean-room completion criteria.
 
 ## Testing Plan
 
-- Run `pytest tests/ -v` from `apex-infinite-cli/`.
+- Run `pytest tests/ -v` from `./`.
 - Keep prompt/routing tests green unless a session explicitly updates prompt
   contract and docs.
 - Use `Console(record=True, width=...)` for representative rendered output.
@@ -790,7 +790,7 @@ testing, release, and clean-room completion criteria.
 | Snapshot tests become brittle | Test semantic markers and config behavior more than exact frames |
 | Wrapper diverges from CLI behavior | Use one workflow engine and make wrapper a display/runtime shell |
 | Config precedence surprises operators | Document and test CLI flag, `NO_COLOR`, non-TTY, redirected, and config precedence |
-| Single-file CLI becomes harder to maintain | Split renderer/config/event helpers only when lower risk than extending `apex_infinite.py` |
+| Single-file CLI becomes harder to maintain | Split renderer/config/event helpers only when lower risk than extending `src/apex_infinite/cli.py` |
 | qmltermwidget reference is unavailable locally | Treat empty submodule placeholders as unavailable; do not use qmltermwidget or QTermWidget in selected path |
 | Graphical wrapper burdens headless installs | Keep wrapper dependencies optional and Linux-only setup documented separately |
 | Release verification finds late regressions | Keep Session 08 focused on final checks and small compatibility fixes |
@@ -840,7 +840,7 @@ Phase complete when:
 Depends on:
 
 - Initialized Apex Spec System PRD and state files.
-- Existing Apex Infinite CLI baseline in `apex-infinite-cli/`.
+- Existing Apex Infinite CLI baseline in `./`.
 
 Enables:
 
@@ -861,16 +861,16 @@ compiled artifacts, fonts, manifests, icons, profile data, or build scripts.
 
 ### Local Reference Root And License Evidence
 
-- Root: `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term`
+- Root: `EXAMPLE/cool-retro-term`
 - README and overview:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/README.md`
+  `EXAMPLE/cool-retro-term/README.md`
 - GPL/license evidence:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/gpl-2.0.txt`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/gpl-3.0.txt`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/packaging/debian/copyright`
+  `EXAMPLE/cool-retro-term/gpl-2.0.txt`
+  `EXAMPLE/cool-retro-term/gpl-3.0.txt`
+  `EXAMPLE/cool-retro-term/packaging/debian/copyright`
 - Submodule evidence:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/.gitmodules`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/qmltermwidget`
+  `EXAMPLE/cool-retro-term/.gitmodules`
+  `EXAMPLE/cool-retro-term/qmltermwidget`
 
 `EXAMPLE/cool-retro-term/qmltermwidget` exists as an empty local submodule
 placeholder. Treat qmltermwidget and KDSingleApplication as unavailable unless
@@ -879,70 +879,70 @@ intentionally populated later.
 ### QML And UI References
 
 - Application shell, window creation, global settings, time driver:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/main.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml`
+  `EXAMPLE/cool-retro-term/app/qml/main.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`
+  `EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TimeManager.qml`
 - Terminal/session lifecycle, viewport, scroll, selection, paste, mouse, wheel,
   focus, and corrected mouse coordinates under distortion, especially
   `PreprocessedTerminal.qml`:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml`
+  `EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml`
 - Settings groups, profile management, import/export, frame settings,
   persistence, general/terminal/effects/advanced controls:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml`
+  `EXAMPLE/cool-retro-term/app/qml/Storage.qml`
 - Frame, size overlay, render-stage separation, burn-in, shader/effect stages:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml`
+  `EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml`
+  `EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml`
 - Menus, profile switching, copy/paste, settings, fullscreen, zoom, new tab:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml`
+  `EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml`
+  `EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml`
+  `EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml`
 - Dialog and reusable control concepts:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/AboutDialog.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/InsertNameDialog.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ColorButton.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SimpleSlider.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/CheckableSlider.qml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Components/SizedLabel.qml`
+  `EXAMPLE/cool-retro-term/app/qml/AboutDialog.qml`
+  `EXAMPLE/cool-retro-term/app/qml/InsertNameDialog.qml`
+  `EXAMPLE/cool-retro-term/app/qml/ColorButton.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SimpleSlider.qml`
+  `EXAMPLE/cool-retro-term/app/qml/CheckableSlider.qml`
+  `EXAMPLE/cool-retro-term/app/qml/Components/SizedLabel.qml`
 - Utility color/math categories only:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/utils.js`
+  `EXAMPLE/cool-retro-term/app/qml/utils.js`
 - Resource manifest, image assets, and texture references:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/resources.qrc`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/crt256.png`
+  `EXAMPLE/cool-retro-term/app/qml/resources.qrc`
+  `EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png`
+  `EXAMPLE/cool-retro-term/app/qml/images/crt256.png`
 
 ### C++ Bridge, Fonts, Build, Packaging, And Icons
 
 - C++ app bootstrap, arguments, metadata, import paths, file I/O:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/main.cpp`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h`
+  `EXAMPLE/cool-retro-term/app/main.cpp`
+  `EXAMPLE/cool-retro-term/app/fileio.cpp`
+  `EXAMPLE/cool-retro-term/app/fileio.h`
 - Font handling concepts, then choose independent system-font behavior:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.cpp`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.h`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.cpp`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.h`
+  `EXAMPLE/cool-retro-term/app/fontmanager.cpp`
+  `EXAMPLE/cool-retro-term/app/fontmanager.h`
+  `EXAMPLE/cool-retro-term/app/fontlistmodel.cpp`
+  `EXAMPLE/cool-retro-term/app/fontlistmodel.h`
 - Build and packaging surfaces:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.pro`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/app.pro`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.desktop`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/snap/snapcraft.yaml`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/scripts/build-appimage.sh`
+  `EXAMPLE/cool-retro-term/cool-retro-term.pro`
+  `EXAMPLE/cool-retro-term/app/app.pro`
+  `EXAMPLE/cool-retro-term/cool-retro-term.desktop`
+  `EXAMPLE/cool-retro-term/snap/snapcraft.yaml`
+  `EXAMPLE/cool-retro-term/scripts/build-appimage.sh`
 - Icon assets:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/crt.icns`
+  `EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png`
+  `EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png`
+  `EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png`
+  `EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png`
+  `EXAMPLE/cool-retro-term/app/icons/crt.icns`
 
 ### Shader References
 
@@ -950,25 +950,25 @@ Study shader categories only; do not copy source, constants, formulas, or
 compiled `.qsb` blobs.
 
 - Burn-in:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/burn_in.frag`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/burn_in.vert`
+  `EXAMPLE/cool-retro-term/app/shaders/burn_in.frag`
+  `EXAMPLE/cool-retro-term/app/shaders/burn_in.vert`
 - Pass-through vertex:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/passthrough.vert`
+  `EXAMPLE/cool-retro-term/app/shaders/passthrough.vert`
 - Dynamic terminal, including rasterization, burn-in overlay, display-frame
   influence, chroma, flicker, horizontal sync, glow line, jitter, static noise:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.vert`
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag`
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.vert`
 - Static terminal, including RGB shift, bloom, curvature, frame shininess,
   brightness, final composition:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static.vert`
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag`
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_static.vert`
 - Terminal frame:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.vert`
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag`
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_frame.vert`
 - Compiled shader examples and location:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic_raster0_burn0_frame0_chroma0.frag.qsb`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static_rgb0_bloom0_curve0_shine0.frag.qsb`
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders`
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic_raster0_burn0_frame0_chroma0.frag.qsb`
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_static_rgb0_bloom0_curve0_shine0.frag.qsb`
+  `EXAMPLE/cool-retro-term/app/shaders`
 
 ### Built-In Profile Names
 
@@ -995,29 +995,29 @@ literal data:
 Do not copy these fonts or licenses; use only to understand CRT and
 old-computer typography range.
 
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/apple2/PRNumber3.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/apple2/PrintChar21.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/atari-400-800/AtariClassic-Regular.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/bigblue-terminal/BigBlueTerm437NerdFontMono-Regular.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/cozette/CozetteVector.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/departure-mono/DepartureMonoNerdFontMono-Regular.otf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/fira-code/FiraCodeNerdFontMono-Regular.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/fixedsys-excelsior/FSEX301-L2.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/gohu/GohuFont11NerdFontMono-Regular.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/greybeard/Greybeard-12px.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/greybeard/Greybeard-16px.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/hack/HackNerdFontMono-Regular.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/ibm-3278/3270NerdFontMono-Regular.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/iosevka/IosevkaTermNerdFontMono-Regular.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/jetbrains-mono/JetBrainsMonoNerdFontMono-Regular.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/oldschool-pc-fonts/PxPlus_IBM_EGA_8x8.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/oldschool-pc-fonts/PxPlus_IBM_VGA8.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/oldschool-pc-fonts/PxPlus_IBM_VGA_8x16.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/opendyslexic/OpenDyslexicMNerdFontMono-Regular.otf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/pet-me/PetMe.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/pet-me/PetMe64.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/source-code-pro/SauceCodeProNerdFontMono-Regular.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/terminus/TerminessNerdFontMono-Regular.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/unscii/unscii-16-full.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/unscii/unscii-8-thin.ttf`
-- `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/fonts/unscii/unscii-8.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/apple2/PRNumber3.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/apple2/PrintChar21.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/atari-400-800/AtariClassic-Regular.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/bigblue-terminal/BigBlueTerm437NerdFontMono-Regular.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/cozette/CozetteVector.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/departure-mono/DepartureMonoNerdFontMono-Regular.otf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/fira-code/FiraCodeNerdFontMono-Regular.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/fixedsys-excelsior/FSEX301-L2.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/gohu/GohuFont11NerdFontMono-Regular.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/greybeard/Greybeard-12px.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/greybeard/Greybeard-16px.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/hack/HackNerdFontMono-Regular.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/ibm-3278/3270NerdFontMono-Regular.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/iosevka/IosevkaTermNerdFontMono-Regular.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/jetbrains-mono/JetBrainsMonoNerdFontMono-Regular.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/oldschool-pc-fonts/PxPlus_IBM_EGA_8x8.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/oldschool-pc-fonts/PxPlus_IBM_VGA8.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/oldschool-pc-fonts/PxPlus_IBM_VGA_8x16.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/opendyslexic/OpenDyslexicMNerdFontMono-Regular.otf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/pet-me/PetMe.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/pet-me/PetMe64.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/source-code-pro/SauceCodeProNerdFontMono-Regular.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/terminus/TerminessNerdFontMono-Regular.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/unscii/unscii-16-full.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/unscii/unscii-8-thin.ttf`
+- `EXAMPLE/cool-retro-term/app/qml/fonts/unscii/unscii-8.ttf`

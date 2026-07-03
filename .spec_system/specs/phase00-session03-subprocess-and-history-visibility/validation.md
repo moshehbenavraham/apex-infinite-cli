@@ -27,25 +27,25 @@ Every row names the exact command or targeted inspection used.
 
 | Check | Command or Inspection | Result | Evidence / Blocker |
 |-------|-----------------------|--------|--------------------|
-| Project state | `if [ -d .spec_system/scripts ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash scripts/analyze-project.sh --json; fi` | PASS | `current_session` was `phase00-session03-subprocess-and-history-visibility`; session directory exists; `monorepo` is `false`. |
+| Project state | `if [ -d .spec_system/scripts ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash .spec_system/scripts/analyze-project.sh --json; fi` | PASS | `current_session` was `phase00-session03-subprocess-and-history-visibility`; session directory exists; `monorepo` is `false`. |
 | Base commit | `sed -n 's/^\*\*Base Commit\*\*: *//p' .spec_system/specs/phase00-session03-subprocess-and-history-visibility/spec.md`; `git rev-parse --verify --quiet "${BASE}^{commit}"` | PASS | No usable `Base Commit` was recorded, so validation used `HEAD` and current uncommitted changes. |
 | Code review | `sed -n 's/^\*\*Result\*\*: *//p' .spec_system/specs/phase00-session03-subprocess-and-history-visibility/code-review.md`; `sed -n 's/^\*\*Scope\*\*: *//p' .../code-review.md` | PASS | Result is `RESOLVED`; scope is `All uncommitted changes in the working tree`. |
 | Task completion | `rg -c '^- \[[ x]\] T[0-9]{3}' .../tasks.md`; `rg -c '^- \[x\] T[0-9]{3}' .../tasks.md`; `rg -n '^- \[ \] T[0-9]{3}' .../tasks.md` | PASS | 20 total tasks, 20 completed tasks, no incomplete task matches. |
-| Deliverables | `for f in apex-infinite-cli/tests/test_subprocess_execution.py apex-infinite-cli/tests/test_history_rendering.py apex-infinite-cli/apex_infinite.py apex-infinite-cli/apex_infinite_ui.py apex-infinite-cli/tests/test_renderer.py apex-infinite-cli/tests/test_cli_options.py; do [ -s "$f" ]; done` | PASS | All 6 deliverables exist and are non-empty. |
+| Deliverables | `for f in tests/test_subprocess_execution.py tests/test_history_rendering.py src/apex_infinite/cli.py src/apex_infinite/ui.py tests/test_renderer.py tests/test_cli_options.py; do [ -s "$f" ]; done` | PASS | All 6 deliverables exist and are non-empty. |
 | ASCII/LF | `file ...`; `LC_ALL=C grep -n '[^[:print:][:space:]]' ...`; `grep -l $'\r' ...` over 13 touched authored files | PASS | `file` reported ASCII/JSON/Python text; non-ASCII scan and CRLF scan produced no matches. |
 | Whitespace | `git diff --check` | PASS | No whitespace errors. |
-| CLI tests | `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v` | PASS | 133 tests collected and 133 passed. |
-| Coverage | `PYTHONPATH=apex-infinite-cli apex-infinite-cli/.venv/bin/python -m pytest apex-infinite-cli/tests/ --cov=apex-infinite-cli --cov-config=pyproject.toml --cov-report=term-missing` | PASS | 133 tests passed; total coverage was 88.14%, above the configured 80.0% gate. |
-| Formatter/linter | `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py tests/ && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py` | PASS | Black reported 11 files unchanged; Pylint rated code 10.00/10. |
-| Root script/reference tests | `bats tests/` | PASS | 61 Bats tests passed. |
-| Plugin payload sync | `bash scripts/sync-plugin-payload.sh --check` | PASS | Plugin payload is current. |
-| Prerequisites | `bash scripts/check-prereqs.sh --json --env \| jq .` | PASS | Overall status `pass`; spec system, jq, and git detected. |
-| Database/schema | `git diff -- apex-infinite-cli/apex_infinite.py \| rg -n "CREATE TABLE\|ALTER TABLE\|DROP TABLE\|cc_response\|INSERT INTO history\|SELECT \* FROM history\|PRAGMA\|schema" || true`; `rg -n "CREATE TABLE\|ALTER TABLE\|DROP TABLE\|cc_response\|INSERT INTO history\|SELECT \* FROM history\|PRAGMA" ...` | PASS | No schema diff matches; current schema preserves `cc_response`, WAL, `history`, and `idx_path_created`. |
+| CLI tests | `python -m pytest tests/ -v` | PASS | 133 tests collected and 133 passed. |
+| Coverage | `PYTHONPATH=src python -m pytest tests/ --cov=apex_infinite --cov-config=pyproject.toml --cov-report=term-missing` | PASS | 133 tests passed; total coverage was 88.14%, above the configured 80.0% gate. |
+| Formatter/linter | `python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/ && python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py` | PASS | Black reported 11 files unchanged; Pylint rated code 10.00/10. |
+| Root script/reference tests | `python -m pytest tests/ -v` | PASS | 61 Bats tests passed. |
+| Plugin payload sync | `bash .spec_system/scripts/analyze-project.sh --json` | PASS | Plugin payload is current. |
+| Prerequisites | `bash .spec_system/scripts/check-prereqs.sh --json --env \| jq .` | PASS | Overall status `pass`; spec system, jq, and git detected. |
+| Database/schema | `git diff -- src/apex_infinite/cli.py \| rg -n "CREATE TABLE\|ALTER TABLE\|DROP TABLE\|cc_response\|INSERT INTO history\|SELECT \* FROM history\|PRAGMA\|schema" || true`; `rg -n "CREATE TABLE\|ALTER TABLE\|DROP TABLE\|cc_response\|INSERT INTO history\|SELECT \* FROM history\|PRAGMA" ...` | PASS | No schema diff matches; current schema preserves `cc_response`, WAL, `history`, and `idx_path_created`. |
 | SQL/subprocess injection | `rg -n "shell=True\|eval\(\|exec\(\|format\(\|% .*SELECT\|SELECT .*\+\|INSERT .*\+\|DELETE .*\+\|UPDATE .*\+" ...` | PASS | No matches in changed runtime/test files. |
 | Secrets | `rg -n "api[_-]?key\|secret\|token\|password\|authorization\|bearer\|credential\|private key\|BEGIN RSA\|BEGIN OPENSSH\|sk-[A-Za-z0-9]\|AKIA[0-9A-Z]{16}\|AIza[0-9A-Za-z_-]{35}\|xox[baprs]-" ...` | PASS | Matches were config field names, dummy `ollama`, environment placeholders, and documentation about not exposing secrets. |
 | Dependency changes | `git diff --name-only HEAD -- '*requirements*' 'pyproject.toml' 'setup.py' 'setup.cfg' 'Pipfile*' 'poetry.lock'` | PASS | No dependency or packaging files changed. |
-| Behavioral quality | Targeted inspection of `apex-infinite-cli/apex_infinite.py:85-118`, `apex-infinite-cli/apex_infinite.py:880-1010`, `apex-infinite-cli/tests/test_subprocess_execution.py:100-348`, `apex-infinite-cli/tests/test_history_rendering.py:195-230` | PASS | Subprocess cleanup, failure paths, raw storage contract, and renderer contract coverage are present. |
-| UI product surface | `rg -n "debug\|telemetry\|seed\|frame\|input\|resize\|readiness\|route ownership\|package/version\|data-source\|shell ready\|scaffold\|TODO\|FIXME" ...`; targeted inspection of `apex-infinite-cli/apex_infinite_ui.py:852-952`; renderer tests | PASS | Matches were allowed operator labels or docs, not debug panels or scaffolding copy; history renderer shows operational fields only. |
+| Behavioral quality | Targeted inspection of `src/apex_infinite/cli.py:85-118`, `src/apex_infinite/cli.py:880-1010`, `tests/test_subprocess_execution.py:100-348`, `tests/test_history_rendering.py:195-230` | PASS | Subprocess cleanup, failure paths, raw storage contract, and renderer contract coverage are present. |
+| UI product surface | `rg -n "debug\|telemetry\|seed\|frame\|input\|resize\|readiness\|route ownership\|package/version\|data-source\|shell ready\|scaffold\|TODO\|FIXME" ...`; targeted inspection of `src/apex_infinite/ui.py:852-952`; renderer tests | PASS | Matches were allowed operator labels or docs, not debug panels or scaffolding copy; history renderer shows operational fields only. |
 
 ## 1. Code Review Gate
 ### Status: PASS
@@ -62,12 +62,12 @@ Every row names the exact command or targeted inspection used.
 ### Status: PASS
 | File | Found | Status |
 |------|-------|--------|
-| `apex-infinite-cli/tests/test_subprocess_execution.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_history_rendering.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite_ui.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_renderer.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_cli_options.py` | Yes | PASS |
+| `tests/test_subprocess_execution.py` | Yes | PASS |
+| `tests/test_history_rendering.py` | Yes | PASS |
+| `src/apex_infinite/cli.py` | Yes | PASS |
+| `src/apex_infinite/ui.py` | Yes | PASS |
+| `tests/test_renderer.py` | Yes | PASS |
+| `tests/test_cli_options.py` | Yes | PASS |
 
 **Missing deliverables**: None
 
@@ -80,14 +80,14 @@ Every row names the exact command or targeted inspection used.
 | `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` | ASCII | LF | PASS |
 | `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/spec.md` | ASCII | LF | PASS |
 | `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` | ASCII | LF | PASS |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | ASCII | LF | PASS |
-| `apex-infinite-cli/apex_infinite.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/apex_infinite_ui.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/tests/test_cli_options.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/tests/test_history_rendering.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/tests/test_subprocess_execution.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/docs/history-db.md` | ASCII | LF | PASS |
-| `apex-infinite-cli/docs/operator-runbook.md` | ASCII | LF | PASS |
+| `README.md` | ASCII | LF | PASS |
+| `src/apex_infinite/cli.py` | ASCII | LF | PASS |
+| `src/apex_infinite/ui.py` | ASCII | LF | PASS |
+| `tests/test_cli_options.py` | ASCII | LF | PASS |
+| `tests/test_history_rendering.py` | ASCII | LF | PASS |
+| `tests/test_subprocess_execution.py` | ASCII | LF | PASS |
+| `docs/history-db.md` | ASCII | LF | PASS |
+| `docs/operator-runbook.md` | ASCII | LF | PASS |
 
 **Encoding issues**: None
 
@@ -108,7 +108,7 @@ Every row names the exact command or targeted inspection used.
 ## 6. Database/Schema Alignment
 ### Status: PASS
 
-**Evidence**: `git diff -- apex-infinite-cli/apex_infinite.py | rg -n "CREATE TABLE|ALTER TABLE|DROP TABLE|cc_response|INSERT INTO history|SELECT \* FROM history|PRAGMA|schema" || true` produced no schema-diff matches. `rg -n "CREATE TABLE|ALTER TABLE|DROP TABLE|cc_response|INSERT INTO history|SELECT \* FROM history|PRAGMA" apex-infinite-cli/apex_infinite.py apex-infinite-cli/tests/test_history_rendering.py apex-infinite-cli/tests/test_renderer.py apex-infinite-cli/docs/history-db.md` showed the existing `history` table, `cc_response` column, WAL setting, and parameterized history reads/writes. `tests/test_history_rendering.py:195-230` verifies render-time labels and truncation text are not persisted.
+**Evidence**: `git diff -- src/apex_infinite/cli.py | rg -n "CREATE TABLE|ALTER TABLE|DROP TABLE|cc_response|INSERT INTO history|SELECT \* FROM history|PRAGMA|schema" || true` produced no schema-diff matches. `rg -n "CREATE TABLE|ALTER TABLE|DROP TABLE|cc_response|INSERT INTO history|SELECT \* FROM history|PRAGMA" src/apex_infinite/cli.py tests/test_history_rendering.py tests/test_renderer.py docs/history-db.md` showed the existing `history` table, `cc_response` column, WAL setting, and parameterized history reads/writes. `tests/test_history_rendering.py:195-230` verifies render-time labels and truncation text are not persisted.
 
 **Issues found**: None
 
@@ -145,11 +145,11 @@ From spec.md:
 
 **Checklist applied**: Yes
 **Files spot-checked**:
-- `apex-infinite-cli/apex_infinite.py`
-- `apex-infinite-cli/apex_infinite_ui.py`
-- `apex-infinite-cli/tests/test_subprocess_execution.py`
-- `apex-infinite-cli/tests/test_history_rendering.py`
-- `apex-infinite-cli/tests/test_cli_options.py`
+- `src/apex_infinite/cli.py`
+- `src/apex_infinite/ui.py`
+- `tests/test_subprocess_execution.py`
+- `tests/test_history_rendering.py`
+- `tests/test_cli_options.py`
 
 **Categories spot-checked**: trust boundaries, resource cleanup, mutation safety, failure paths, and contract alignment.
 

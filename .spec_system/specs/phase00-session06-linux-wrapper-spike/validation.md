@@ -33,12 +33,12 @@
 | Task completion | `rg -c "^- \\[[ x]\\] T[0-9]{3}" tasks.md` and `rg -c "^- \\[x\\] T[0-9]{3}" tasks.md` | PASS | Total 20, done 20. |
 | Deliverables | `for f in ...; do [ -s "$f" ]; done` | PASS | 11/11 deliverables found and non-empty. |
 | ASCII/LF | `file ...`; `LC_ALL=C grep -n '[^[:print:][:space:]]' ...`; `grep -n $'\\r' ...` | PASS | Files report ASCII text; non-ASCII and CR scans produced no matches. |
-| Tests | `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v` | PASS | 189/189 tests passed in 10.76s. |
-| Formatter | `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite_visual tests/test_visual_wrapper_spike.py` | PASS | Black reported 5 files unchanged. |
-| Linter | `cd apex-infinite-cli && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_events.py apex_infinite_ui.py apex_infinite_visual` | PASS | Pylint rated code 10.00/10. |
-| Compile | `cd apex-infinite-cli && ./.venv/bin/python -m py_compile apex_infinite_visual/__init__.py apex_infinite_visual/events.py apex_infinite_visual/launcher.py apex_infinite_visual/main.py` | PASS | Command exited 0. |
-| Wrapper smoke | `cd apex-infinite-cli && QT_QPA_PLATFORM=offscreen ./.venv/bin/python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` | PASS | Command exited 0 with no output. |
-| QML lint | `cd apex-infinite-cli && ./.venv/bin/pyside6-qmllint apex_infinite_visual/qml/Main.qml` | PASS | Command exited 0; remaining output is unqualified-access style warnings, not a configured blocking gate. |
+| Tests | `python -m pytest tests/ -v` | PASS | 189/189 tests passed in 10.76s. |
+| Formatter | `python -m black --check apex_infinite_visual tests/test_visual_wrapper_spike.py` | PASS | Black reported 5 files unchanged. |
+| Linter | `python -m pylint src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py apex_infinite_visual` | PASS | Pylint rated code 10.00/10. |
+| Compile | `python -m py_compile src/apex_infinite_visual/__init__.py src/apex_infinite_visual/events.py src/apex_infinite_visual/launcher.py src/apex_infinite_visual/main.py` | PASS | Command exited 0. |
+| Wrapper smoke | `QT_QPA_PLATFORM=offscreen python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` | PASS | Command exited 0 with no output. |
+| QML lint | `pyside6-qmllint src/apex_infinite_visual/qml/Main.qml` | PASS | Command exited 0; remaining output is unqualified-access style warnings, not a configured blocking gate. |
 | Whitespace | `git diff --check` | PASS | Command exited 0. |
 | Database/schema | `rg -n "migration|schema|alembic|prisma|sequelize|sqlite|DB_|DATABASE|CREATE TABLE|ALTER TABLE|DROP TABLE" ...` | N/A | Matches are documentation references to existing history/schema behavior; no DB-layer implementation or schema artifact changed. |
 | Success criteria | `spec.md` criteria inspection plus validation commands above | PASS | JSONL event boundary, QML surface, guarded launcher, malformed-event handling, spike docs, tests, smoke, and quality gates all verified. |
@@ -66,17 +66,17 @@ files are workflow outputs from this validation command.
 ### Status: PASS
 | File | Found | Status |
 |------|-------|--------|
-| `apex-infinite-cli/apex_infinite_visual/__init__.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite_visual/events.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite_visual/launcher.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite_visual/main.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite_visual/qml/Main.qml` | Yes | PASS |
-| `apex-infinite-cli/tests/test_visual_wrapper_spike.py` | Yes | PASS |
-| `apex-infinite-cli/docs/visual-wrapper-spike.md` | Yes | PASS |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Yes | PASS |
-| `apex-infinite-cli/docs/visual-wrapper-boundary.md` | Yes | PASS |
-| `apex-infinite-cli/docs/operator-runbook.md` | Yes | PASS |
-| `apex-infinite-cli/docs/troubleshooting.md` | Yes | PASS |
+| `src/apex_infinite_visual/__init__.py` | Yes | PASS |
+| `src/apex_infinite_visual/events.py` | Yes | PASS |
+| `src/apex_infinite_visual/launcher.py` | Yes | PASS |
+| `src/apex_infinite_visual/main.py` | Yes | PASS |
+| `src/apex_infinite_visual/qml/Main.qml` | Yes | PASS |
+| `tests/test_visual_wrapper_spike.py` | Yes | PASS |
+| `docs/visual-wrapper-spike.md` | Yes | PASS |
+| `README.md` | Yes | PASS |
+| `docs/visual-wrapper-boundary.md` | Yes | PASS |
+| `docs/operator-runbook.md` | Yes | PASS |
+| `docs/troubleshooting.md` | Yes | PASS |
 
 **Missing deliverables**: None
 
@@ -84,17 +84,17 @@ files are workflow outputs from this validation command.
 ### Status: PASS
 | File | Encoding | Line Endings | Status |
 |------|----------|--------------|--------|
-| `apex-infinite-cli/apex_infinite_visual/__init__.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/apex_infinite_visual/events.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/apex_infinite_visual/launcher.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/apex_infinite_visual/main.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/apex_infinite_visual/qml/Main.qml` | ASCII | LF | PASS |
-| `apex-infinite-cli/tests/test_visual_wrapper_spike.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/docs/visual-wrapper-spike.md` | ASCII | LF | PASS |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | ASCII | LF | PASS |
-| `apex-infinite-cli/docs/visual-wrapper-boundary.md` | ASCII | LF | PASS |
-| `apex-infinite-cli/docs/operator-runbook.md` | ASCII | LF | PASS |
-| `apex-infinite-cli/docs/troubleshooting.md` | ASCII | LF | PASS |
+| `src/apex_infinite_visual/__init__.py` | ASCII | LF | PASS |
+| `src/apex_infinite_visual/events.py` | ASCII | LF | PASS |
+| `src/apex_infinite_visual/launcher.py` | ASCII | LF | PASS |
+| `src/apex_infinite_visual/main.py` | ASCII | LF | PASS |
+| `src/apex_infinite_visual/qml/Main.qml` | ASCII | LF | PASS |
+| `tests/test_visual_wrapper_spike.py` | ASCII | LF | PASS |
+| `docs/visual-wrapper-spike.md` | ASCII | LF | PASS |
+| `README.md` | ASCII | LF | PASS |
+| `docs/visual-wrapper-boundary.md` | ASCII | LF | PASS |
+| `docs/operator-runbook.md` | ASCII | LF | PASS |
+| `docs/troubleshooting.md` | ASCII | LF | PASS |
 
 **Encoding issues**: None
 
@@ -151,7 +151,7 @@ From spec.md:
   versions, launcher construction, stdout guard, dependency guard, and fixture
   flow through `tests/test_visual_wrapper_spike.py`.
 - PASS - Offscreen wrapper smoke completed with
-  `QT_QPA_PLATFORM=offscreen ./.venv/bin/python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300`.
+  `QT_QPA_PLATFORM=offscreen python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300`.
 - PASS - Existing CLI tests remain passing: 189/189 tests passed.
 
 **Quality gates**:
@@ -189,11 +189,11 @@ blocking gate, and the offscreen QML smoke passes.
 
 **Checklist applied**: Yes
 **Files spot-checked**:
-- `apex-infinite-cli/apex_infinite_visual/events.py`
-- `apex-infinite-cli/apex_infinite_visual/launcher.py`
-- `apex-infinite-cli/apex_infinite_visual/main.py`
-- `apex-infinite-cli/apex_infinite_visual/qml/Main.qml`
-- `apex-infinite-cli/tests/test_visual_wrapper_spike.py`
+- `src/apex_infinite_visual/events.py`
+- `src/apex_infinite_visual/launcher.py`
+- `src/apex_infinite_visual/main.py`
+- `src/apex_infinite_visual/qml/Main.qml`
+- `tests/test_visual_wrapper_spike.py`
 
 **Categories spot-checked**: trust boundaries, resource cleanup, mutation
 safety, failure paths, contract alignment, accessibility, and product surface.
@@ -205,7 +205,7 @@ safety, failure paths, contract alignment, accessibility, and product surface.
 ## 11. UI Product-Surface Spot-Check
 ### Status: PASS
 
-**Surfaces inspected**: `apex_infinite_visual/qml/Main.qml` by code inspection,
+**Surfaces inspected**: `src/apex_infinite_visual/qml/Main.qml` by code inspection,
 plus offscreen wrapper load through the dry-run route.
 **Diagnostics found in primary UI**: None
 **Allowed debug/admin surfaces**: None

@@ -14,18 +14,18 @@
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - untracked
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - untracked
 - `.spec_system/specs/phase00-session04-event-stream-boundary/code-review.md` - untracked review artifact created by `creview`
-- `apex-infinite-cli/apex_infinite.py` - tracked-modified
-- `apex-infinite-cli/apex_infinite_ui.py` - tracked-modified
-- `apex-infinite-cli/apex_infinite_events.py` - untracked
-- `apex-infinite-cli/tests/test_cli_options.py` - tracked-modified
-- `apex-infinite-cli/tests/test_event_stream.py` - untracked
-- `apex-infinite-cli/tests/test_renderer.py` - tracked-modified
-- `apex-infinite-cli/tests/test_subprocess_execution.py` - tracked-modified
-- `apex-infinite-cli/README_apex-infinite-cli.md` - tracked-modified
-- `apex-infinite-cli/docs/event-stream.md` - untracked
-- `apex-infinite-cli/docs/operator-runbook.md` - tracked-modified
-- `apex-infinite-cli/docs/prompt-contract.md` - tracked-modified
-- `apex-infinite-cli/docs/troubleshooting.md` - tracked-modified
+- `src/apex_infinite/cli.py` - tracked-modified
+- `src/apex_infinite/ui.py` - tracked-modified
+- `src/apex_infinite/events.py` - untracked
+- `tests/test_cli_options.py` - tracked-modified
+- `tests/test_event_stream.py` - untracked
+- `tests/test_renderer.py` - tracked-modified
+- `tests/test_subprocess_execution.py` - tracked-modified
+- `README.md` - tracked-modified
+- `docs/event-stream.md` - untracked
+- `docs/operator-runbook.md` - tracked-modified
+- `docs/prompt-contract.md` - tracked-modified
+- `docs/troubleshooting.md` - tracked-modified
 
 **Inventory commands**: `git status`, `git log --oneline "$BASE"..HEAD`, `git diff "$BASE"`, `git diff --cached "$BASE"`, `git ls-files --others --exclude-standard`
 
@@ -39,11 +39,11 @@ No findings.
 
 ### High
 
-- `apex-infinite-cli/apex_infinite.py:1877` - Machine-output startup failures could write human text to stdout before the no-human-output renderer existed. Reproduced with a missing config path: stdout contained a JSONL `startup_begin` row followed by `Config file not found: ...`, violating the JSONL-only stdout contract for `--event-stream - --machine-output`. Event stream open failures also propagated as uncaught `EventStreamError` instead of a controlled CLI error. | Fix: added `CliStartupError`, `_exit_with_startup_error()`, startup error `error` event emission, machine-mode stdout suppression, and ClickException mapping for event stream open failures. Added tests for JSONL-only startup errors and no-traceback event stream open errors. | Status: FIXED
+- `src/apex_infinite/cli.py:1877` - Machine-output startup failures could write human text to stdout before the no-human-output renderer existed. Reproduced with a missing config path: stdout contained a JSONL `startup_begin` row followed by `Config file not found: ...`, violating the JSONL-only stdout contract for `--event-stream - --machine-output`. Event stream open failures also propagated as uncaught `EventStreamError` instead of a controlled CLI error. | Fix: added `CliStartupError`, `_exit_with_startup_error()`, startup error `error` event emission, machine-mode stdout suppression, and ClickException mapping for event stream open failures. Added tests for JSONL-only startup errors and no-traceback event stream open errors. | Status: FIXED
 
 ### Medium
 
-- `apex-infinite-cli/apex_infinite.py:1386` - Provider or manager LLM exceptions re-raised without emitting an `error` event, leaving machine-output consumers without a terminal failure event despite the session contract requiring error lifecycle events. | Fix: wrapped history summarization and manager decision LLM boundaries to emit bounded `error` events with stage, iteration, and error type before preserving the existing exception behavior. Added a regression test for summarizer failure. | Status: FIXED
+- `src/apex_infinite/cli.py:1386` - Provider or manager LLM exceptions re-raised without emitting an `error` event, leaving machine-output consumers without a terminal failure event despite the session contract requiring error lifecycle events. | Fix: wrapped history summarization and manager decision LLM boundaries to emit bounded `error` events with stage, iteration, and error type before preserving the existing exception behavior. Added a regression test for summarizer failure. | Status: FIXED
 
 ### Low
 
@@ -63,17 +63,17 @@ No findings.
 
 ## Verification
 
-- Tests: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py tests/test_cli_options.py -q` - PASS - 41 passed.
-- Tests: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v` - PASS - 173 passed.
-- Formatter: `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py apex_infinite_events.py tests/` - PASS - 13 files unchanged.
-- Linter: `cd apex-infinite-cli && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py apex_infinite_events.py` - PASS - 10.00/10.
+- Tests: `python -m pytest tests/test_event_stream.py tests/test_cli_options.py -q` - PASS - 41 passed.
+- Tests: `python -m pytest tests/ -v` - PASS - 173 passed.
+- Formatter: `python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py src/apex_infinite/events.py tests/` - PASS - 13 files unchanged.
+- Linter: `python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py src/apex_infinite/events.py` - PASS - 10.00/10.
 - Whitespace: `git diff --check` - PASS - no output.
 - ASCII: changed tracked and untracked file scan with `LC_ALL=C grep -n '[^[:print:][:space:]]'` - PASS - no output.
 - LF endings: changed tracked and untracked file scan with `grep -n $'\r'` - PASS - no output.
-- Root tests: `bats tests/` - PASS - 61 passed.
-- Packaging sync: `bash scripts/sync-plugin-payload.sh --check` - PASS - plugin payload is current.
-- Script smoke: `bash scripts/analyze-project.sh --json | jq .` - PASS - current session resolves to `phase00-session04-event-stream-boundary`.
-- Script smoke: `bash scripts/check-prereqs.sh --json --env | jq .` - PASS - overall status `pass`.
+- Root tests: `python -m pytest tests/ -v` - PASS - 61 passed.
+- Packaging sync: `bash .spec_system/scripts/analyze-project.sh --json` - PASS - plugin payload is current.
+- Script smoke: `bash .spec_system/scripts/analyze-project.sh --json | jq .` - PASS - current session resolves to `phase00-session04-event-stream-boundary`.
+- Script smoke: `bash .spec_system/scripts/check-prereqs.sh --json --env | jq .` - PASS - overall status `pass`.
 - Runtime reproduction: missing config under `--event-stream - --machine-output` - PASS - stdout contains only JSONL `startup_begin` and `error` rows; stderr is empty.
 - Final diff re-read: no remaining issues found in event API validation, no-human renderer suppression, CLI guardrails, subprocess event emissions, docs, or session artifacts.
 

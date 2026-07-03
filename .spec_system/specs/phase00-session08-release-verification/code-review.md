@@ -10,11 +10,11 @@
 **Files reviewed** (all uncommitted changes):
 - `.spec_system/SECURITY-COMPLIANCE.md` - tracked-modified
 - `.spec_system/state.json` - tracked-modified
-- `apex-infinite-cli/README_apex-infinite-cli.md` - tracked-modified
-- `apex-infinite-cli/apex_infinite.py` - tracked-modified
-- `apex-infinite-cli/tests/test_cli_options.py` - tracked-modified
-- `apex-infinite-cli/docs/operator-runbook.md` - tracked-modified
-- `apex-infinite-cli/docs/visual-wrapper-productization.md` - tracked-modified
+- `README.md` - tracked-modified
+- `src/apex_infinite/cli.py` - tracked-modified
+- `tests/test_cli_options.py` - tracked-modified
+- `docs/operator-runbook.md` - tracked-modified
+- `docs/visual-wrapper-productization.md` - tracked-modified
 - `.spec_system/specs/phase00-session08-release-verification/clean-room-audit.md` - untracked
 - `.spec_system/specs/phase00-session08-release-verification/compatibility-fixes.md` - untracked
 - `.spec_system/specs/phase00-session08-release-verification/implementation-notes.md` - untracked
@@ -59,17 +59,17 @@ None.
 
 ## Verification
 
-- Tests: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v` - PASS - 222 tests passed.
-- Tests: `bats tests/` - PASS - 61 Bats tests passed.
-- Root checks: `bash scripts/sync-plugin-payload.sh --check` - PASS - plugin payload is current.
-- Root checks: `bash scripts/analyze-project.sh --json | jq .` - PASS - analyzer reports Session 08 as current and seven sessions complete.
-- Root checks: `bash scripts/check-prereqs.sh --json --env | jq .` - PASS - overall prereq status is pass.
-- Formatter: `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_events.py apex_infinite_ui.py apex_infinite_visual tests` - PASS - 20 files unchanged.
-- Linter: `cd apex-infinite-cli && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_events.py apex_infinite_ui.py apex_infinite_visual` - PASS - 10.00/10.
+- Tests: `python -m pytest tests/ -v` - PASS - 222 tests passed.
+- Tests: `python -m pytest tests/ -v` - PASS - 61 Bats tests passed.
+- Root checks: `bash .spec_system/scripts/analyze-project.sh --json` - PASS - plugin payload is current.
+- Root checks: `bash .spec_system/scripts/analyze-project.sh --json | jq .` - PASS - analyzer reports Session 08 as current and seven sessions complete.
+- Root checks: `bash .spec_system/scripts/check-prereqs.sh --json --env | jq .` - PASS - overall prereq status is pass.
+- Formatter: `python -m black --check src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py apex_infinite_visual tests` - PASS - 20 files unchanged.
+- Linter: `python -m pylint src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py apex_infinite_visual` - PASS - 10.00/10.
 - Type checker: N/A - no Python type checker is configured.
-- Compile: `cd apex-infinite-cli && ./.venv/bin/python -m py_compile apex_infinite.py apex_infinite_events.py apex_infinite_ui.py apex_infinite_visual/*.py` - PASS.
-- QML lint: `cd apex-infinite-cli && ./.venv/bin/pyside6-qmllint apex_infinite_visual/qml/Main.qml` - PASS - exited 0 with known unqualified-access warnings.
-- Wrapper smoke: `cd apex-infinite-cli && QT_QPA_PLATFORM=offscreen ./.venv/bin/python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` - PASS.
+- Compile: `python -m py_compile src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py src/apex_infinite_visual/*.py` - PASS.
+- QML lint: `pyside6-qmllint src/apex_infinite_visual/qml/Main.qml` - PASS - exited 0 with known unqualified-access warnings.
+- Wrapper smoke: `QT_QPA_PLATFORM=offscreen python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` - PASS.
 - Whitespace: `git diff --check` - PASS.
 - ASCII/LF scan: changed-file scan - PASS - 14 changed files used ASCII and LF only.
 - Stale-status scan: checked for the three stale release-status phrases fixed above - PASS - no matches after fixes.

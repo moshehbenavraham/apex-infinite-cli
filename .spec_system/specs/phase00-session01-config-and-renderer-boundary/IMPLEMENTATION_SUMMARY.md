@@ -22,10 +22,10 @@ prompt routing, subprocess return semantics, and SQLite compatibility.
 
 | File | Purpose | Lines |
 |------|---------|-------|
-| `apex-infinite-cli/apex_infinite_ui.py` | UI resolver, theme tokens, glyph sets, snapshots, and renderer helpers | 763 |
-| `apex-infinite-cli/tests/test_ui_config.py` | UI resolver and config validation tests | 199 |
-| `apex-infinite-cli/tests/test_cli_options.py` | Click flag and startup wiring tests | 148 |
-| `apex-infinite-cli/tests/test_renderer.py` | Renderer semantics, width, ASCII, compact, and history safety tests | 224 |
+| `src/apex_infinite/ui.py` | UI resolver, theme tokens, glyph sets, snapshots, and renderer helpers | 763 |
+| `tests/test_ui_config.py` | UI resolver and config validation tests | 199 |
+| `tests/test_cli_options.py` | Click flag and startup wiring tests | 148 |
+| `tests/test_renderer.py` | Renderer semantics, width, ASCII, compact, and history safety tests | 224 |
 | `.spec_system/specs/phase00-session01-config-and-renderer-boundary/spec.md` | Session specification | 346 |
 | `.spec_system/specs/phase00-session01-config-and-renderer-boundary/tasks.md` | Completed task checklist | 78 |
 | `.spec_system/specs/phase00-session01-config-and-renderer-boundary/implementation-notes.md` | Implementation evidence ledger | 817 |
@@ -37,19 +37,19 @@ prompt routing, subprocess return semantics, and SQLite compatibility.
 
 | File | Changes |
 |------|---------|
-| `apex-infinite-cli/apex_infinite.py` | Added display flags, resolved UI settings, renderer injection, and renderer-routed output paths |
-| `apex-infinite-cli/config.yaml` | Added default `ui` configuration section |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Documented display settings, flags, precedence, fallback behavior, and history guarantees |
-| `apex-infinite-cli/tests/conftest.py` | Added shared test import support |
-| `apex-infinite-cli/tests/test_prompts.py` | Applied Black formatting while preserving prompt expectations |
+| `src/apex_infinite/cli.py` | Added display flags, resolved UI settings, renderer injection, and renderer-routed output paths |
+| `src/apex_infinite/config.yaml` | Added default `ui` configuration section |
+| `README.md` | Documented display settings, flags, precedence, fallback behavior, and history guarantees |
+| `tests/conftest.py` | Added shared test import support |
+| `tests/test_prompts.py` | Applied Black formatting while preserving prompt expectations |
 | `.spec_system/state.json` | Recorded planned, validated, and completed session workflow state |
-| `.spec_system/PRD/phase_00/PRD_phase_00.md` | Marked session 01 complete and updated phase progress |
+| `.spec_system/archive/phases/phase_00/PRD_phase_00.md` | Marked session 01 complete and updated phase progress |
 
 ---
 
 ## Technical Decisions
 
-1. **Focused UI boundary**: Added `apex_infinite_ui.py` instead of expanding
+1. **Focused UI boundary**: Added `src/apex_infinite/ui.py` instead of expanding
    the main CLI module further, keeping configuration resolution and rendering
    testable.
 2. **Plain and ASCII are separate modes**: Plain mode disables styled layout;

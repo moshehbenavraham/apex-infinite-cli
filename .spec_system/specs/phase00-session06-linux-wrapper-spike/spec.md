@@ -69,20 +69,20 @@ defer with a precise blocker.
 ### Required Tools Or Knowledge
 
 - Current event names, event version, and payload validation in
-  `apex-infinite-cli/apex_infinite_events.py`.
+  `src/apex_infinite/events.py`.
 - Current Click flags and machine-output guardrails in
-  `apex-infinite-cli/apex_infinite.py`.
+  `src/apex_infinite/cli.py`.
 - PySide6/Qt Quick/QML basics for an optional Linux-only wrapper.
-- Existing docs in `apex-infinite-cli/docs/event-stream.md` and
-  `apex-infinite-cli/docs/visual-wrapper-boundary.md`.
+- Existing docs in `docs/event-stream.md` and
+  `docs/visual-wrapper-boundary.md`.
 - Clean-room visual rules from `CONVENTIONS.md`,
   `SECURITY-COMPLIANCE.md`, and the Phase 00 PRD.
 
 ### Environment Requirements
 
 - Linux development environment.
-- Python virtual environment for `apex-infinite-cli/`.
-- `PySide6` available through `apex-infinite-cli/requirements-wrapper.txt`.
+- Python virtual environment for `./`.
+- `PySide6` available through `requirements-wrapper.txt`.
 - `QT_QPA_PLATFORM=offscreen` or a graphical display for wrapper smoke tests.
 - No provider API keys or live Codex execution required for unit tests; dry-run
   and fixture event streams are sufficient for the spike.
@@ -125,14 +125,14 @@ defer with a precise blocker.
 
 ### Architecture
 
-Create a new optional package at `apex-infinite-cli/apex_infinite_visual/`.
+Create a new optional package at `src/apex_infinite_visual/`.
 The package is importable only when wrapper code is explicitly invoked. It
 contains a JSONL event adapter, a CLI subprocess launcher, and a PySide6/QML
 entrypoint. The base CLI continues to own prompts, manager routing, Codex
 execution, SQLite history, machine-output mode, event emission, and human
 terminal rendering.
 
-The launcher builds a subprocess command for the existing `apex_infinite.py`
+The launcher builds a subprocess command for the existing `src/apex_infinite/cli.py`
 entrypoint with `--event-stream - --machine-output`, captures stdout as JSONL,
 and keeps stderr separate for wrapper failure display. The event adapter parses
 one line at a time, validates the event version and required fields, maps known
@@ -166,22 +166,22 @@ assets, profile values, or terminal-widget behavior.
 
 | File | Purpose | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/apex_infinite_visual/__init__.py` | Optional wrapper package metadata and public exports | ~25 |
-| `apex-infinite-cli/apex_infinite_visual/events.py` | JSONL event parser, event-state adapter, and malformed-event error mapping | ~180 |
-| `apex-infinite-cli/apex_infinite_visual/launcher.py` | CLI subprocess command builder and launch/cleanup helpers for machine-output JSONL | ~170 |
-| `apex-infinite-cli/apex_infinite_visual/main.py` | PySide6 entrypoint, import guard, bridge model, and wrapper startup flow | ~280 |
-| `apex-infinite-cli/apex_infinite_visual/qml/Main.qml` | Independent QML prototype surface with log viewport, status panels, controls, and effects | ~280 |
-| `apex-infinite-cli/tests/test_visual_wrapper_spike.py` | Unit tests for event adapter, launcher args, import guard, and fixture event flow | ~240 |
-| `apex-infinite-cli/docs/visual-wrapper-spike.md` | Spike evidence, dependency/license assessment, packaging risks, and decision record | ~220 |
+| `src/apex_infinite_visual/__init__.py` | Optional wrapper package metadata and public exports | ~25 |
+| `src/apex_infinite_visual/events.py` | JSONL event parser, event-state adapter, and malformed-event error mapping | ~180 |
+| `src/apex_infinite_visual/launcher.py` | CLI subprocess command builder and launch/cleanup helpers for machine-output JSONL | ~170 |
+| `src/apex_infinite_visual/main.py` | PySide6 entrypoint, import guard, bridge model, and wrapper startup flow | ~280 |
+| `src/apex_infinite_visual/qml/Main.qml` | Independent QML prototype surface with log viewport, status panels, controls, and effects | ~280 |
+| `tests/test_visual_wrapper_spike.py` | Unit tests for event adapter, launcher args, import guard, and fixture event flow | ~240 |
+| `docs/visual-wrapper-spike.md` | Spike evidence, dependency/license assessment, packaging risks, and decision record | ~220 |
 
 ### Files To Modify
 
 | File | Changes | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Add optional wrapper prototype run notes and link to spike evidence | ~35 |
-| `apex-infinite-cli/docs/visual-wrapper-boundary.md` | Link the spike evidence and record confirmed prototype boundary decisions | ~35 |
-| `apex-infinite-cli/docs/operator-runbook.md` | Add operator-facing notes for optional wrapper spike usage and fallbacks | ~35 |
-| `apex-infinite-cli/docs/troubleshooting.md` | Add wrapper spike failure modes for missing PySide6, display backend, malformed JSONL, and subprocess failures | ~35 |
+| `README.md` | Add optional wrapper prototype run notes and link to spike evidence | ~35 |
+| `docs/visual-wrapper-boundary.md` | Link the spike evidence and record confirmed prototype boundary decisions | ~35 |
+| `docs/operator-runbook.md` | Add operator-facing notes for optional wrapper spike usage and fallbacks | ~35 |
+| `docs/troubleshooting.md` | Add wrapper spike failure modes for missing PySide6, display backend, malformed JSONL, and subprocess failures | ~35 |
 
 ---
 
@@ -234,12 +234,12 @@ assets, profile values, or terminal-widget behavior.
 
 ### Working Assumptions
 
-- PySide6 is available in the current `apex-infinite-cli/.venv`; the plan still
+- PySide6 is available in the current local virtualenv; the plan still
   requires optional import guards and offscreen/display fallback handling
   because wrapper dependencies must never be required for normal CLI use.
-- Wrapper code belongs under `apex-infinite-cli/apex_infinite_visual/` even
+- Wrapper code belongs under `src/apex_infinite_visual/` even
   though the repository is not configured as a formal monorepo; the PRD,
-  conventions, and state all identify `apex-infinite-cli/` as the active
+  conventions, and state all identify `./` as the active
   project area.
 - A read-only event log is sufficient for the spike; neither the PRD nor the
   Session 06 stub requires an interactive terminal emulator, and the selected
@@ -316,7 +316,7 @@ Top behavioral risks for this session:
 
 - Test JSONL parsing for valid current events, unsupported event versions,
   malformed JSON, missing fields, unexpected payload types, and bounded log
-  ordering in `apex-infinite-cli/tests/test_visual_wrapper_spike.py`.
+  ordering in `tests/test_visual_wrapper_spike.py`.
 - Test launcher command construction includes `--event-stream -`,
   `--machine-output`, project path, optional start command, optional dry-run,
   and max iteration arguments without launching a real subprocess.
@@ -325,10 +325,10 @@ Top behavioral risks for this session:
 
 ### Integration Tests
 
-- Run `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v`.
+- Run `python -m pytest tests/ -v`.
 - Run an offscreen wrapper smoke command with fixture events or dry-run mode if
   the Qt backend supports it.
-- Confirm `python apex_infinite.py --event-stream - --machine-output
+- Confirm `apex-infinite --event-stream - --machine-output
   --dry-run --max-iterations 1` still emits JSONL-only stdout in existing
   event tests.
 

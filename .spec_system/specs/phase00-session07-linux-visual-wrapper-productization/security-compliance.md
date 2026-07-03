@@ -7,43 +7,43 @@
 ## Scope
 
 **Files reviewed** (session deliverables and touched runtime/test/docs files):
-- `apex-infinite-cli/README_apex-infinite-cli.md` - visual mode user documentation
-- `apex-infinite-cli/apex_infinite_visual/__init__.py` - wrapper package exports
-- `apex-infinite-cli/apex_infinite_visual/events.py` - wrapper event parsing and state mapping
-- `apex-infinite-cli/apex_infinite_visual/launcher.py` - guarded subprocess launcher
-- `apex-infinite-cli/apex_infinite_visual/main.py` - PySide6 bridge and wrapper entrypoint
-- `apex-infinite-cli/apex_infinite_visual/qml/Main.qml` - visual wrapper QML surface
-- `apex-infinite-cli/apex_infinite_visual/settings.py` - wrapper settings validation
-- `apex-infinite-cli/requirements-wrapper.txt` - optional wrapper dependencies
-- `apex-infinite-cli/tests/test_visual_wrapper_productization.py` - productization tests
-- `apex-infinite-cli/tests/test_visual_wrapper_spike.py` - updated spike compatibility tests
-- `apex-infinite-cli/docs/operator-runbook.md` - operator guidance
-- `apex-infinite-cli/docs/troubleshooting.md` - wrapper recovery guidance
-- `apex-infinite-cli/docs/visual-wrapper-boundary.md` - clean-room and release boundary
-- `apex-infinite-cli/docs/visual-wrapper-productization.md` - productization guide
+- `README.md` - visual mode user documentation
+- `src/apex_infinite_visual/__init__.py` - wrapper package exports
+- `src/apex_infinite_visual/events.py` - wrapper event parsing and state mapping
+- `src/apex_infinite_visual/launcher.py` - guarded subprocess launcher
+- `src/apex_infinite_visual/main.py` - PySide6 bridge and wrapper entrypoint
+- `src/apex_infinite_visual/qml/Main.qml` - visual wrapper QML surface
+- `src/apex_infinite_visual/settings.py` - wrapper settings validation
+- `requirements-wrapper.txt` - optional wrapper dependencies
+- `tests/test_visual_wrapper_productization.py` - productization tests
+- `tests/test_visual_wrapper_spike.py` - updated spike compatibility tests
+- `docs/operator-runbook.md` - operator guidance
+- `docs/troubleshooting.md` - wrapper recovery guidance
+- `docs/visual-wrapper-boundary.md` - clean-room and release boundary
+- `docs/visual-wrapper-productization.md` - productization guide
 
 **Review method**: Static analysis of session deliverables, dependency check, source inspection, and security/GDPR checklist review.
 
 **Review evidence**:
-- Command/check: `rg -n "sk-[A-Za-z0-9]{20,}|Bearer [A-Za-z0-9._-]{10,}|AKIA[0-9A-Z]{16}|(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*['\"][^'\"]+" apex-infinite-cli/apex_infinite_visual apex-infinite-cli/tests/test_visual_wrapper_productization.py apex-infinite-cli/tests/test_visual_wrapper_spike.py apex-infinite-cli/docs/visual-wrapper-productization.md apex-infinite-cli/requirements-wrapper.txt apex-infinite-cli/README_apex-infinite-cli.md apex-infinite-cli/docs/operator-runbook.md apex-infinite-cli/docs/troubleshooting.md apex-infinite-cli/docs/visual-wrapper-boundary.md || true`
+- Command/check: `rg -n "sk-[A-Za-z0-9]{20,}|Bearer [A-Za-z0-9._-]{10,}|AKIA[0-9A-Z]{16}|(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*['\"][^'\"]+" src/apex_infinite_visual tests/test_visual_wrapper_productization.py tests/test_visual_wrapper_spike.py docs/visual-wrapper-productization.md requirements-wrapper.txt README.md docs/operator-runbook.md docs/troubleshooting.md docs/visual-wrapper-boundary.md || true`
   - Result: PASS
   - Evidence: matches were documented `api_key` environment placeholder examples in README and deliberate unsafe `Bearer abcdef1234567890` rejection fixtures in tests; no live hardcoded credential was found.
-- Command/check: `rg -n "subprocess|Popen|shell=True|os\.system|eval\(|exec\(|sqlite3|open\(" apex-infinite-cli/apex_infinite_visual apex-infinite-cli/tests/test_visual_wrapper_productization.py`
+- Command/check: `rg -n "subprocess|Popen|shell=True|os\.system|eval\(|exec\(|sqlite3|open\(" src/apex_infinite_visual tests/test_visual_wrapper_productization.py`
   - Result: PASS
   - Evidence: subprocess usage is centralized in `launcher.py`; `Popen` receives a list command, no `shell=True`, no `os.system`, no `eval`, and no DB writes in wrapper code.
-- Command/check: `sed -n '1,260p' apex-infinite-cli/apex_infinite_visual/launcher.py`
+- Command/check: `sed -n '1,260p' src/apex_infinite_visual/launcher.py`
   - Result: PASS
   - Evidence: CLI script and project path are resolved and validated before launch; stdout is guarded with `--event-stream - --machine-output`; process cleanup terminates or kills the child on timeout.
-- Command/check: `sed -n '480,610p' apex-infinite-cli/apex_infinite_visual/main.py`
+- Command/check: `sed -n '480,610p' src/apex_infinite_visual/main.py`
   - Result: PASS
   - Evidence: stderr is mapped through `_stderr_summary`, timeouts and non-zero exits become synthetic product-facing events, and broad wrapper exceptions expose only the exception class name.
-- Command/check: `./.venv/bin/python -m pip check` from `apex-infinite-cli/`
+- Command/check: `python -m pip check` from `./`
   - Result: PASS
   - Evidence: output was `No broken requirements found.`
 - Command/check: `rg -n "sqlite|schema|migration|CREATE TABLE|ALTER TABLE|DB_|history\.db|WAL|PRAGMA" ... || true`
   - Result: N/A
   - Evidence: matches were documentation references to existing history behavior only; the session did not add DB-layer code, schema changes, migrations, or data-shape changes.
-- Command/check: `rg -n "debug|telemetry|seed|frame|resize|readiness|route owner|shell ready|version label|data-source|scaffold|TODO|FIXME" apex-infinite-cli/apex_infinite_visual/qml/Main.qml apex-infinite-cli/apex_infinite_visual/main.py || true`
+- Command/check: `rg -n "debug|telemetry|seed|frame|resize|readiness|route owner|shell ready|version label|data-source|scaffold|TODO|FIXME" src/apex_infinite_visual/qml/Main.qml src/apex_infinite_visual/main.py || true`
   - Result: PASS
   - Evidence: no normal product-surface diagnostics or scaffolding terms were found.
 

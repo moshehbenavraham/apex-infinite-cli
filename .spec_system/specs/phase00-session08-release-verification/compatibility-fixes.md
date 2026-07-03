@@ -17,7 +17,7 @@ identified by T013 through T018 checks.
 
 | ID | Triggering Check | Failure | Files Changed | Regression Evidence | Status |
 |----|------------------|---------|---------------|---------------------|--------|
-| F001 | T012 CLI smoke matrix | `--plain --ascii` and redirected output ended with BEL (`0x07`) from `notify()` when max iterations stopped. | `apex-infinite-cli/apex_infinite.py`, `apex-infinite-cli/tests/test_cli_options.py` | `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_cli_options.py::test_notify_does_not_emit_terminal_bell_to_redirected_stdout -v`; T012 smoke rerun in `/tmp/tmp.FegBh5VPsv` passed ASCII/no-ANSI checks. | Fixed |
+| F001 | T012 CLI smoke matrix | `--plain --ascii` and redirected output ended with BEL (`0x07`) from `notify()` when max iterations stopped. | `src/apex_infinite/cli.py`, `tests/test_cli_options.py` | `python -m pytest tests/test_cli_options.py::test_notify_does_not_emit_terminal_bell_to_redirected_stdout -v`; T012 smoke rerun in `/tmp/tmp.FegBh5VPsv` passed ASCII/no-ANSI checks. | Fixed |
 
 ---
 
@@ -25,8 +25,8 @@ identified by T013 through T018 checks.
 
 | Check | Result | Evidence |
 |-------|--------|----------|
-| Focused regression rerun | PASS | `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_cli_options.py::test_notify_does_not_emit_terminal_bell_to_redirected_stdout -v` returned `1 passed in 0.34s`. |
-| Fix scope inspection | PASS | `git diff -- apex-infinite-cli/apex_infinite.py apex-infinite-cli/tests/test_cli_options.py` shows only the `sys.stdout.isatty()` bell guard and focused test addition. |
+| Focused regression rerun | PASS | `python -m pytest tests/test_cli_options.py::test_notify_does_not_emit_terminal_bell_to_redirected_stdout -v` returned `1 passed in 0.34s`. |
+| Fix scope inspection | PASS | `git diff -- src/apex_infinite/cli.py tests/test_cli_options.py` shows only the `sys.stdout.isatty()` bell guard and focused test addition. |
 | Additional release-check fixes | PASS | T013 through T018 found no further code compatibility failures. |
 | Final posture review | PASS | T020 release posture update kept F001 as the only compatibility repair and recorded no open compatibility blockers. |
 

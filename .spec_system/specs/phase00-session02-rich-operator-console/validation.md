@@ -27,23 +27,23 @@ Every row names the exact command or targeted inspection used.
 
 | Check | Command or Inspection | Result | Evidence / Blocker |
 |-------|-----------------------|--------|--------------------|
-| Project state | `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash scripts/analyze-project.sh --json; fi` | PASS | Current session resolved to `phase00-session02-rich-operator-console`; session dir exists; monorepo is `false`. |
+| Project state | `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash .spec_system/scripts/analyze-project.sh --json; fi` | PASS | Current session resolved to `phase00-session02-rich-operator-console`; session dir exists; monorepo is `false`. |
 | Code review | `rg -n '^\*\*Result\*\*: RESOLVED$|^\*\*Scope\*\*: All uncommitted changes in the working tree$' .spec_system/specs/phase00-session02-rich-operator-console/code-review.md` | PASS | Lines 5-6 show required scope and `Result: RESOLVED`. |
 | Task completion | `rg -n '^- \[[ x]\] T[0-9]{3}' .spec_system/specs/phase00-session02-rich-operator-console/tasks.md` | PASS | 21 task rows found and all are `[x]`; completion checklist rows are `[x]`. |
 | Deliverables | `for f in ...; do [ -s "$f" ] && printf 'PASS exists non-empty ...'; done` | PASS | All 7 deliverables exist and are non-empty. |
 | ASCII/LF | `file ...`; `LC_ALL=C grep -n '[^[:print:][:space:]]' ...`; `grep -l $'\r' ...` | PASS | All deliverables report ASCII text; no non-ASCII/control matches; no CRLF matches. |
-| Tests | `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py tests/ && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py` | PASS | 109 pytest tests passed; Black reported 9 files unchanged; pylint rated code 10.00/10. |
-| Root tests | `bats tests/` | PASS | 61 Bats tests passed. |
-| Plugin payload | `bash scripts/sync-plugin-payload.sh --check` | PASS | Output: `Plugin payload is current.` |
-| Analyzer smoke | `bash scripts/analyze-project.sh --json | jq .` | PASS | Current session, phase, and candidates resolved correctly. |
-| Prereq smoke | `bash scripts/check-prereqs.sh --json --env | jq .` | PASS | Overall status `pass`; spec system, jq, and git checks passed. |
+| Tests | `python -m pytest tests/ -v && python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/ && python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py` | PASS | 109 pytest tests passed; Black reported 9 files unchanged; pylint rated code 10.00/10. |
+| Root tests | `python -m pytest tests/ -v` | PASS | 61 Bats tests passed. |
+| Plugin payload | `bash .spec_system/scripts/analyze-project.sh --json` | PASS | Output: `Plugin payload is current.` |
+| Analyzer smoke | `bash .spec_system/scripts/analyze-project.sh --json | jq .` | PASS | Current session, phase, and candidates resolved correctly. |
+| Prereq smoke | `bash .spec_system/scripts/check-prereqs.sh --json --env | jq .` | PASS | Overall status `pass`; spec system, jq, and git checks passed. |
 | Diff whitespace | `git diff --check` | PASS | Command produced no output. |
-| Database/schema | `sed -n '528,620p' apex-infinite-cli/apex_infinite.py && sed -n '1080,1155p' apex-infinite-cli/apex_infinite.py` | N/A | No schema or persisted shape change; inspected parameterized queries and post-commit renderer DB log calls. |
+| Database/schema | `sed -n '528,620p' src/apex_infinite/cli.py && sed -n '1080,1155p' src/apex_infinite/cli.py` | N/A | No schema or persisted shape change; inspected parameterized queries and post-commit renderer DB log calls. |
 | Success criteria | `spec.md` criteria inspection plus full CLI and root verification commands above | PASS | Functional, testing, non-functional, and quality criteria were verified by tests, inspections, and renderer output. |
 | Conventions | `.spec_system/CONVENTIONS.md` inspection plus `black`, `pylint`, `pytest`, `git diff --check`, and deliverable spot-checks | PASS | Renderer boundary, raw DB boundary, prompt stability, ASCII/LF, tests, and docs rules were followed. |
 | Security/GDPR | `rg -n "(password|passwd|secret|api[_-]?key|token|OPENAI|ANTHROPIC|authorization|bearer|BEGIN (RSA|OPENSSH|PRIVATE)|shell=True|subprocess\.|os\.system|eval\(|exec\(|pickle|INSERT INTO|SELECT |db_log|sqlite|traceback|print_exception|debug|telemetry|diagnostic|readiness|scaffold|TODO|FIXME)" ...`; dependency diff command | PASS | No hardcoded secrets or injection findings; no dependency changes; GDPR N/A. |
-| Behavioral quality | `sed -n '537,820p' apex-infinite-cli/apex_infinite_ui.py`; `sed -n '528,620p' apex-infinite-cli/apex_infinite.py`; `sed -n '1,240p' apex-infinite-cli/tests/test_operator_console.py`; `sed -n '180,230p' apex-infinite-cli/tests/test_renderer.py` | PASS | Snapshot contracts, failure states, DB boundary, fallback tests, and raw-history tests align. |
-| UI product surface | `cd apex-infinite-cli && ./.venv/bin/python - <<'PY' ... render StartupSnapshot, IterationSnapshot, DbLogSnapshot at width 80 and scan disallowed terms ... PY` | PASS | Rendered startup, iteration, and history-write output; command printed `PASS product surface has no disallowed diagnostics`. |
+| Behavioral quality | `sed -n '537,820p' src/apex_infinite/ui.py`; `sed -n '528,620p' src/apex_infinite/cli.py`; `sed -n '1,240p' tests/test_operator_console.py`; `sed -n '180,230p' tests/test_renderer.py` | PASS | Snapshot contracts, failure states, DB boundary, fallback tests, and raw-history tests align. |
+| UI product surface | `python - <<'PY' ... render StartupSnapshot, IterationSnapshot, DbLogSnapshot at width 80 and scan disallowed terms ... PY` | PASS | Rendered startup, iteration, and history-write output; command printed `PASS product surface has no disallowed diagnostics`. |
 
 ## 1. Code Review Gate
 ### Status: PASS
@@ -62,13 +62,13 @@ Every row names the exact command or targeted inspection used.
 ### Status: PASS
 | File | Found | Status |
 |------|-------|--------|
-| `apex-infinite-cli/tests/test_operator_console.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite_ui.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_renderer.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_ui_config.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_cli_options.py` | Yes | PASS |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Yes | PASS |
+| `tests/test_operator_console.py` | Yes | PASS |
+| `src/apex_infinite/ui.py` | Yes | PASS |
+| `src/apex_infinite/cli.py` | Yes | PASS |
+| `tests/test_renderer.py` | Yes | PASS |
+| `tests/test_ui_config.py` | Yes | PASS |
+| `tests/test_cli_options.py` | Yes | PASS |
+| `README.md` | Yes | PASS |
 
 **Missing deliverables**: None.
 **Evidence**: `for f in ...; do [ -s "$f" ] ...; done` printed `PASS exists non-empty` for all 7 files.
@@ -77,13 +77,13 @@ Every row names the exact command or targeted inspection used.
 ### Status: PASS
 | File | Encoding | Line Endings | Status |
 |------|----------|--------------|--------|
-| `apex-infinite-cli/tests/test_operator_console.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/apex_infinite_ui.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/apex_infinite.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/tests/test_renderer.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/tests/test_ui_config.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/tests/test_cli_options.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | ASCII | LF | PASS |
+| `tests/test_operator_console.py` | ASCII | LF | PASS |
+| `src/apex_infinite/ui.py` | ASCII | LF | PASS |
+| `src/apex_infinite/cli.py` | ASCII | LF | PASS |
+| `tests/test_renderer.py` | ASCII | LF | PASS |
+| `tests/test_ui_config.py` | ASCII | LF | PASS |
+| `tests/test_cli_options.py` | ASCII | LF | PASS |
+| `README.md` | ASCII | LF | PASS |
 
 **Encoding issues**: None.
 **Evidence**: `file ...`, `LC_ALL=C grep -n '[^[:print:][:space:]]' ...`, and `grep -l $'\r' ...` passed for every deliverable.
@@ -99,14 +99,14 @@ Every row names the exact command or targeted inspection used.
 
 **Failed tests**: None.
 **Evidence**:
-- `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py tests/ && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py` passed with 109 pytest tests, Black clean, and pylint 10.00/10.
-- `bats tests/` passed with 61 tests.
+- `python -m pytest tests/ -v && python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/ && python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py` passed with 109 pytest tests, Black clean, and pylint 10.00/10.
+- `python -m pytest tests/ -v` passed with 61 tests.
 
 ## 6. Database/Schema Alignment
 ### Status: N/A
 *N/A because the session introduced no DB schema, migration, persisted data shape, constraint, index, seed, or generated type changes.*
 
-**Evidence**: `sed -n '528,620p' apex-infinite-cli/apex_infinite.py && sed -n '1080,1155p' apex-infinite-cli/apex_infinite.py` inspected `db_fetch_history()`, `db_log()`, parameterized SQL, and post-commit renderer calls. `tests/test_renderer.py::test_sqlite_history_stores_raw_values_without_renderer_labels` also passed as part of the full CLI test command.
+**Evidence**: `sed -n '528,620p' src/apex_infinite/cli.py && sed -n '1080,1155p' src/apex_infinite/cli.py` inspected `db_fetch_history()`, `db_log()`, parameterized SQL, and post-commit renderer calls. `tests/test_renderer.py::test_sqlite_history_stores_raw_values_without_renderer_labels` also passed as part of the full CLI test command.
 
 **Issues found**: None.
 
@@ -133,9 +133,9 @@ From `spec.md`:
 - [x] All files ASCII-encoded. Evidence: `file` and non-ASCII/control scan passed.
 - [x] Unix LF line endings. Evidence: CRLF scan passed.
 - [x] Code follows project conventions. Evidence: conventions spot-check, Black, pylint, tests, and `git diff --check`.
-- [x] `pytest tests/ -v` passes from `apex-infinite-cli/`. Evidence: 109 tests passed.
-- [x] `black --check apex_infinite.py apex_infinite_ui.py tests/` passes from `apex-infinite-cli/`. Evidence: Black reported 9 files unchanged.
-- [x] `pylint apex_infinite.py apex_infinite_ui.py` passes from `apex-infinite-cli/`. Evidence: pylint rated code 10.00/10.
+- [x] `pytest tests/ -v` passes from `./`. Evidence: 109 tests passed.
+- [x] `black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/` passes from `./`. Evidence: Black reported 9 files unchanged.
+- [x] `pylint src/apex_infinite/cli.py src/apex_infinite/ui.py` passes from `./`. Evidence: pylint rated code 10.00/10.
 - [x] Primary user-facing surfaces contain product-facing copy only. Evidence: rendered width-80 UI command printed `PASS product surface has no disallowed diagnostics`.
 
 ## 8. Conventions Compliance
@@ -146,7 +146,7 @@ From `spec.md`:
 
 **Convention violations**: None.
 
-**Evidence**: `.spec_system/CONVENTIONS.md` was inspected. `black`, `pylint`, `pytest`, `bats tests/`, `git diff --check`, ASCII/LF scans, DB code inspection, and renderer output inspection all passed.
+**Evidence**: `.spec_system/CONVENTIONS.md` was inspected. `black`, `pylint`, `pytest`, `python -m pytest tests/ -v`, `git diff --check`, ASCII/LF scans, DB code inspection, and renderer output inspection all passed.
 
 ## 9. Security & GDPR Compliance
 ### Status: PASS
@@ -166,11 +166,11 @@ From `spec.md`:
 
 **Checklist applied**: Yes.
 **Files spot-checked**:
-- `apex-infinite-cli/apex_infinite.py`
-- `apex-infinite-cli/apex_infinite_ui.py`
-- `apex-infinite-cli/tests/test_operator_console.py`
-- `apex-infinite-cli/tests/test_renderer.py`
-- `apex-infinite-cli/tests/test_cli_options.py`
+- `src/apex_infinite/cli.py`
+- `src/apex_infinite/ui.py`
+- `tests/test_operator_console.py`
+- `tests/test_renderer.py`
+- `tests/test_cli_options.py`
 
 **Categories spot-checked**: trust boundaries, resource cleanup, mutation safety, failure paths, and contract alignment.
 
@@ -178,7 +178,7 @@ From `spec.md`:
 
 **Fixes applied during validation**: None.
 
-**Evidence**: `sed -n '537,820p' apex-infinite-cli/apex_infinite_ui.py`, `sed -n '528,620p' apex-infinite-cli/apex_infinite.py`, `sed -n '1,240p' apex-infinite-cli/tests/test_operator_console.py`, and `sed -n '180,230p' apex-infinite-cli/tests/test_renderer.py` verified snapshot boundaries, explicit failure-state rendering, parameterized DB operations, and raw-history tests. Full CLI pytest passed.
+**Evidence**: `sed -n '537,820p' src/apex_infinite/ui.py`, `sed -n '528,620p' src/apex_infinite/cli.py`, `sed -n '1,240p' tests/test_operator_console.py`, and `sed -n '180,230p' tests/test_renderer.py` verified snapshot boundaries, explicit failure-state rendering, parameterized DB operations, and raw-history tests. Full CLI pytest passed.
 
 ## 11. UI Product-Surface Spot-Check
 ### Status: PASS
@@ -189,7 +189,7 @@ From `spec.md`:
 **Allowed debug/admin surfaces**: None.
 **Fixes applied during validation**: None.
 
-**Evidence**: `cd apex-infinite-cli && ./.venv/bin/python - <<'PY' ... render StartupSnapshot, IterationSnapshot, DbLogSnapshot at width 80 and scan disallowed terms ... PY` printed `PASS product surface has no disallowed diagnostics`.
+**Evidence**: `python - <<'PY' ... render StartupSnapshot, IterationSnapshot, DbLogSnapshot at width 80 and scan disallowed terms ... PY` printed `PASS product surface has no disallowed diagnostics`.
 
 ## Validation Result
 ### PASS

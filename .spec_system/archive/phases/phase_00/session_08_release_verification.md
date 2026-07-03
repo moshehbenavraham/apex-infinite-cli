@@ -84,64 +84,64 @@ documentation, testing, release, and clean-room completion criteria.
 <!-- FOLDED_SESSION_SOURCE_START -->
 
 This section carries forward the actionable session material formerly stored in
-`docs/ongoing-projects/apex-infinite-cli-upgrade-plan.md`. The Phase 00 PRD
+`.spec_system/archive/phases/phase_00/PRD_phase_00.md`. The Phase 00 PRD
 contains the verbatim archive; this stub keeps the session-specific details and
 full-path `EXAMPLE/` references close to the session executor.
 
 ### EXAMPLE Reference Links
 
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/README.md](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/README.md)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/gpl-2.0.txt](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/gpl-2.0.txt)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/gpl-3.0.txt](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/gpl-3.0.txt)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/packaging/debian/copyright](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/packaging/debian/copyright)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/.gitmodules](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/.gitmodules)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/main.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/main.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/resources.qrc](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/resources.qrc)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/burn_in.frag](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/burn_in.frag)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/burn_in.vert](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/burn_in.vert)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/passthrough.vert](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/passthrough.vert)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.vert](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.vert)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static.vert](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static.vert)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.vert](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.vert)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic_raster0_burn0_frame0_chroma0.frag.qsb](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic_raster0_burn0_frame0_chroma0.frag.qsb)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static_rgb0_bloom0_curve0_shine0.frag.qsb](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static_rgb0_bloom0_curve0_shine0.frag.qsb)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/main.cpp](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/main.cpp)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.cpp](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.cpp)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.h](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.h)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.cpp](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.cpp)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.h](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.h)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.pro](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.pro)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/app.pro](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/app.pro)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/crt256.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/crt256.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/crt.icns](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/crt.icns)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.desktop](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.desktop)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/snap/snapcraft.yaml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/snap/snapcraft.yaml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/scripts/build-appimage.sh](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/scripts/build-appimage.sh)
+- [EXAMPLE/cool-retro-term/README.md](../../../../EXAMPLE/cool-retro-term/README.md)
+- [EXAMPLE/cool-retro-term/gpl-2.0.txt](../../../../EXAMPLE/cool-retro-term/gpl-2.0.txt)
+- [EXAMPLE/cool-retro-term/gpl-3.0.txt](../../../../EXAMPLE/cool-retro-term/gpl-3.0.txt)
+- [EXAMPLE/cool-retro-term/packaging/debian/copyright](../../../../EXAMPLE/cool-retro-term/packaging/debian/copyright)
+- [EXAMPLE/cool-retro-term/.gitmodules](../../../../EXAMPLE/cool-retro-term/.gitmodules)
+- [EXAMPLE/cool-retro-term/app/qml/main.qml](../../../../EXAMPLE/cool-retro-term/app/qml/main.qml)
+- [EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml](../../../../EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml)
+- [EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml](../../../../EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml)
+- [EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml](../../../../EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml)
+- [EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml](../../../../EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TimeManager.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TimeManager.qml)
+- [EXAMPLE/cool-retro-term/app/qml/Storage.qml](../../../../EXAMPLE/cool-retro-term/app/qml/Storage.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml)
+- [EXAMPLE/cool-retro-term/app/qml/resources.qrc](../../../../EXAMPLE/cool-retro-term/app/qml/resources.qrc)
+- [EXAMPLE/cool-retro-term/app/shaders/burn_in.frag](../../../../EXAMPLE/cool-retro-term/app/shaders/burn_in.frag)
+- [EXAMPLE/cool-retro-term/app/shaders/burn_in.vert](../../../../EXAMPLE/cool-retro-term/app/shaders/burn_in.vert)
+- [EXAMPLE/cool-retro-term/app/shaders/passthrough.vert](../../../../EXAMPLE/cool-retro-term/app/shaders/passthrough.vert)
+- [EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag](../../../../EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag)
+- [EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.vert](../../../../EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.vert)
+- [EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag](../../../../EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag)
+- [EXAMPLE/cool-retro-term/app/shaders/terminal_static.vert](../../../../EXAMPLE/cool-retro-term/app/shaders/terminal_static.vert)
+- [EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag](../../../../EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag)
+- [EXAMPLE/cool-retro-term/app/shaders/terminal_frame.vert](../../../../EXAMPLE/cool-retro-term/app/shaders/terminal_frame.vert)
+- [EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic_raster0_burn0_frame0_chroma0.frag.qsb](../../../../EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic_raster0_burn0_frame0_chroma0.frag.qsb)
+- [EXAMPLE/cool-retro-term/app/shaders/terminal_static_rgb0_bloom0_curve0_shine0.frag.qsb](../../../../EXAMPLE/cool-retro-term/app/shaders/terminal_static_rgb0_bloom0_curve0_shine0.frag.qsb)
+- [EXAMPLE/cool-retro-term/app/main.cpp](../../../../EXAMPLE/cool-retro-term/app/main.cpp)
+- [EXAMPLE/cool-retro-term/app/fileio.cpp](../../../../EXAMPLE/cool-retro-term/app/fileio.cpp)
+- [EXAMPLE/cool-retro-term/app/fileio.h](../../../../EXAMPLE/cool-retro-term/app/fileio.h)
+- [EXAMPLE/cool-retro-term/app/fontmanager.cpp](../../../../EXAMPLE/cool-retro-term/app/fontmanager.cpp)
+- [EXAMPLE/cool-retro-term/app/fontmanager.h](../../../../EXAMPLE/cool-retro-term/app/fontmanager.h)
+- [EXAMPLE/cool-retro-term/app/fontlistmodel.cpp](../../../../EXAMPLE/cool-retro-term/app/fontlistmodel.cpp)
+- [EXAMPLE/cool-retro-term/app/fontlistmodel.h](../../../../EXAMPLE/cool-retro-term/app/fontlistmodel.h)
+- [EXAMPLE/cool-retro-term/cool-retro-term.pro](../../../../EXAMPLE/cool-retro-term/cool-retro-term.pro)
+- [EXAMPLE/cool-retro-term/app/app.pro](../../../../EXAMPLE/cool-retro-term/app/app.pro)
+- [EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png](../../../../EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png)
+- [EXAMPLE/cool-retro-term/app/qml/images/crt256.png](../../../../EXAMPLE/cool-retro-term/app/qml/images/crt256.png)
+- [EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png](../../../../EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png)
+- [EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png](../../../../EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png)
+- [EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png](../../../../EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png)
+- [EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png](../../../../EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png)
+- [EXAMPLE/cool-retro-term/app/icons/crt.icns](../../../../EXAMPLE/cool-retro-term/app/icons/crt.icns)
+- [EXAMPLE/cool-retro-term/cool-retro-term.desktop](../../../../EXAMPLE/cool-retro-term/cool-retro-term.desktop)
+- [EXAMPLE/cool-retro-term/snap/snapcraft.yaml](../../../../EXAMPLE/cool-retro-term/snap/snapcraft.yaml)
+- [EXAMPLE/cool-retro-term/scripts/build-appimage.sh](../../../../EXAMPLE/cool-retro-term/scripts/build-appimage.sh)
 
 ### Detailed Session Split Source
 
@@ -183,70 +183,70 @@ full-path `EXAMPLE/` references close to the session executor.
 
 **EXAMPLE Reference Paths**:
 - Verify inspiration and clean-room documentation claims against:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/README.md`
+  `EXAMPLE/cool-retro-term/README.md`
 - Verify license and no-copy boundary against:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/gpl-2.0.txt`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/gpl-3.0.txt`,
+  `EXAMPLE/cool-retro-term/gpl-2.0.txt`,
+  `EXAMPLE/cool-retro-term/gpl-3.0.txt`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/packaging/debian/copyright`
+  `EXAMPLE/cool-retro-term/packaging/debian/copyright`
 - Verify submodule and external dependency boundaries against:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/.gitmodules`
+  `EXAMPLE/cool-retro-term/.gitmodules`
 - Audit against source QML reference files to ensure no copied QML:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/main.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/main.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/TimeManager.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/Storage.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/resources.qrc`
+  `EXAMPLE/cool-retro-term/app/qml/resources.qrc`
 - Audit against shader source and compiled shader paths to ensure no copied
   shader source or `.qsb` blobs:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/burn_in.frag`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/burn_in.vert`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/passthrough.vert`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.vert`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static.vert`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.vert`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic_raster0_burn0_frame0_chroma0.frag.qsb`,
+  `EXAMPLE/cool-retro-term/app/shaders/burn_in.frag`,
+  `EXAMPLE/cool-retro-term/app/shaders/burn_in.vert`,
+  `EXAMPLE/cool-retro-term/app/shaders/passthrough.vert`,
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag`,
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.vert`,
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag`,
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_static.vert`,
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag`,
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_frame.vert`,
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic_raster0_burn0_frame0_chroma0.frag.qsb`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static_rgb0_bloom0_curve0_shine0.frag.qsb`
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_static_rgb0_bloom0_curve0_shine0.frag.qsb`
 - Audit against C++ bridge/build files to ensure no copied implementation:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/main.cpp`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.cpp`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.h`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.cpp`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.h`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.pro`,
+  `EXAMPLE/cool-retro-term/app/main.cpp`,
+  `EXAMPLE/cool-retro-term/app/fileio.cpp`,
+  `EXAMPLE/cool-retro-term/app/fileio.h`,
+  `EXAMPLE/cool-retro-term/app/fontmanager.cpp`,
+  `EXAMPLE/cool-retro-term/app/fontmanager.h`,
+  `EXAMPLE/cool-retro-term/app/fontlistmodel.cpp`,
+  `EXAMPLE/cool-retro-term/app/fontlistmodel.h`,
+  `EXAMPLE/cool-retro-term/cool-retro-term.pro`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/app.pro`
+  `EXAMPLE/cool-retro-term/app/app.pro`
 - Audit against assets and packaging files to ensure none were copied:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/crt256.png`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/crt.icns`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.desktop`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/snap/snapcraft.yaml`,
+  `EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png`,
+  `EXAMPLE/cool-retro-term/app/qml/images/crt256.png`,
+  `EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png`,
+  `EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png`,
+  `EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png`,
+  `EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png`,
+  `EXAMPLE/cool-retro-term/app/icons/crt.icns`,
+  `EXAMPLE/cool-retro-term/cool-retro-term.desktop`,
+  `EXAMPLE/cool-retro-term/snap/snapcraft.yaml`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/scripts/build-appimage.sh`
+  `EXAMPLE/cool-retro-term/scripts/build-appimage.sh`
 
 **Acceptance Checks**:
 - Existing workflow behavior remains compatible.

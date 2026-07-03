@@ -66,12 +66,12 @@ material directly.
 
 ### Required Tools Or Knowledge
 
-- Current CLI options and config keys in `apex-infinite-cli/apex_infinite.py`,
-  `apex-infinite-cli/apex_infinite_ui.py`, and
-  `apex-infinite-cli/config.yaml`.
+- Current CLI options and config keys in `src/apex_infinite/cli.py`,
+  `src/apex_infinite/ui.py`, and
+  `src/apex_infinite/config.yaml`.
 - Current event names and payload safety rules in
-  `apex-infinite-cli/apex_infinite_events.py` and
-  `apex-infinite-cli/docs/event-stream.md`.
+  `src/apex_infinite/events.py` and
+  `docs/event-stream.md`.
 - Phase 00 PRD, Session 05 stub, `CONVENTIONS.md`, `CONSIDERATIONS.md`, and
   `SECURITY-COMPLIANCE.md` documentation and clean-room requirements.
 - Local reference evidence under ignored `EXAMPLE/cool-retro-term/` may be
@@ -80,7 +80,7 @@ material directly.
 
 ### Environment Requirements
 
-- CLI development environment with `apex-infinite-cli/.venv` or equivalent
+- CLI development environment with local virtualenv or equivalent
   Python dependencies available for test verification.
 - No provider API keys, real LLM calls, real Codex subprocess launches, or
   graphical runtime dependencies are required to create deterministic docs and
@@ -114,13 +114,13 @@ material directly.
   width, `NO_COLOR`, `TERM=dumb`, redirected output, remote shells, and
   event-stream misuse.
 - Deterministic ASCII-only transcripts or JSONL samples are added under
-  `apex-infinite-cli/docs/transcripts/`.
+  `docs/transcripts/`.
 - Clean-room visual documentation identifies `EXAMPLE/` as ignored,
   reference-only, GPL-family study material and documents the no-copying rule.
 - Wrapper direction docs identify PySide6/Qt Quick/QML as the selected optional
   Linux wrapper path, PyQt/qmltermwidget/QTermWidget exclusions, and pywebview
   plus xterm.js as a backup option.
-- Root `docs/CREDITS.md` is aligned with the clean-room boundary where current
+- Root `docs/visual-wrapper-boundary.md` is aligned with the clean-room boundary where current
   wording conflicts with the PRD.
 
 ### Out Of Scope (Deferred)
@@ -155,7 +155,7 @@ docs. Use the current CLI code, config, tests, Session 04 validation evidence,
 and Phase 00 PRD as source of truth. Update docs to remove drift and duplicate
 ambiguity instead of adding parallel explanations.
 
-Create deterministic samples under `apex-infinite-cli/docs/transcripts/`.
+Create deterministic samples under `docs/transcripts/`.
 Samples should be small, ASCII-only, and hand-verifiable against the documented
 contract. They must not include real provider keys, real operator secrets,
 binary screenshots, ANSI escapes, Rich markup, box glyphs, copied reference
@@ -195,23 +195,23 @@ are expected unless docs reveal a failing contract.
 
 | File | Purpose | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/docs/visual-wrapper-boundary.md` | Clean-room visual boundary, ignored reference tree, optional wrapper direction, dependency/license notes, and exclusions | ~180 |
-| `apex-infinite-cli/docs/transcripts/README_transcripts.md` | Index and usage notes for deterministic transcript and JSONL samples | ~80 |
-| `apex-infinite-cli/docs/transcripts/dry-run-plain.txt` | ASCII-only plain/compact dry-run sample showing operator fallback output | ~90 |
-| `apex-infinite-cli/docs/transcripts/history-ledger.txt` | ASCII-only history display sample showing compact and verbose semantics | ~90 |
-| `apex-infinite-cli/docs/transcripts/machine-output-events.jsonl` | Deterministic JSONL event sample for machine-output consumers | ~12 |
+| `docs/visual-wrapper-boundary.md` | Clean-room visual boundary, ignored reference tree, optional wrapper direction, dependency/license notes, and exclusions | ~180 |
+| `docs/transcripts/README_transcripts.md` | Index and usage notes for deterministic transcript and JSONL samples | ~80 |
+| `docs/transcripts/dry-run-plain.txt` | ASCII-only plain/compact dry-run sample showing operator fallback output | ~90 |
+| `docs/transcripts/history-ledger.txt` | ASCII-only history display sample showing compact and verbose semantics | ~90 |
+| `docs/transcripts/machine-output-events.jsonl` | Deterministic JSONL event sample for machine-output consumers | ~12 |
 
 ### Files To Modify
 
 | File | Changes | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Complete UI flag/config/theme examples, event-stream examples, transcript links, deep-dive docs, and wrapper boundary links | ~140 |
-| `apex-infinite-cli/docs/operator-runbook.md` | Add theme selection, fallback-mode, CI/log, remote-shell, event-stream, and sample-use guidance | ~140 |
-| `apex-infinite-cli/docs/event-stream.md` | Cross-link JSONL sample, wrapper guidance, stdout isolation, and no-Rich-parsing boundary | ~80 |
-| `apex-infinite-cli/docs/history-db.md` | Document display-time status labels, truncation, verbose history behavior, raw storage, and sample links | ~80 |
-| `apex-infinite-cli/docs/prompt-contract.md` | Confirm UI/event docs do not change prompt routing and document wrapper/event observation boundary | ~60 |
-| `apex-infinite-cli/docs/troubleshooting.md` | Add fallback rendering, terminal width, non-UTF terminal, remote shell, redirected output, and event-stream misuse fixes | ~120 |
-| `docs/CREDITS.md` | Replace conflicting direct-code wording with clean-room conceptual-inspiration wording | ~20 |
+| `README.md` | Complete UI flag/config/theme examples, event-stream examples, transcript links, deep-dive docs, and wrapper boundary links | ~140 |
+| `docs/operator-runbook.md` | Add theme selection, fallback-mode, CI/log, remote-shell, event-stream, and sample-use guidance | ~140 |
+| `docs/event-stream.md` | Cross-link JSONL sample, wrapper guidance, stdout isolation, and no-Rich-parsing boundary | ~80 |
+| `docs/history-db.md` | Document display-time status labels, truncation, verbose history behavior, raw storage, and sample links | ~80 |
+| `docs/prompt-contract.md` | Confirm UI/event docs do not change prompt routing and document wrapper/event observation boundary | ~60 |
+| `docs/troubleshooting.md` | Add fallback rendering, terminal width, non-UTF terminal, remote shell, redirected output, and event-stream misuse fixes | ~120 |
+| `docs/visual-wrapper-boundary.md` | Replace conflicting direct-code wording with clean-room conceptual-inspiration wording | ~20 |
 
 ---
 
@@ -262,7 +262,7 @@ are expected unless docs reveal a failing contract.
 - [ ] Unix LF line endings.
 - [ ] Documentation follows project conventions and uses fenced code blocks
       with language tags for code examples.
-- [ ] No generated plugin payloads under `plugins/apex-spec/skills/apex-spec/`
+- [ ] No generated plugin payloads under `removed generated plugin payloads`
       are edited.
 - [ ] Root skill packaging sync check remains clean.
 
@@ -289,7 +289,7 @@ are expected unless docs reveal a failing contract.
 
 ### Conflict Resolutions
 
-- `docs/CREDITS.md` currently says `cool-retro-term` provided direct
+- `docs/visual-wrapper-boundary.md` currently says `cool-retro-term` provided direct
   influence/code examples, while the PRD, Session 05 stub, and security record
   require clean-room visual translation and forbid copied reference material.
   The chosen interpretation is the PRD/stub/security boundary: update credits
@@ -312,7 +312,7 @@ are expected unless docs reveal a failing contract.
   editing docs.
 - Accidentally implying screenshots or visual assets are tracked deliverables:
   mitigate by using only text transcripts and JSONL samples under
-  `apex-infinite-cli/docs/transcripts/`.
+  `docs/transcripts/`.
 - Clean-room wording becoming too vague for future sessions: mitigate by naming
   explicit forbidden material categories and the event-stream consumption
   boundary.
@@ -340,7 +340,7 @@ are expected unless docs reveal a failing contract.
 
 ### Unit Tests
 
-- Run the full existing CLI pytest suite from `apex-infinite-cli/` to confirm
+- Run the full existing CLI pytest suite from `./` to confirm
   prompt, UI config, renderer, history, subprocess, and event-stream contracts
   remain green.
 

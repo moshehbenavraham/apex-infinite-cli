@@ -33,14 +33,14 @@ Every row names the exact command or targeted inspection used.
 | Task completion | `rg -c '^- \\[[ x]\\] T[0-9]+' .../tasks.md`; `rg -c '^- \\[x\\] T[0-9]+' .../tasks.md`; `rg '^- \\[ \\] T[0-9]+' .../tasks.md || true` | PASS | 21 total, 21 complete, 0 incomplete |
 | Deliverables | `test -s` loop over 12 deliverables | PASS | All 12 deliverables found and non-empty |
 | ASCII/LF | `file ...`; `LC_ALL=C grep -n '[^[:print:][:space:]]' ...`; `grep -n $'\\r' ...` | PASS | `file` reports ASCII text for every deliverable; grep reported `ASCII_OK` and `LF_OK` |
-| CLI tests | `./.venv/bin/python -m pytest tests/ -v` in `apex-infinite-cli/` | PASS | 173/173 passed in 10.73s; coverage was not collected by this configured command |
-| Formatter | `./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py apex_infinite_events.py tests/` in `apex-infinite-cli/` | PASS | 13 files would be left unchanged |
-| Linter | `./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py apex_infinite_events.py` in `apex-infinite-cli/` | PASS | Pylint rated checked modules 10.00/10 |
-| Root tests | `bats tests/` | PASS | 61/61 Bats tests passed |
-| Packaging sync | `bash scripts/sync-plugin-payload.sh --check` | PASS | Plugin payload is current |
+| CLI tests | `python -m pytest tests/ -v` in `./` | PASS | 173/173 passed in 10.73s; coverage was not collected by this configured command |
+| Formatter | `python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py src/apex_infinite/events.py tests/` in `./` | PASS | 13 files would be left unchanged |
+| Linter | `python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py src/apex_infinite/events.py` in `./` | PASS | Pylint rated checked modules 10.00/10 |
+| Root tests | `python -m pytest tests/ -v` | PASS | 61/61 Bats tests passed |
+| Packaging sync | `bash .spec_system/scripts/analyze-project.sh --json` | PASS | Plugin payload is current |
 | Whitespace | `git diff --check` | PASS | No whitespace errors |
-| Prereqs | `bash scripts/check-prereqs.sh --json --env | jq .` | PASS | Overall status `pass`; `.spec_system`, jq, and git detected |
-| Database/schema | `git diff -- apex-infinite-cli/requirements.txt apex-infinite-cli/requirements-dev.txt pyproject.toml`; `git diff -- apex-infinite-cli/apex_infinite.py | rg -n "CREATE TABLE|ALTER TABLE|INSERT INTO|cc_response|db_log|DB_PATH|history" || true` | N/A | No dependency files changed; DB diff inspection showed event wrappers around existing `db_log()` behavior and no DDL/schema changes |
+| Prereqs | `bash .spec_system/scripts/check-prereqs.sh --json --env | jq .` | PASS | Overall status `pass`; `.spec_system`, jq, and git detected |
+| Database/schema | `git diff -- requirements.txt requirements-dev.txt pyproject.toml`; `git diff -- src/apex_infinite/cli.py | rg -n "CREATE TABLE|ALTER TABLE|INSERT INTO|cc_response|db_log|DB_PATH|history" || true` | N/A | No dependency files changed; DB diff inspection showed event wrappers around existing `db_log()` behavior and no DDL/schema changes |
 | Success criteria | `sed -n '1,405p' .../spec.md`; CLI test, Black, Pylint, ASCII/LF, and targeted code/docs inspections | PASS | Functional, testing, and quality criteria are covered by tests and inspection |
 | Conventions | `.spec_system/CONVENTIONS.md` inspection plus changed-file spot-check | PASS | CLI flags use Click long options; event stream is a side channel; no generated payload edited; no new root dependencies |
 | Security/GDPR | `references/security-compliance-checklist.md` plus targeted code/docs inspection and `security-compliance.md` | PASS | No security findings; GDPR N/A |
@@ -68,18 +68,18 @@ Every row names the exact command or targeted inspection used.
 
 | File | Found | Status |
 |------|-------|--------|
-| `apex-infinite-cli/apex_infinite_events.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_event_stream.py` | Yes | PASS |
-| `apex-infinite-cli/docs/event-stream.md` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite_ui.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_cli_options.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_subprocess_execution.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_renderer.py` | Yes | PASS |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Yes | PASS |
-| `apex-infinite-cli/docs/operator-runbook.md` | Yes | PASS |
-| `apex-infinite-cli/docs/prompt-contract.md` | Yes | PASS |
-| `apex-infinite-cli/docs/troubleshooting.md` | Yes | PASS |
+| `src/apex_infinite/events.py` | Yes | PASS |
+| `tests/test_event_stream.py` | Yes | PASS |
+| `docs/event-stream.md` | Yes | PASS |
+| `src/apex_infinite/cli.py` | Yes | PASS |
+| `src/apex_infinite/ui.py` | Yes | PASS |
+| `tests/test_cli_options.py` | Yes | PASS |
+| `tests/test_subprocess_execution.py` | Yes | PASS |
+| `tests/test_renderer.py` | Yes | PASS |
+| `README.md` | Yes | PASS |
+| `docs/operator-runbook.md` | Yes | PASS |
+| `docs/prompt-contract.md` | Yes | PASS |
+| `docs/troubleshooting.md` | Yes | PASS |
 
 **Missing deliverables**: None
 
@@ -120,7 +120,7 @@ Additional gates:
 **Evidence**: The session did not introduce DB-layer schema, migration,
 constraint, index, seed, or durable data shape changes. `git diff --`
 inspection of dependency manifests produced no output. Targeted diff inspection
-of `apex_infinite.py` found event emissions around existing DB logging and no
+of `src/apex_infinite/cli.py` found event emissions around existing DB logging and no
 DDL, migration, or `cc_response` schema changes.
 
 **Issues found**: None
@@ -175,11 +175,11 @@ and documentation updates.
 
 **Checklist applied**: Yes
 **Files spot-checked**:
-- `apex-infinite-cli/apex_infinite_events.py`
-- `apex-infinite-cli/apex_infinite.py`
-- `apex-infinite-cli/apex_infinite_ui.py`
-- `apex-infinite-cli/tests/test_event_stream.py`
-- `apex-infinite-cli/tests/test_cli_options.py`
+- `src/apex_infinite/events.py`
+- `src/apex_infinite/cli.py`
+- `src/apex_infinite/ui.py`
+- `tests/test_event_stream.py`
+- `tests/test_cli_options.py`
 
 **Categories spot-checked**: trust boundaries, resource cleanup, mutation
 safety, failure paths, and contract alignment.

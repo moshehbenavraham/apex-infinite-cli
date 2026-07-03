@@ -28,7 +28,7 @@ Every row names the exact command or targeted inspection used.
 
 | Check | Command or Inspection | Result | Evidence / Blocker |
 |-------|-----------------------|--------|--------------------|
-| Project state | `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash scripts/analyze-project.sh --json; fi` | PASS | Current session is `phase00-session07-linux-visual-wrapper-productization`; session directory exists; monorepo is `false`; session files before validation were `code-review.md`, `implementation-notes.md`, `spec.md`, and `tasks.md`. |
+| Project state | `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash .spec_system/scripts/analyze-project.sh --json; fi` | PASS | Current session is `phase00-session07-linux-visual-wrapper-productization`; session directory exists; monorepo is `false`; session files before validation were `code-review.md`, `implementation-notes.md`, `spec.md`, and `tasks.md`. |
 | Base commit | `git rev-parse --verify --quiet "6f774b606856a75d372d62f090575a1eead0b614^{commit}"` | PASS | Base commit from `spec.md` resolves. |
 | Code review | `grep -n '^\*\*Result\*\*: RESOLVED' .spec_system/specs/phase00-session07-linux-visual-wrapper-productization/code-review.md` | PASS | Line 7 reports `Result: RESOLVED`; review scope names changes since base commit. |
 | Task completion | `grep -c '^- \[[ x]\] T[0-9]' tasks.md`; `grep -c '^- \[x\] T[0-9]' tasks.md`; `grep -n '^- \[ \] T[0-9]' tasks.md || true` | PASS | Total 20, complete 20, incomplete none. |
@@ -36,16 +36,16 @@ Every row names the exact command or targeted inspection used.
 | Diff inventory | `git status --short`; `git diff --name-only 6f774b606856a75d372d62f090575a1eead0b614`; `git ls-files --others --exclude-standard` | PASS | Changed implementation/docs/tests/session artifacts match the Session 07 review surface plus generated validation artifacts. |
 | ASCII/LF | `file <19 files>`; `LC_ALL=C grep -n '[^[:print:][:space:]]' <19 files> || true`; `grep -l $'\r' <19 files> || true` | PASS | `file` reports ASCII/text or JSON text; grep commands produced no non-ASCII/control or CRLF output. |
 | Whitespace | `git diff --check` | PASS | Command exited 0 with no output. |
-| Tests | `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v` | PASS | 221 collected, 221 passed in 10.87s. |
-| Quality gate | `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite_visual tests/test_visual_wrapper_productization.py && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_events.py apex_infinite_ui.py apex_infinite_visual && ./.venv/bin/python -m py_compile apex_infinite_visual/__init__.py apex_infinite_visual/events.py apex_infinite_visual/launcher.py apex_infinite_visual/main.py apex_infinite_visual/settings.py && ./.venv/bin/pyside6-qmllint apex_infinite_visual/qml/Main.qml && QT_QPA_PLATFORM=offscreen ./.venv/bin/python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` | PASS | Command exited 0; black left 6 files unchanged, pylint rated 10.00/10, py_compile passed, QML lint exited 0 with known non-blocking unqualified-access warnings, and offscreen smoke exited 0. |
+| Tests | `python -m pytest tests/ -v` | PASS | 221 collected, 221 passed in 10.87s. |
+| Quality gate | `python -m black --check apex_infinite_visual tests/test_visual_wrapper_productization.py && python -m pylint src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py apex_infinite_visual && python -m py_compile src/apex_infinite_visual/__init__.py src/apex_infinite_visual/events.py src/apex_infinite_visual/launcher.py src/apex_infinite_visual/main.py src/apex_infinite_visual/settings.py && pyside6-qmllint src/apex_infinite_visual/qml/Main.qml && QT_QPA_PLATFORM=offscreen python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` | PASS | Command exited 0; black left 6 files unchanged, pylint rated 10.00/10, py_compile passed, QML lint exited 0 with known non-blocking unqualified-access warnings, and offscreen smoke exited 0. |
 | Database/schema | `rg -n "sqlite|schema|migration|CREATE TABLE|ALTER TABLE|DB_|history\.db|WAL|PRAGMA" ... || true` | N/A | Matches were documentation references to existing history behavior only; no DB-layer implementation or migration changed. |
 | Success criteria | `rg -n "green CRT|amber CRT|IBM DOS|plain|effect intensity|font scale|reduced effects|plain fallback|CLI missing|Timed out|Subprocess stderr|Process failed|Malformed event|Visual wrapper unavailable|PySide6|AppImage|SHA256|source/relink|Session 08" ...`; test and smoke commands above | PASS | Settings, failure states, optional dependency boundary, source-mode docs, release gates, and wrapper smoke are covered by current files and passing commands. |
-| Base CLI isolation | `rg -n "PySide6|QtQuick|Qt Quick|qml|apex_infinite_visual" apex-infinite-cli/apex_infinite.py apex-infinite-cli/apex_infinite_events.py apex-infinite-cli/apex_infinite_ui.py apex-infinite-cli/requirements.txt || true` | PASS | Command produced no output; base CLI files and base requirements do not import or require wrapper code. |
+| Base CLI isolation | `rg -n "PySide6|QtQuick|Qt Quick|qml|apex_infinite_visual" src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py requirements.txt || true` | PASS | Command produced no output; base CLI files and base requirements do not import or require wrapper code. |
 | Clean-room boundary | `rg -n "cool-retro-term|qmltermwidget|QTermWidget|xterm\.js|copied|shader|GPL|LGPL|profile data|resource manifest|terminal-emulator|reference QML|literal effect formulas" ... || true`; `git ls-files | grep '^EXAMPLE/' || true` | PASS | Matches were documentation of prohibited material and license gates; no tracked `EXAMPLE/` files were listed. |
 | Conventions | `.spec_system/CONVENTIONS.md` inspection plus commands above | PASS | New Python follows black/pylint, wrapper remains optional, tests are focused, docs were updated, and base CLI dependency boundary is preserved. |
 | Security/GDPR | `security-compliance.md` checklist evidence | PASS/N/A | Security PASS; GDPR N/A because no new personal-data handling was introduced. |
 | Behavioral quality | `sed -n` inspections of `launcher.py`, `main.py`, `events.py`, `settings.py`, `Main.qml`; `rg -n "def test_bridge_prevents_duplicate_start|..." tests/test_visual_wrapper_productization.py` | PASS | Inputs are validated, subprocess resources are cleaned up, duplicate starts are prevented, failures map to explicit states, and contracts are covered by focused tests. |
-| UI product surface | `rg -n "debug|telemetry|seed|frame|resize|readiness|route owner|shell ready|version label|data-source|scaffold|TODO|FIXME" apex-infinite-cli/apex_infinite_visual/qml/Main.qml apex-infinite-cli/apex_infinite_visual/main.py || true`; offscreen smoke command above | PASS | No diagnostic/scaffolding terms found; offscreen QML launch completed successfully. |
+| UI product surface | `rg -n "debug|telemetry|seed|frame|resize|readiness|route owner|shell ready|version label|data-source|scaffold|TODO|FIXME" src/apex_infinite_visual/qml/Main.qml src/apex_infinite_visual/main.py || true`; offscreen smoke command above | PASS | No diagnostic/scaffolding terms found; offscreen QML launch completed successfully. |
 
 ## 1. Code Review Gate
 
@@ -70,19 +70,19 @@ The review report covers all implementation, test, documentation, and session ar
 
 | File | Found | Status |
 |------|-------|--------|
-| `apex-infinite-cli/apex_infinite_visual/settings.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_visual_wrapper_productization.py` | Yes | PASS |
-| `apex-infinite-cli/docs/visual-wrapper-productization.md` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite_visual/__init__.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite_visual/events.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite_visual/launcher.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite_visual/main.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite_visual/qml/Main.qml` | Yes | PASS |
-| `apex-infinite-cli/requirements-wrapper.txt` | Yes | PASS |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Yes | PASS |
-| `apex-infinite-cli/docs/operator-runbook.md` | Yes | PASS |
-| `apex-infinite-cli/docs/troubleshooting.md` | Yes | PASS |
-| `apex-infinite-cli/docs/visual-wrapper-boundary.md` | Yes | PASS |
+| `src/apex_infinite_visual/settings.py` | Yes | PASS |
+| `tests/test_visual_wrapper_productization.py` | Yes | PASS |
+| `docs/visual-wrapper-productization.md` | Yes | PASS |
+| `src/apex_infinite_visual/__init__.py` | Yes | PASS |
+| `src/apex_infinite_visual/events.py` | Yes | PASS |
+| `src/apex_infinite_visual/launcher.py` | Yes | PASS |
+| `src/apex_infinite_visual/main.py` | Yes | PASS |
+| `src/apex_infinite_visual/qml/Main.qml` | Yes | PASS |
+| `requirements-wrapper.txt` | Yes | PASS |
+| `README.md` | Yes | PASS |
+| `docs/operator-runbook.md` | Yes | PASS |
+| `docs/troubleshooting.md` | Yes | PASS |
+| `docs/visual-wrapper-boundary.md` | Yes | PASS |
 
 **Missing deliverables**: None
 
@@ -133,7 +133,7 @@ From `spec.md`:
 
 **Testing requirements**:
 - Settings, launcher, timeout, stderr/return-code, duplicate start, malformed event, fixture flow, bridge reset, controls, and import guard behavior: PASS - `tests/test_visual_wrapper_productization.py` and `tests/test_visual_wrapper_spike.py` passed.
-- Offscreen wrapper smoke: PASS - `QT_QPA_PLATFORM=offscreen ./.venv/bin/python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` exited 0.
+- Offscreen wrapper smoke: PASS - `QT_QPA_PLATFORM=offscreen python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` exited 0.
 - Existing CLI tests: PASS - 221/221 pytest tests passed.
 
 **Quality gates**:
@@ -172,7 +172,7 @@ Evidence: black/pylint/py_compile passed; optional PySide6/QML imports remain la
 ### Status: PASS
 
 **Checklist applied**: Yes
-**Files spot-checked**: `apex-infinite-cli/apex_infinite_visual/launcher.py`, `apex-infinite-cli/apex_infinite_visual/main.py`, `apex-infinite-cli/apex_infinite_visual/events.py`, `apex-infinite-cli/apex_infinite_visual/settings.py`, `apex-infinite-cli/apex_infinite_visual/qml/Main.qml`
+**Files spot-checked**: `src/apex_infinite_visual/launcher.py`, `src/apex_infinite_visual/main.py`, `src/apex_infinite_visual/events.py`, `src/apex_infinite_visual/settings.py`, `src/apex_infinite_visual/qml/Main.qml`
 
 **Categories spot-checked**: trust boundaries, resource cleanup, mutation safety, failure paths, contract alignment, and product surface discipline.
 
@@ -184,7 +184,7 @@ Evidence: black/pylint/py_compile passed; optional PySide6/QML imports remain la
 
 ### Status: PASS
 
-**Surfaces inspected**: `apex-infinite-cli/apex_infinite_visual/qml/Main.qml` by code inspection and offscreen launch with `QT_QPA_PLATFORM=offscreen`.
+**Surfaces inspected**: `src/apex_infinite_visual/qml/Main.qml` by code inspection and offscreen launch with `QT_QPA_PLATFORM=offscreen`.
 **Diagnostics found in primary UI**: None
 **Allowed debug/admin surfaces**: None
 **Fixes applied during validation**: None

@@ -46,7 +46,7 @@ without changing Apex Infinite workflow behavior.
 
 - [ ] Phase 00 PRD and session stubs exist.
 - [ ] Current prompt and routing tests are available as compatibility checks.
-- [ ] Current `apex-infinite-cli/config.yaml` and `apex_infinite.py` behavior is
+- [ ] Current `src/apex_infinite/config.yaml` and `src/apex_infinite/cli.py` behavior is
   reviewed before editing.
 
 ---
@@ -77,25 +77,25 @@ without changing Apex Infinite workflow behavior.
 <!-- FOLDED_SESSION_SOURCE_START -->
 
 This section carries forward the actionable session material formerly stored in
-`docs/ongoing-projects/apex-infinite-cli-upgrade-plan.md`. The Phase 00 PRD
+`.spec_system/archive/phases/phase_00/PRD_phase_00.md`. The Phase 00 PRD
 contains the verbatim archive; this stub keeps the session-specific details and
 full-path `EXAMPLE/` references close to the session executor.
 
 ### EXAMPLE Reference Links
 
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ColorButton.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ColorButton.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SimpleSlider.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SimpleSlider.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/CheckableSlider.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/CheckableSlider.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Components/SizedLabel.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Components/SizedLabel.qml)
+- [EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml](../../../../EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml)
+- [EXAMPLE/cool-retro-term/app/qml/Storage.qml](../../../../EXAMPLE/cool-retro-term/app/qml/Storage.qml)
+- [EXAMPLE/cool-retro-term/app/fileio.cpp](../../../../EXAMPLE/cool-retro-term/app/fileio.cpp)
+- [EXAMPLE/cool-retro-term/app/fileio.h](../../../../EXAMPLE/cool-retro-term/app/fileio.h)
+- [EXAMPLE/cool-retro-term/app/qml/ColorButton.qml](../../../../EXAMPLE/cool-retro-term/app/qml/ColorButton.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SimpleSlider.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SimpleSlider.qml)
+- [EXAMPLE/cool-retro-term/app/qml/CheckableSlider.qml](../../../../EXAMPLE/cool-retro-term/app/qml/CheckableSlider.qml)
+- [EXAMPLE/cool-retro-term/app/qml/Components/SizedLabel.qml](../../../../EXAMPLE/cool-retro-term/app/qml/Components/SizedLabel.qml)
 
 ### Detailed Session Split Source
 
@@ -128,7 +128,7 @@ the current single-file CLI without changing Apex Infinite workflow behavior.
 - Focused config, Click, renderer, and history-isolation tests.
 
 **Dependencies / Notes**:
-- Current evidence: `apex_infinite.py` owns Click, global `Console()`,
+- Current evidence: `src/apex_infinite/cli.py` owns Click, global `Console()`,
   SQLite, LLM calls, signal handling, notifications, and `subprocess.run()`.
 - Preserve `MANAGER_SYSTEM_PROMPT`, `SUMMARIZER_SYSTEM_PROMPT`,
   `build_codex_prompt()`, path normalization, timeout behavior, and the
@@ -141,37 +141,37 @@ the current single-file CLI without changing Apex Infinite workflow behavior.
   `Console().is_terminal == false`, unless an explicit `--theme` opts back in.
 - Assumption: start with the smallest boundary that is testable; extract a
   separate module only when it lowers risk compared with extending
-  `apex_infinite.py`.
+  `src/apex_infinite/cli.py`.
 
 **EXAMPLE Reference Paths**:
 - Study settings shape, built-in profile organization, custom profile storage,
   and validation boundaries:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`
+  `EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`
 - Study settings grouping for general, terminal, effects, and advanced
   controls:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml`
 - Study profile management, import/export, frame settings, and persistence UI
   concepts:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`
 - Study terminal-facing configuration controls for font, rasterization, color,
   scaling, width, line spacing, frame color, and chroma:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml`
 - Study effects control categories for later theme/effect names:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml`
 - Study performance and miscellaneous settings organization:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml`
 - Study settings persistence concepts only:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml`
+  `EXAMPLE/cool-retro-term/app/qml/Storage.qml`
 - Study the file I/O bridge for import/export concepts only:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp`
+  `EXAMPLE/cool-retro-term/app/fileio.cpp`
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h`
+  `EXAMPLE/cool-retro-term/app/fileio.h`
 - Study small reusable control patterns, not implementation:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ColorButton.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SimpleSlider.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/CheckableSlider.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/ColorButton.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/SimpleSlider.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/CheckableSlider.qml`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Components/SizedLabel.qml`
+  `EXAMPLE/cool-retro-term/app/qml/Components/SizedLabel.qml`
 
 **Acceptance Checks**:
 - Existing prompt and routing tests pass unchanged.
@@ -193,7 +193,7 @@ Tasks:
 - Add a small renderer module or internal renderer section that owns all
   operator-facing `rich` output. Prefer a separate module if the change can be
   kept low-risk; otherwise create a clearly bounded section inside
-  `apex_infinite.py` and split later.
+  `src/apex_infinite/cli.py` and split later.
 - Allow the renderer to receive an injected `Console` so tests can use
   `Console(record=True, width=...)` and temporary streams without touching the
   global console.

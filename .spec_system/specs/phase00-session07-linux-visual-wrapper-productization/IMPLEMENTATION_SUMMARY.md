@@ -22,25 +22,25 @@ license obligations, and troubleshooting paths.
 
 | File | Purpose | Lines |
 |------|---------|-------|
-| `apex-infinite-cli/apex_infinite_visual/settings.py` | Validated theme presets, effect controls, font scale, reduced effects, and plain fallback settings | 265 |
-| `apex-infinite-cli/tests/test_visual_wrapper_productization.py` | Productization tests for settings, launcher, bridge, failure mapping, and import isolation | 541 |
-| `apex-infinite-cli/docs/visual-wrapper-productization.md` | Linux source-mode setup, packaging, release, license, checksum, and verification guide | 198 |
+| `src/apex_infinite_visual/settings.py` | Validated theme presets, effect controls, font scale, reduced effects, and plain fallback settings | 265 |
+| `tests/test_visual_wrapper_productization.py` | Productization tests for settings, launcher, bridge, failure mapping, and import isolation | 541 |
+| `docs/visual-wrapper-productization.md` | Linux source-mode setup, packaging, release, license, checksum, and verification guide | 198 |
 
 ### Files Modified
 
 | File | Changes |
 |------|---------|
-| `apex-infinite-cli/apex_infinite_visual/__init__.py` | Exported productized wrapper metadata and stable public names |
-| `apex-infinite-cli/apex_infinite_visual/events.py` | Added product-facing failure mapping and terminal-state cleanup |
-| `apex-infinite-cli/apex_infinite_visual/launcher.py` | Hardened CLI validation, timeout, stderr, return-code, and cleanup behavior |
-| `apex-infinite-cli/apex_infinite_visual/main.py` | Wired settings, bridge controls, duplicate-start prevention, timeout-safe process handling, and failure states |
-| `apex-infinite-cli/apex_infinite_visual/qml/Main.qml` | Added productized theme, effect, font, scale, reduced-effects, fallback, status, and failure controls |
-| `apex-infinite-cli/requirements-wrapper.txt` | Clarified optional wrapper and packaging dependency boundaries |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Documented source visual mode setup, settings, release status, and productization guide |
-| `apex-infinite-cli/tests/test_visual_wrapper_spike.py` | Updated spike expectations for productized failure labels |
-| `apex-infinite-cli/docs/operator-runbook.md` | Added source visual mode operation and failure recovery guidance |
-| `apex-infinite-cli/docs/troubleshooting.md` | Added productized wrapper failure and packaging recovery steps |
-| `apex-infinite-cli/docs/visual-wrapper-boundary.md` | Recorded Session 07 productization boundaries and release gates |
+| `src/apex_infinite_visual/__init__.py` | Exported productized wrapper metadata and stable public names |
+| `src/apex_infinite_visual/events.py` | Added product-facing failure mapping and terminal-state cleanup |
+| `src/apex_infinite_visual/launcher.py` | Hardened CLI validation, timeout, stderr, return-code, and cleanup behavior |
+| `src/apex_infinite_visual/main.py` | Wired settings, bridge controls, duplicate-start prevention, timeout-safe process handling, and failure states |
+| `src/apex_infinite_visual/qml/Main.qml` | Added productized theme, effect, font, scale, reduced-effects, fallback, status, and failure controls |
+| `requirements-wrapper.txt` | Clarified optional wrapper and packaging dependency boundaries |
+| `README.md` | Documented source visual mode setup, settings, release status, and productization guide |
+| `tests/test_visual_wrapper_spike.py` | Updated spike expectations for productized failure labels |
+| `docs/operator-runbook.md` | Added source visual mode operation and failure recovery guidance |
+| `docs/troubleshooting.md` | Added productized wrapper failure and packaging recovery steps |
+| `docs/visual-wrapper-boundary.md` | Recorded Session 07 productization boundaries and release gates |
 
 ---
 

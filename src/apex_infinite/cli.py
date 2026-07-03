@@ -2049,7 +2049,7 @@ def infinite_loop(  # pylint: disable=too-many-positional-arguments,too-many-arg
     is_flag=True,
     help="Disable human output and reserve stdout for event JSONL.",
 )
-@click.version_option(version="2.0.0", prog_name="apex-infinite")
+@click.version_option(version="2.0.1", prog_name="apex-infinite")
 def main(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches,too-many-statements
     project_path,
     start,

@@ -100,7 +100,7 @@
 | T006 | CLI smoke matrix construction | PASS | Exact T012 smoke commands mapped for dry-run, history, UI modes, themes, constrained env, redirected output, and non-TTY behavior |
 | T007 | Raw-data safety matrix construction | PASS | SQLite and JSONL durable-data checks mapped to T013 and T015 with reject patterns |
 | T008 | Wrapper release-state matrix construction | PASS | Source-shippable checks and binary-gated license/package obligations mapped in `clean-room-audit.md` |
-| T009 | `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v` | PASS | 221 collected, 221 passed in 10.83s |
+| T009 | `python -m pytest tests/ -v` | PASS | 221 collected, 221 passed in 10.83s |
 | T010 | Root Bats, plugin sync, analyzer, and prereq checks | PASS | Bats 61/61 passed; plugin payload current; analyzer and prereq JSON checks passed |
 | T011 | Python quality, compile, QML lint, wrapper smoke | PASS | Black unchanged 20 files; pylint 10.00/10; py_compile passed; QML lint exited 0 with unqualified-access warnings; offscreen wrapper smoke exited 0 |
 | T012 | CLI option smoke matrix | PASS | Help, dry-run, history, verbose history, plain, ASCII, compact, all themes, NO_COLOR, TERM=dumb, redirected output, invalid theme, empty, loading, and error states passed after F001 notification fix |
@@ -121,16 +121,16 @@
 
 | Artifact Set | Files | Release Coverage | Status |
 |--------------|-------|------------------|--------|
-| Product requirements | `.spec_system/PRD/PRD.md`, `.spec_system/PRD/PRD_UX.md`, `.spec_system/PRD/phase_00/session_08_release_verification.md` | Completion criteria, UX constraints, clean-room reference scope, wrapper release state | Mapped |
+| Product requirements | `.spec_system/PRD/PRD.md`, `.spec_system/PRD/PRD_UX.md`, `.spec_system/archive/phases/phase_00/session_08_release_verification.md` | Completion criteria, UX constraints, clean-room reference scope, wrapper release state | Mapped |
 | Prior validation reports | `.spec_system/specs/phase00-session01-*` through `.spec_system/specs/phase00-session07-*/validation.md` | Sessions 01-07 validated PASS before release verification | Mapped |
-| CLI README and runbook | `apex-infinite-cli/README_apex-infinite-cli.md`, `apex-infinite-cli/docs/operator-runbook.md` | Install lanes, UI flags, dry-run, history, event stream, wrapper source mode | Mapped |
-| Event and history docs | `apex-infinite-cli/docs/event-stream.md`, `apex-infinite-cli/docs/history-db.md` | JSONL guardrails, event schema, raw event payloads, SQLite raw-storage boundary | Mapped |
-| Prompt contract docs | `apex-infinite-cli/docs/prompt-contract.md` | Known commands, prompt generation, UI/event non-impact on routing | Mapped |
-| Transcripts | `apex-infinite-cli/docs/transcripts/*.txt`, `apex-infinite-cli/docs/transcripts/*.jsonl` | Deterministic plain, history, and machine-output examples without real secrets | Mapped |
-| Wrapper docs | `apex-infinite-cli/docs/visual-wrapper-boundary.md`, `apex-infinite-cli/docs/visual-wrapper-spike.md`, `apex-infinite-cli/docs/visual-wrapper-productization.md` | Optional dependency lane, clean-room rules, license gates, binary deferral | Mapped |
-| Troubleshooting docs | `apex-infinite-cli/docs/troubleshooting.md` | Event misuse, constrained output, wrapper failure, packaging failure guidance | Mapped |
-| Requirements | `apex-infinite-cli/requirements.txt`, `requirements-dev.txt`, `requirements-wrapper.txt` | Base dependency isolation, dev tooling, optional PySide6/QML and packaging lane | Mapped |
-| Workflows | `.github/workflows/quality.yml`, `test.yml`, `integration.yml`, `security.yml`, `release.yml` | ASCII/LF, Bats, sync check, script tests, security scan, release file/version checks | Mapped |
+| CLI README and runbook | `README.md`, `docs/operator-runbook.md` | Install lanes, UI flags, dry-run, history, event stream, wrapper source mode | Mapped |
+| Event and history docs | `docs/event-stream.md`, `docs/history-db.md` | JSONL guardrails, event schema, raw event payloads, SQLite raw-storage boundary | Mapped |
+| Prompt contract docs | `docs/prompt-contract.md` | Known commands, prompt generation, UI/event non-impact on routing | Mapped |
+| Transcripts | `docs/transcripts/*.txt`, `docs/transcripts/*.jsonl` | Deterministic plain, history, and machine-output examples without real secrets | Mapped |
+| Wrapper docs | `docs/visual-wrapper-boundary.md`, `docs/visual-wrapper-spike.md`, `docs/visual-wrapper-productization.md` | Optional dependency lane, clean-room rules, license gates, binary deferral | Mapped |
+| Troubleshooting docs | `docs/troubleshooting.md` | Event misuse, constrained output, wrapper failure, packaging failure guidance | Mapped |
+| Requirements | `requirements.txt`, `requirements-dev.txt`, `requirements-wrapper.txt` | Base dependency isolation, dev tooling, optional PySide6/QML and packaging lane | Mapped |
+| Local checks | `pyproject.toml`, `requirements*.txt`, `README.md`, `docs/` | ASCII/LF, pytest, formatter, linter, dependency audit, release guidance | Mapped |
 
 ---
 
@@ -138,14 +138,14 @@
 
 | Documentation Area | Files Inspected | Result | Evidence |
 |--------------------|-----------------|--------|----------|
-| UI flags and fallback behavior | `README_apex-infinite-cli.md`, `operator-runbook.md`, `troubleshooting.md` | PASS | `--theme`, `--plain`, `--ascii`, `--compact`, `NO_COLOR`, `TERM=dumb`, non-TTY, and redirected-output guidance is present. |
+| UI flags and fallback behavior | `README.md`, `docs/operator-runbook.md`, `troubleshooting.md` | PASS | `--theme`, `--plain`, `--ascii`, `--compact`, `NO_COLOR`, `TERM=dumb`, non-TTY, and redirected-output guidance is present. |
 | Prompt-contract impact | `prompt-contract.md` | PASS | UI settings, history display, event-stream samples, and machine-output mode are documented as non-routing concerns. |
-| Event stream and machine output | `README_apex-infinite-cli.md`, `event-stream.md`, `operator-runbook.md`, `troubleshooting.md`, transcripts | PASS | Guarded `--event-stream - --machine-output`, file JSONL, schema, event names, wrapper consumption, and troubleshooting are documented. |
-| History DB and raw storage | `README_apex-infinite-cli.md`, `history-db.md`, `operator-runbook.md`, transcripts | PASS | SQLite schema, `cc_response` compatibility, render-time labels, verbose history, and raw-storage boundaries are documented. |
-| Transcript coverage | `apex-infinite-cli/docs/transcripts/` | PASS | Plain dry-run, history ledger, and machine-output JSONL samples exist and are non-empty. |
-| Wrapper boundary and source mode | `visual-wrapper-boundary.md`, `visual-wrapper-productization.md`, `visual-wrapper-spike.md` | PASS | Event-driven wrapper boundary, optional PySide6/QML source mode, clean-room restrictions, and failure states are documented. |
-| Dependency and license plan | `README_apex-infinite-cli.md`, `operator-runbook.md`, `visual-wrapper-productization.md`, `visual-wrapper-boundary.md` | PASS | Base/wrapper dependency split, PySide6/QML license obligations, notices, source/relink, checksum, and AppImage gates are documented. |
-| Final release/security status | `.spec_system/SECURITY-COMPLIANCE.md`, `visual-wrapper-productization.md` | PASS | Cumulative posture now reflects Session 08 evidence, open risks, resolved event/clean-room findings, and binary-gated wrapper release state. |
+| Event stream and machine output | `README.md`, `docs/event-stream.md`, `docs/operator-runbook.md`, `troubleshooting.md`, transcripts | PASS | Guarded `--event-stream - --machine-output`, file JSONL, schema, event names, wrapper consumption, and troubleshooting are documented. |
+| History DB and raw storage | `README.md`, `docs/history-db.md`, `docs/operator-runbook.md`, transcripts | PASS | SQLite schema, `cc_response` compatibility, render-time labels, verbose history, and raw-storage boundaries are documented. |
+| Transcript coverage | `docs/transcripts/` | PASS | Plain dry-run, history ledger, and machine-output JSONL samples exist and are non-empty. |
+| Wrapper boundary and source mode | `docs/visual-wrapper-boundary.md`, `docs/visual-wrapper-productization.md`, `visual-wrapper-spike.md` | PASS | Event-driven wrapper boundary, optional PySide6/QML source mode, clean-room restrictions, and failure states are documented. |
+| Dependency and license plan | `README.md`, `docs/operator-runbook.md`, `docs/visual-wrapper-productization.md`, `docs/visual-wrapper-boundary.md` | PASS | Base/wrapper dependency split, PySide6/QML license obligations, notices, source/relink, checksum, and AppImage gates are documented. |
+| Final release/security status | `.spec_system/SECURITY-COMPLIANCE.md`, `docs/visual-wrapper-productization.md` | PASS | Cumulative posture now reflects Session 08 evidence, open risks, resolved event/clean-room findings, and binary-gated wrapper release state. |
 
 ---
 
@@ -153,10 +153,10 @@
 
 | Check | Result | Evidence |
 |-------|--------|----------|
-| Audit tool availability | PASS | `cd apex-infinite-cli && ./.venv/bin/pip-audit --version` returned `pip-audit 2.10.1`. |
-| Requirement vulnerability audit | PASS | `cd apex-infinite-cli && ./.venv/bin/pip-audit -r requirements.txt -r requirements-dev.txt -r requirements-wrapper.txt` returned `No known vulnerabilities found`. |
+| Audit tool availability | PASS | `python -m pip_audit --version` returned `pip-audit 2.10.1`. |
+| Requirement vulnerability audit | PASS | `python -m pip_audit -r requirements.txt -r requirements-dev.txt -r requirements-wrapper.txt` returned `No known vulnerabilities found`. |
 | Base runtime dependency isolation | PASS | `requirements.txt` contains Click, OpenAI, python-dotenv, Rich, and PyYAML only. |
-| Base CLI graphical import scan | PASS | Scan of `requirements.txt`, `apex_infinite.py`, `apex_infinite_events.py`, and `apex_infinite_ui.py` found no PySide6, Qt, QML, or Nuitka references. |
+| Base CLI graphical import scan | PASS | Scan of `requirements.txt`, `src/apex_infinite/cli.py`, `src/apex_infinite/events.py`, and `src/apex_infinite/ui.py` found no PySide6, Qt, QML, or Nuitka references. |
 | Optional wrapper lane | PASS | `requirements-wrapper.txt` keeps PySide6 and Nuitka in the optional wrapper lane and includes the base requirements by reference. |
 | License and binary gates | PASS | Wrapper docs retain LGPLv3/commercial review, notices, no GPL-only module, checksum, source/relink, generated-bundle, and AppImage gates before binary publication. |
 
@@ -213,22 +213,22 @@ credential
 
 ## CLI Smoke Matrix
 
-Run all commands from `apex-infinite-cli/` with an isolated temporary `HOME`
+Run all commands from `./` with an isolated temporary `HOME`
 unless a row says otherwise. The target project path is
-`/home/aiwithapex/projects/apex-spec-system-open`.
+`/home/aiwithapex/projects/apex-infinite-cli`.
 
 | Mode | T012 Command Shape | Expected Evidence | Status |
 |------|--------------------|-------------------|--------|
-| Help surface | `./.venv/bin/python apex_infinite.py --help` | Current flags include `--theme`, `--plain`, `--ascii`, `--compact`, `--event-stream`, and `--machine-output` | PASS |
-| Dry run | `HOME=<tmp> ./.venv/bin/python apex_infinite.py --path /home/aiwithapex/projects/apex-spec-system-open --start implement --dry-run --max-iterations 1 --plain` | Prompt routing and dry-run command visible, no live Codex execution | PASS |
-| History | `HOME=<tmp> ./.venv/bin/python apex_infinite.py --history --path /home/aiwithapex/projects/apex-spec-system-open --plain --ascii` | History ledger renders without traceback | PASS |
-| Verbose history | `HOME=<tmp> ./.venv/bin/python apex_infinite.py --history --verbose --path /home/aiwithapex/projects/apex-spec-system-open --plain --ascii` | Detail rows render without styled durable data | PASS |
-| Plain | `HOME=<tmp> ./.venv/bin/python apex_infinite.py --path ... --start implement --dry-run --max-iterations 1 --plain` | Output has no ANSI escapes | PASS |
-| ASCII | `HOME=<tmp> ./.venv/bin/python apex_infinite.py --path ... --start implement --dry-run --max-iterations 1 --ascii --plain` | Output uses code points 0-127 | PASS after F001 |
-| Compact | `HOME=<tmp> ./.venv/bin/python apex_infinite.py --path ... --start implement --dry-run --max-iterations 1 --compact --plain` | Critical state labels remain visible with reduced spacing | PASS |
+| Help surface | `apex-infinite --help` | Current flags include `--theme`, `--plain`, `--ascii`, `--compact`, `--event-stream`, and `--machine-output` | PASS |
+| Dry run | `HOME=<tmp> apex-infinite --path /home/aiwithapex/projects/apex-infinite-cli --start implement --dry-run --max-iterations 1 --plain` | Prompt routing and dry-run command visible, no live Codex execution | PASS |
+| History | `HOME=<tmp> apex-infinite --history --path /home/aiwithapex/projects/apex-infinite-cli --plain --ascii` | History ledger renders without traceback | PASS |
+| Verbose history | `HOME=<tmp> apex-infinite --history --verbose --path /home/aiwithapex/projects/apex-infinite-cli --plain --ascii` | Detail rows render without styled durable data | PASS |
+| Plain | `HOME=<tmp> apex-infinite --path ... --start implement --dry-run --max-iterations 1 --plain` | Output has no ANSI escapes | PASS |
+| ASCII | `HOME=<tmp> apex-infinite --path ... --start implement --dry-run --max-iterations 1 --ascii --plain` | Output uses code points 0-127 | PASS after F001 |
+| Compact | `HOME=<tmp> apex-infinite --path ... --start implement --dry-run --max-iterations 1 --compact --plain` | Critical state labels remain visible with reduced spacing | PASS |
 | Built-in themes | Loop `--theme auto`, `crt-green`, `crt-amber`, `ibm-dos`, `plain` with `--dry-run --max-iterations 1` | Accepted theme names render startup and dry-run state | PASS |
-| `NO_COLOR` | `NO_COLOR=1 HOME=<tmp> ./.venv/bin/python apex_infinite.py --path ... --start implement --dry-run --max-iterations 1` | Plain fallback selected unless explicit theme is passed | PASS |
-| `TERM=dumb` | `TERM=dumb HOME=<tmp> ./.venv/bin/python apex_infinite.py --path ... --start implement --dry-run --max-iterations 1` | Plain fallback selected | PASS |
+| `NO_COLOR` | `NO_COLOR=1 HOME=<tmp> apex-infinite --path ... --start implement --dry-run --max-iterations 1` | Plain fallback selected unless explicit theme is passed | PASS |
+| `TERM=dumb` | `TERM=dumb HOME=<tmp> apex-infinite --path ... --start implement --dry-run --max-iterations 1` | Plain fallback selected | PASS |
 | Non-TTY behavior | Run dry-run command with stdout redirected to a temp file | Plain fallback selected and no live-only terminal controls | PASS after F001 |
 | Redirected output | Run `--plain --ascii --compact` dry-run with stdout redirected to a temp file | No ANSI escapes, non-ASCII bytes, or carriage-return-only live output | PASS after F001 |
 | Error state | Run invalid `--theme missing` | Click/config error is clear and exits non-zero before loop | PASS |

@@ -10,7 +10,7 @@
 ## 1. Session Overview
 
 This session creates the UI configuration and rendering boundary for
-`apex-infinite-cli/` without changing the autonomous workflow contract. It adds
+`./` without changing the autonomous workflow contract. It adds
 validated UI settings, independent theme tokens, CLI overrides, and renderer
 helpers that can be tested with injected Rich consoles.
 
@@ -20,7 +20,7 @@ display boundary. The work preserves manager prompt routing, SQLite schema
 compatibility, Codex subprocess return semantics, and raw durable history data.
 
 The session delivers the smallest testable split: one focused UI helper module,
-minimal wiring in `apex_infinite.py`, tracked config defaults, focused tests,
+minimal wiring in `src/apex_infinite/cli.py`, tracked config defaults, focused tests,
 and README updates for the new operator-facing controls.
 
 ---
@@ -48,13 +48,13 @@ and README updates for the new operator-facing controls.
 
 - Python 3.10+ CLI development with Click, Rich, PyYAML, SQLite, and pytest.
 - Current prompt/routing compatibility tests in
-  `apex-infinite-cli/tests/test_prompts.py`.
-- Current CLI boundaries in `apex-infinite-cli/apex_infinite.py`.
+  `tests/test_prompts.py`.
+- Current CLI boundaries in `src/apex_infinite/cli.py`.
 
 ### Environment Requirements
 
-- Development dependencies from `apex-infinite-cli/requirements.txt` and
-  `apex-infinite-cli/requirements-dev.txt`.
+- Development dependencies from `requirements.txt` and
+  `requirements-dev.txt`.
 - No graphical runtime dependencies for the base CLI.
 - Root-authored and CLI-authored files remain ASCII-only with Unix LF endings.
 
@@ -66,7 +66,7 @@ and README updates for the new operator-facing controls.
 
 - Operator can configure `ui.theme`, `ui.effect_level`, `ui.ascii`,
   `ui.compact`, `ui.show_elapsed`, `ui.show_provider`, and validated
-  `ui.themes` overrides in `apex-infinite-cli/config.yaml`.
+  `ui.themes` overrides in `src/apex_infinite/config.yaml`.
 - Operator can pass `--theme`, `--plain`, `--ascii`, and `--compact` through
   the Click CLI.
 - Developer can test renderer output using injected Rich
@@ -100,9 +100,9 @@ and README updates for the new operator-facing controls.
 
 ### Architecture
 
-Create `apex-infinite-cli/apex_infinite_ui.py` as the focused boundary for UI
+Create `src/apex_infinite/ui.py` as the focused boundary for UI
 settings, theme tokens, glyph sets, validation, and renderer helpers. Keep
-workflow, LLM, DB, and subprocess behavior in `apex_infinite.py`, but replace
+workflow, LLM, DB, and subprocess behavior in `src/apex_infinite/cli.py`, but replace
 direct `console.print` display paths with renderer calls where the current code
 already emits operator-facing output.
 
@@ -141,19 +141,19 @@ boundaries.
 
 | File | Purpose | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/apex_infinite_ui.py` | UI setting resolver, theme tokens, glyph sets, lifecycle snapshot helpers, and renderer methods | ~350 |
-| `apex-infinite-cli/tests/test_ui_config.py` | Config, CLI override, environment fallback, and invalid theme tests | ~220 |
-| `apex-infinite-cli/tests/test_cli_options.py` | Click option parsing and startup wiring tests for new UI flags | ~180 |
-| `apex-infinite-cli/tests/test_renderer.py` | Renderer semantic, width, ascii/plain, and history safety tests | ~240 |
+| `src/apex_infinite/ui.py` | UI setting resolver, theme tokens, glyph sets, lifecycle snapshot helpers, and renderer methods | ~350 |
+| `tests/test_ui_config.py` | Config, CLI override, environment fallback, and invalid theme tests | ~220 |
+| `tests/test_cli_options.py` | Click option parsing and startup wiring tests for new UI flags | ~180 |
+| `tests/test_renderer.py` | Renderer semantic, width, ascii/plain, and history safety tests | ~240 |
 
 ### Files To Modify
 
 | File | Changes | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/apex_infinite.py` | Import UI helpers, add Click flags, instantiate renderer, and route existing output through renderer helpers | ~220 |
-| `apex-infinite-cli/config.yaml` | Add default `ui` section with documented built-in values | ~25 |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Document new UI config keys, flags, precedence, and fallback behavior | ~80 |
-| `apex-infinite-cli/tests/conftest.py` | Add shared fixtures only if needed for temp DB, config files, or recorded consoles | ~60 |
+| `src/apex_infinite/cli.py` | Import UI helpers, add Click flags, instantiate renderer, and route existing output through renderer helpers | ~220 |
+| `src/apex_infinite/config.yaml` | Add default `ui` section with documented built-in values | ~25 |
+| `README.md` | Document new UI config keys, flags, precedence, and fallback behavior | ~80 |
+| `tests/conftest.py` | Add shared fixtures only if needed for temp DB, config files, or recorded consoles | ~60 |
 
 ---
 
@@ -200,11 +200,11 @@ boundaries.
 - [ ] All files ASCII-encoded
 - [ ] Unix LF line endings
 - [ ] Code follows project conventions
-- [ ] `pytest tests/ -v` passes from `apex-infinite-cli/`
-- [ ] `black --check apex_infinite.py apex_infinite_ui.py tests/` passes from
-      `apex-infinite-cli/`
-- [ ] `pylint apex_infinite.py apex_infinite_ui.py` passes from
-      `apex-infinite-cli/`
+- [ ] `pytest tests/ -v` passes from `./`
+- [ ] `black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/` passes from
+      `./`
+- [ ] `pylint src/apex_infinite/cli.py src/apex_infinite/ui.py` passes from
+      `./`
 
 ---
 
@@ -212,10 +212,10 @@ boundaries.
 
 ### Working Assumptions
 
-- This session is path-scoped to `apex-infinite-cli/`: the analysis script
+- This session is path-scoped to `./`: the analysis script
   reports `monorepo: false`, the master PRD says no formal workspace manager is
   configured, and Phase 00 stubs target the CLI subproject by path.
-- A separate `apex_infinite_ui.py` module is the safest boundary: the current
+- A separate `src/apex_infinite/ui.py` module is the safest boundary: the current
   CLI already has direct `console.print` calls across config, history, LLM
   retry, subprocess, and loop code, while `CONVENTIONS.md` prefers helper
   extraction when it lowers risk and improves testability.
@@ -290,27 +290,27 @@ Top behavioral risks for this session:
 
 - Test UI setting defaults, built-in theme names, custom theme validation,
   invalid config errors, environment constraints, and CLI override precedence in
-  `apex-infinite-cli/tests/test_ui_config.py`.
+  `tests/test_ui_config.py`.
 - Test renderer methods with injected recorded consoles at 80, 100, and 120
-  columns in `apex-infinite-cli/tests/test_renderer.py`.
+  columns in `tests/test_renderer.py`.
 - Test `build_codex_prompt()` and existing prompt constants remain covered by
-  `apex-infinite-cli/tests/test_prompts.py`.
+  `tests/test_prompts.py`.
 
 ### Integration Tests
 
-- Use Click `CliRunner` in `apex-infinite-cli/tests/test_cli_options.py` for
+- Use Click `CliRunner` in `tests/test_cli_options.py` for
   new flag parsing, dry-run startup, history mode, and invalid option handling.
 - Use temporary DB paths or monkeypatched `DB_DIR` and `DB_PATH` to verify
   history display and raw storage without touching a real user database.
 
 ### Runtime Verification
 
-- Run from `apex-infinite-cli/`:
+- Run from `./`:
   `pytest tests/ -v`
-- Run from `apex-infinite-cli/`:
-  `black --check apex_infinite.py apex_infinite_ui.py tests/`
-- Run from `apex-infinite-cli/`:
-  `pylint apex_infinite.py apex_infinite_ui.py`
+- Run from `./`:
+  `black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/`
+- Run from `./`:
+  `pylint src/apex_infinite/cli.py src/apex_infinite/ui.py`
 - Run representative dry-run commands with `--plain`, `--ascii`, `--compact`,
   and `--theme plain` to confirm startup output and prompt routing remain
   readable.

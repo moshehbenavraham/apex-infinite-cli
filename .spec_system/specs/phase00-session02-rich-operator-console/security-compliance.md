@@ -7,13 +7,13 @@
 ## Scope
 
 **Files reviewed** (session deliverables only):
-- `apex-infinite-cli/tests/test_operator_console.py` - operator-console renderer tests
-- `apex-infinite-cli/apex_infinite_ui.py` - renderer snapshots, theme tokens, semantic output helpers
-- `apex-infinite-cli/apex_infinite.py` - renderer context wiring and DB write confirmation calls
-- `apex-infinite-cli/tests/test_renderer.py` - renderer and SQLite raw-history safety tests
-- `apex-infinite-cli/tests/test_ui_config.py` - UI config resolver and preset tests
-- `apex-infinite-cli/tests/test_cli_options.py` - CLI option and loop context tests
-- `apex-infinite-cli/README_apex-infinite-cli.md` - operator-console documentation
+- `tests/test_operator_console.py` - operator-console renderer tests
+- `src/apex_infinite/ui.py` - renderer snapshots, theme tokens, semantic output helpers
+- `src/apex_infinite/cli.py` - renderer context wiring and DB write confirmation calls
+- `tests/test_renderer.py` - renderer and SQLite raw-history safety tests
+- `tests/test_ui_config.py` - UI config resolver and preset tests
+- `tests/test_cli_options.py` - CLI option and loop context tests
+- `README.md` - operator-console documentation
 
 **Review method**: Static analysis of session deliverables, targeted code inspection, full CLI tests, and dependency-change scope check.
 
@@ -21,13 +21,13 @@
 - Command/check: `rg -n "(password|passwd|secret|api[_-]?key|token|OPENAI|ANTHROPIC|authorization|bearer|BEGIN (RSA|OPENSSH|PRIVATE)|shell=True|subprocess\.|os\.system|eval\(|exec\(|pickle|INSERT INTO|SELECT |db_log|sqlite|traceback|print_exception|debug|telemetry|diagnostic|readiness|scaffold|TODO|FIXME)" ...`
   - Result: PASS - no hardcoded secrets, shell injection additions, unsafe eval/exec use, debug panels, or scaffolding copy were found in session deliverables.
   - Evidence: matches were expected config placeholders such as `${OPENAI_API_KEY}`, local test fixture value `ollama`, existing parameterized SQLite operations, explicit subprocess timeout paths, and renderer token names.
-- Command/check: `git diff -- apex-infinite-cli/requirements.txt apex-infinite-cli/requirements-dev.txt pyproject.toml package.json package-lock.json pnpm-lock.yaml yarn.lock poetry.lock Pipfile.lock`
+- Command/check: `git diff -- requirements.txt requirements-dev.txt pyproject.toml package.json package-lock.json pnpm-lock.yaml yarn.lock poetry.lock Pipfile.lock`
   - Result: N/A - no dependency manifest or lockfile changes were present, so dependency audit is not applicable to this session.
   - Evidence: command produced no output.
-- Command/check: `sed -n '528,620p' apex-infinite-cli/apex_infinite.py && sed -n '1080,1155p' apex-infinite-cli/apex_infinite.py`
+- Command/check: `sed -n '528,620p' src/apex_infinite/cli.py && sed -n '1080,1155p' src/apex_infinite/cli.py`
   - Result: PASS - DB writes remain parameterized and renderer DB confirmations occur only after successful `db_log()` calls.
   - Evidence: inspected `db_fetch_history()`, `db_log()`, and post-commit `renderer.print_db_log(build_db_log_snapshot(...))` call sites.
-- Command/check: `./.venv/bin/python -m pytest tests/ -v && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py tests/ && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py`
+- Command/check: `python -m pytest tests/ -v && python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/ && python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py`
   - Result: PASS - regression suite and quality tools passed.
   - Evidence: 109 pytest tests passed; Black reported 9 files unchanged; pylint rated code 10.00/10.
 

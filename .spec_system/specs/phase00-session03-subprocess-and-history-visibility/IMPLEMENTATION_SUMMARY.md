@@ -22,8 +22,8 @@ with verbose expansion through the existing `--verbose` flag.
 
 | File | Purpose | Lines |
 |------|---------|-------|
-| `apex-infinite-cli/tests/test_subprocess_execution.py` | Subprocess execution and compatibility coverage for success, stderr fallback, non-zero exits, timeouts, dry-run, missing binary, generic exceptions, verbose output, process-state rendering, and cleanup | 348 |
-| `apex-infinite-cli/tests/test_history_rendering.py` | Compact and verbose history ledger coverage for styled, plain, ASCII, compact, sparse legacy, width-constrained, and raw-storage safety cases | 230 |
+| `tests/test_subprocess_execution.py` | Subprocess execution and compatibility coverage for success, stderr fallback, non-zero exits, timeouts, dry-run, missing binary, generic exceptions, verbose output, process-state rendering, and cleanup | 348 |
+| `tests/test_history_rendering.py` | Compact and verbose history ledger coverage for styled, plain, ASCII, compact, sparse legacy, width-constrained, and raw-storage safety cases | 230 |
 | `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/code-review.md` | Code review and repair report | 75 |
 | `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/security-compliance.md` | Security and GDPR compliance report | 93 |
 | `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/validation.md` | Validation evidence and final PASS report | 187 |
@@ -32,12 +32,12 @@ with verbose expansion through the existing `--verbose` flag.
 
 | File | Changes |
 |------|---------|
-| `apex-infinite-cli/apex_infinite.py` | Added a testable Codex subprocess boundary, live/durable process state rendering calls, timeout cleanup, and preserved returned-output semantics |
-| `apex-infinite-cli/apex_infinite_ui.py` | Added execution status rendering and redesigned history display as a compact ledger with verbose detail |
-| `apex-infinite-cli/tests/test_cli_options.py` | Added `--history --verbose` routing coverage and rejection coverage for a nonexistent `--history-verbose` flag |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Documented compact history and verbose history behavior |
-| `apex-infinite-cli/docs/history-db.md` | Documented render-time history summaries and the no-migration raw-storage boundary |
-| `apex-infinite-cli/docs/operator-runbook.md` | Updated operator runbook guidance for compact and verbose history review |
+| `src/apex_infinite/cli.py` | Added a testable Codex subprocess boundary, live/durable process state rendering calls, timeout cleanup, and preserved returned-output semantics |
+| `src/apex_infinite/ui.py` | Added execution status rendering and redesigned history display as a compact ledger with verbose detail |
+| `tests/test_cli_options.py` | Added `--history --verbose` routing coverage and rejection coverage for a nonexistent `--history-verbose` flag |
+| `README.md` | Documented compact history and verbose history behavior |
+| `docs/history-db.md` | Documented render-time history summaries and the no-migration raw-storage boundary |
+| `docs/operator-runbook.md` | Updated operator runbook guidance for compact and verbose history review |
 | `.spec_system/state.json` | Recorded Session 03 planning and validation state before completion |
 | `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/spec.md` | Updated session status and handoff after implementation |
 | `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` | Marked 20/20 tasks and completion checklist items complete |

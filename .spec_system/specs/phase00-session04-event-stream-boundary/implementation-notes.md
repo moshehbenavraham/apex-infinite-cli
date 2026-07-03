@@ -98,13 +98,13 @@
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T002 complete.
 
 **Verification**:
-- Command/check: `rg -n "^(def|class|@click|@dataclass)|execute_codex|db_log|notify|KeyboardInterrupt|signal|print_|infinite_loop|llm_|get_llm|history|main\\(" apex-infinite-cli/apex_infinite.py`
+- Command/check: `rg -n "^(def|class|@click|@dataclass)|execute_codex|db_log|notify|KeyboardInterrupt|signal|print_|infinite_loop|llm_|get_llm|history|main\\(" src/apex_infinite/cli.py`
   - Result: PASS - relevant runtime boundaries were located.
   - Evidence: Output identified `_handle_sigint`, `load_config`, `db_fetch_history`, `db_log`, `execute_codex`, `notify`, `infinite_loop`, and `main`.
-- Command/check: `sed -n '480,1420p' apex-infinite-cli/apex_infinite.py`
+- Command/check: `sed -n '480,1420p' src/apex_infinite/cli.py`
   - Result: PASS - mapped concrete insertion points without editing runtime code.
   - Evidence: Inspection covered config loading, DB calls, LLM calls, subprocess execution, notifications, loop routing, and Click startup.
-- Command/check: `sed -n '540,1040p' apex-infinite-cli/apex_infinite_ui.py`
+- Command/check: `sed -n '540,1040p' src/apex_infinite/ui.py`
   - Result: PASS - renderer calls and existing snapshot boundaries were identified.
   - Evidence: Inspection covered startup, iteration, manager decision, prompt preview, subprocess, agent response, DB log, interrupt, help, completion, max-iteration, and fallback rendering methods.
 - UI product-surface check: N/A - no user-facing runtime surface changed in this task.
@@ -132,12 +132,12 @@
   calls or real Codex subprocess launches are required.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_event_stream.py` - added event-stream fixture scaffold.
+- `tests/test_event_stream.py` - added event-stream fixture scaffold.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T003 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m py_compile tests/test_event_stream.py`
+- Command/check: `python -m py_compile tests/test_event_stream.py`
   - Result: PASS - fixture module compiles.
   - Evidence: Command exited with status 0 and no output.
 - UI product-surface check: N/A - test fixture scaffold only; no user-facing runtime surface changed.
@@ -163,21 +163,21 @@
   immediately and avoid carrying a known failing test file forward.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_event_stream.py` - added event API behavior and safety tests.
-- `apex-infinite-cli/apex_infinite_events.py` - added event API implementation needed by the tests.
+- `tests/test_event_stream.py` - added event API behavior and safety tests.
+- `src/apex_infinite/events.py` - added event API implementation needed by the tests.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T004 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py -q`
+- Command/check: `python -m pytest tests/test_event_stream.py -q`
   - Result: PASS - 15 event-stream tests passed.
   - Evidence: Pytest collected 15 items and reported `15 passed in 0.33s`.
 - UI product-surface check: N/A - no user-facing runtime surface changed in this task.
 - UI craft check: N/A - no UI implementation changed in this task.
 
 **BQC Fixes**:
-- Contract alignment: Added tests that assert the event object shape uses stable `version`, `event`, `timestamp`, and `payload` fields (`apex-infinite-cli/tests/test_event_stream.py`).
-- Resource cleanup: Added tests for flush-per-event and owned-stream close behavior (`apex-infinite-cli/tests/test_event_stream.py`).
+- Contract alignment: Added tests that assert the event object shape uses stable `version`, `event`, `timestamp`, and `payload` fields (`tests/test_event_stream.py`).
+- Resource cleanup: Added tests for flush-per-event and owned-stream close behavior (`tests/test_event_stream.py`).
 
 ---
 
@@ -188,7 +188,7 @@
 **Duration**: 2 minutes
 
 **Notes**:
-- Added `apex_infinite_events.py` as a Rich-independent event API for tests and
+- Added `src/apex_infinite/events.py` as a Rich-independent event API for tests and
   future wrappers.
 - Implemented `EventEmitter`, `NoOpEventEmitter`, `open_event_stream()`,
   `EventStreamError`, event-name validation, JSON-serializable payload
@@ -198,25 +198,25 @@
   and validated `payload`.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_events.py` - added event emitter API, file/stdout stream handling, validation, flushing, and cleanup.
-- `apex-infinite-cli/tests/test_event_stream.py` - added verification coverage for the new API.
+- `src/apex_infinite/events.py` - added event emitter API, file/stdout stream handling, validation, flushing, and cleanup.
+- `tests/test_event_stream.py` - added verification coverage for the new API.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T007 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py -q`
+- Command/check: `python -m pytest tests/test_event_stream.py -q`
   - Result: PASS - event API behavior is covered by focused tests.
   - Evidence: Pytest collected 15 items and reported `15 passed in 0.33s`.
-- Command/check: Targeted inspection of `apex-infinite-cli/apex_infinite_events.py`
+- Command/check: Targeted inspection of `src/apex_infinite/events.py`
   - Result: PASS - module imports no Rich renderer classes and keeps event handling independent from terminal UI.
   - Evidence: Imports are standard library only; API surface is `EventEmitter`, `NoOpEventEmitter`, `open_event_stream()`, validation helpers, and `summarize_text()`.
 - UI product-surface check: N/A - importable event module only; no normal human output changed.
 - UI craft check: N/A - no UI implementation changed in this task.
 
 **BQC Fixes**:
-- Resource cleanup: Implemented context-manager close semantics and tested owned-stream cleanup (`apex-infinite-cli/apex_infinite_events.py`).
-- Failure path completeness: Event validation, open failures, write failures, flush failures, closed-stream writes, and invalid stdout use raise `EventStreamError` (`apex-infinite-cli/apex_infinite_events.py`).
-- Contract alignment: Event name registry and JSON payload validation keep emitted records aligned with the documented event contract (`apex-infinite-cli/apex_infinite_events.py`).
+- Resource cleanup: Implemented context-manager close semantics and tested owned-stream cleanup (`src/apex_infinite/events.py`).
+- Failure path completeness: Event validation, open failures, write failures, flush failures, closed-stream writes, and invalid stdout use raise `EventStreamError` (`src/apex_infinite/events.py`).
+- Contract alignment: Event name registry and JSON payload validation keep emitted records aligned with the documented event contract (`src/apex_infinite/events.py`).
 
 ---
 
@@ -235,25 +235,25 @@
   non-finite floats and non-JSON objects.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_events.py` - added recursive raw-payload safety validators and secret/visual/string pattern checks.
-- `apex-infinite-cli/tests/test_event_stream.py` - added unsafe-payload rejection tests.
+- `src/apex_infinite/events.py` - added recursive raw-payload safety validators and secret/visual/string pattern checks.
+- `tests/test_event_stream.py` - added unsafe-payload rejection tests.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T008 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py -q`
+- Command/check: `python -m pytest tests/test_event_stream.py -q`
   - Result: PASS - raw-payload safety tests pass.
   - Evidence: Pytest collected 15 items and reported `15 passed in 0.33s`.
-- Command/check: Targeted inspection of `apex-infinite-cli/apex_infinite_events.py`
+- Command/check: Targeted inspection of `src/apex_infinite/events.py`
   - Result: PASS - payload safety checks reject ANSI, Rich markup, frame glyphs, visual tokens, secret-looking keys, secret-looking values, non-finite floats, and non-JSON objects.
   - Evidence: Validators are `ANSI_ESCAPE_PATTERN`, `RICH_MARKUP_PATTERN`, `FRAME_GLYPHS`, `VISUAL_TOKEN_PATTERN`, `SECRET_KEY_PATTERN`, `SECRET_VALUE_PATTERN`, and recursive `_validate_value()`.
 - UI product-surface check: N/A - event payload validation only; no user-facing runtime surface changed.
 - UI craft check: N/A - no UI implementation changed in this task.
 
 **BQC Fixes**:
-- Trust boundary enforcement: Event payloads crossing the machine-output boundary now pass explicit event-name, key, type, and string-content validation (`apex-infinite-cli/apex_infinite_events.py`).
-- Error information boundaries: Secret-looking keys and values are rejected before serialization (`apex-infinite-cli/apex_infinite_events.py`).
-- Contract alignment: Tests assert raw JSONL payloads exclude renderer styling, ANSI, frame glyphs, visual tokens, and secret-looking values (`apex-infinite-cli/tests/test_event_stream.py`).
+- Trust boundary enforcement: Event payloads crossing the machine-output boundary now pass explicit event-name, key, type, and string-content validation (`src/apex_infinite/events.py`).
+- Error information boundaries: Secret-looking keys and values are rejected before serialization (`src/apex_infinite/events.py`).
+- Contract alignment: Tests assert raw JSONL payloads exclude renderer styling, ANSI, frame glyphs, visual tokens, and secret-looking values (`tests/test_event_stream.py`).
 
 ---
 
@@ -272,15 +272,15 @@
   immediately and no known failing guardrail test remains.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_cli_options.py` - added event-stream and machine-output CLI guardrail tests.
-- `apex-infinite-cli/apex_infinite.py` - added option wiring, startup event emission, emitter handoff, and notification suppression plumbing needed by the tests.
-- `apex-infinite-cli/apex_infinite_ui.py` - added no-human-output renderer adapter needed by machine-output stdout isolation.
-- `apex-infinite-cli/apex_infinite_events.py` - adjusted visual-token validator to allow theme names as UI resolution facts.
+- `tests/test_cli_options.py` - added event-stream and machine-output CLI guardrail tests.
+- `src/apex_infinite/cli.py` - added option wiring, startup event emission, emitter handoff, and notification suppression plumbing needed by the tests.
+- `src/apex_infinite/ui.py` - added no-human-output renderer adapter needed by machine-output stdout isolation.
+- `src/apex_infinite/events.py` - adjusted visual-token validator to allow theme names as UI resolution facts.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T005 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_cli_options.py -q`
+- Command/check: `python -m pytest tests/test_cli_options.py -q`
   - Result: PASS - 12 CLI option tests passed.
   - Evidence: Pytest collected 12 items and reported `12 passed in 0.44s`.
 - UI product-surface check: PASS - machine-output stdout mode contains JSONL only and no normal human renderer labels.
@@ -288,9 +288,9 @@
 - UI craft check: N/A - no normal human output layout changed; machine-output is intentionally non-human.
 
 **BQC Fixes**:
-- Trust boundary enforcement: Invalid event/stdout flag combinations fail with Click usage errors before startup work begins (`apex-infinite-cli/apex_infinite.py`).
-- Contract alignment: Tests assert the event emitter reaches the loop and machine-output disables notifications (`apex-infinite-cli/tests/test_cli_options.py`).
-- Product surface discipline: Machine-output mode uses JSONL-only stdout and suppresses normal human renderer labels (`apex-infinite-cli/tests/test_cli_options.py`).
+- Trust boundary enforcement: Invalid event/stdout flag combinations fail with Click usage errors before startup work begins (`src/apex_infinite/cli.py`).
+- Contract alignment: Tests assert the event emitter reaches the loop and machine-output disables notifications (`tests/test_cli_options.py`).
+- Product surface discipline: Machine-output mode uses JSONL-only stdout and suppresses normal human renderer labels (`tests/test_cli_options.py`).
 
 ---
 
@@ -308,22 +308,22 @@
   command construction, timeout cleanup, and verbose behavior.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_subprocess_execution.py` - added recording emitter and subprocess event tests.
-- `apex-infinite-cli/apex_infinite.py` - added subprocess event emissions used by the tests.
+- `tests/test_subprocess_execution.py` - added recording emitter and subprocess event tests.
+- `src/apex_infinite/cli.py` - added subprocess event emissions used by the tests.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T006 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_subprocess_execution.py -q`
+- Command/check: `python -m pytest tests/test_subprocess_execution.py -q`
   - Result: PASS - 17 subprocess tests passed.
   - Evidence: Pytest collected 17 items and reported `17 passed in 0.34s`.
 - UI product-surface check: N/A - event assertions do not alter normal subprocess renderer expectations.
 - UI craft check: N/A - no UI implementation changed in this task.
 
 **BQC Fixes**:
-- Contract alignment: Tests assert event emissions for every subprocess outcome while existing return text remains unchanged (`apex-infinite-cli/tests/test_subprocess_execution.py`).
-- Failure path completeness: Timeout, missing binary, non-zero exit, and generic exception paths each emit a machine-readable error/timeout event (`apex-infinite-cli/apex_infinite.py`).
-- Resource cleanup: Existing process timeout cleanup tests still pass after event instrumentation (`apex-infinite-cli/tests/test_subprocess_execution.py`).
+- Contract alignment: Tests assert event emissions for every subprocess outcome while existing return text remains unchanged (`tests/test_subprocess_execution.py`).
+- Failure path completeness: Timeout, missing binary, non-zero exit, and generic exception paths each emit a machine-readable error/timeout event (`src/apex_infinite/cli.py`).
+- Resource cleanup: Existing process timeout cleanup tests still pass after event instrumentation (`tests/test_subprocess_execution.py`).
 
 ---
 
@@ -340,21 +340,21 @@
 - Kept normal event-stream file output valid without machine-output mode.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - added Click options and flag validation.
-- `apex-infinite-cli/tests/test_cli_options.py` - added guardrail coverage.
+- `src/apex_infinite/cli.py` - added Click options and flag validation.
+- `tests/test_cli_options.py` - added guardrail coverage.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T009 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
+- Command/check: `python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
   - Result: PASS - 127 focused tests passed.
   - Evidence: Pytest collected 127 items and reported `127 passed in 10.59s`.
 - UI product-surface check: PASS - invalid machine-output/stdout combinations fail before rendering; valid machine-output stdout emits JSONL only.
 - UI craft check: N/A - option validation only.
 
 **BQC Fixes**:
-- Trust boundary enforcement: Machine-output/stdout mode now has explicit schema-style Click guardrails before runtime side effects (`apex-infinite-cli/apex_infinite.py`).
-- Failure path completeness: Invalid flag combinations return clear Click usage errors covered by tests (`apex-infinite-cli/tests/test_cli_options.py`).
+- Trust boundary enforcement: Machine-output/stdout mode now has explicit schema-style Click guardrails before runtime side effects (`src/apex_infinite/cli.py`).
+- Failure path completeness: Invalid flag combinations return clear Click usage errors covered by tests (`tests/test_cli_options.py`).
 
 ---
 
@@ -373,23 +373,23 @@
   surface event write/validation failures without changing workflow decisions.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - added event stream context lifecycle, startup events, active emitter pointer, and write-failure helper.
-- `apex-infinite-cli/tests/test_event_stream.py` - added event failure handling tests.
-- `apex-infinite-cli/tests/test_cli_options.py` - verified startup events are written to file/stdout and the emitter reaches the loop.
+- `src/apex_infinite/cli.py` - added event stream context lifecycle, startup events, active emitter pointer, and write-failure helper.
+- `tests/test_event_stream.py` - added event failure handling tests.
+- `tests/test_cli_options.py` - verified startup events are written to file/stdout and the emitter reaches the loop.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T010 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
+- Command/check: `python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
   - Result: PASS - startup event and write-failure coverage passed.
   - Evidence: Pytest collected 127 items and reported `127 passed in 10.59s`.
 - UI product-surface check: PASS - file event-stream mode still prints the startup human surface; machine-output stdout mode does not.
 - UI craft check: N/A - startup event side channel only.
 
 **BQC Fixes**:
-- Resource cleanup: Event stream context manager closes owned file streams and resets active emitter globals (`apex-infinite-cli/apex_infinite.py`).
-- Failure path completeness: `_emit_event()` reports human event failures visibly and emits `event_stream_error` in machine mode when possible (`apex-infinite-cli/apex_infinite.py`).
-- Contract alignment: Startup events carry raw config/UI/project facts only, without provider API keys or renderer snapshots (`apex-infinite-cli/apex_infinite.py`).
+- Resource cleanup: Event stream context manager closes owned file streams and resets active emitter globals (`src/apex_infinite/cli.py`).
+- Failure path completeness: `_emit_event()` reports human event failures visibly and emits `event_stream_error` in machine mode when possible (`src/apex_infinite/cli.py`).
+- Contract alignment: Startup events carry raw config/UI/project facts only, without provider API keys or renderer snapshots (`src/apex_infinite/cli.py`).
 
 ---
 
@@ -408,23 +408,23 @@
   machine-output stdout remains JSONL-only.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - added `NoHumanOutputRenderer`.
-- `apex-infinite-cli/apex_infinite.py` - selects no-output renderer in machine-output mode.
-- `apex-infinite-cli/tests/test_renderer.py` - added suppression coverage.
-- `apex-infinite-cli/tests/test_cli_options.py` - verified machine-output stdout isolation.
+- `src/apex_infinite/ui.py` - added `NoHumanOutputRenderer`.
+- `src/apex_infinite/cli.py` - selects no-output renderer in machine-output mode.
+- `tests/test_renderer.py` - added suppression coverage.
+- `tests/test_cli_options.py` - verified machine-output stdout isolation.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T011 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
+- Command/check: `python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
   - Result: PASS - no-output renderer and stdout isolation tests passed.
   - Evidence: Pytest collected 127 items and reported `127 passed in 10.59s`.
 - UI product-surface check: PASS - normal human surfaces remain present in file event-stream mode; machine-output mode suppresses human labels from stdout.
 - UI craft check: PASS - no visual layout changes to normal renderer surfaces; adapter is intentionally silent.
 
 **BQC Fixes**:
-- Product surface discipline: Machine-output mode no longer exposes human renderer labels, startup panels, or prompt text on stdout (`apex-infinite-cli/apex_infinite_ui.py`).
-- Contract alignment: Adapter implements the renderer methods used by runtime paths so machine mode does not need alternate workflow logic (`apex-infinite-cli/apex_infinite_ui.py`).
+- Product surface discipline: Machine-output mode no longer exposes human renderer labels, startup panels, or prompt text on stdout (`src/apex_infinite/ui.py`).
+- Contract alignment: Adapter implements the renderer methods used by runtime paths so machine mode does not need alternate workflow logic (`src/apex_infinite/ui.py`).
 
 ---
 
@@ -445,22 +445,22 @@
   flow, and notification suppression while events are emitted.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - added lifecycle event emissions in `infinite_loop()` and `_handle_sigint()`.
-- `apex-infinite-cli/tests/test_event_stream.py` - added loop event-order tests.
+- `src/apex_infinite/cli.py` - added lifecycle event emissions in `infinite_loop()` and `_handle_sigint()`.
+- `tests/test_event_stream.py` - added loop event-order tests.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T012 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
+- Command/check: `python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
   - Result: PASS - loop event tests and prompt regressions passed.
   - Evidence: Pytest collected 127 items and reported `127 passed in 10.59s`.
 - UI product-surface check: PASS - loop event tests use `NoHumanOutputRenderer`; normal renderer behavior is still covered by renderer and CLI tests.
 - UI craft check: N/A - loop side-channel events only.
 
 **BQC Fixes**:
-- Contract alignment: Event tests assert lifecycle order for completion, prompt dispatch, DB logging, max-iteration stop, and help flows (`apex-infinite-cli/tests/test_event_stream.py`).
-- Failure path completeness: Interrupt/help/operator-input and max-iteration stop states now emit explicit machine-readable events (`apex-infinite-cli/apex_infinite.py`).
-- Database alignment: DB log events wrap existing `db_log()` calls without changing schema, migrations, or stored row values (`apex-infinite-cli/apex_infinite.py`).
+- Contract alignment: Event tests assert lifecycle order for completion, prompt dispatch, DB logging, max-iteration stop, and help flows (`tests/test_event_stream.py`).
+- Failure path completeness: Interrupt/help/operator-input and max-iteration stop states now emit explicit machine-readable events (`src/apex_infinite/cli.py`).
+- Database alignment: DB log events wrap existing `db_log()` calls without changing schema, migrations, or stored row values (`src/apex_infinite/cli.py`).
 
 ---
 
@@ -479,21 +479,21 @@
 - Existing subprocess return strings and renderer state calls are preserved.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - added `execute_codex()` event emissions.
-- `apex-infinite-cli/tests/test_subprocess_execution.py` - added event assertions for all subprocess outcomes.
+- `src/apex_infinite/cli.py` - added `execute_codex()` event emissions.
+- `tests/test_subprocess_execution.py` - added event assertions for all subprocess outcomes.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T013 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
+- Command/check: `python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
   - Result: PASS - subprocess event and compatibility tests passed.
   - Evidence: Pytest collected 127 items and reported `127 passed in 10.59s`.
 - UI product-surface check: N/A - subprocess human renderer expectations remain covered and unchanged.
 - UI craft check: N/A - no renderer layout changes.
 
 **BQC Fixes**:
-- Failure path completeness: Non-zero exits, timeouts, missing binary, and generic exceptions each produce machine-readable events (`apex-infinite-cli/apex_infinite.py`).
-- Contract alignment: Tests prove event emissions do not change dry-run output, timeout text, error text, stdout/stderr fallback, or verbose behavior (`apex-infinite-cli/tests/test_subprocess_execution.py`).
+- Failure path completeness: Non-zero exits, timeouts, missing binary, and generic exceptions each produce machine-readable events (`src/apex_infinite/cli.py`).
+- Contract alignment: Tests prove event emissions do not change dry-run output, timeout text, error text, stdout/stderr fallback, or verbose behavior (`tests/test_subprocess_execution.py`).
 
 ---
 
@@ -512,22 +512,22 @@
   loop execution.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - added notification suppression plumbing.
-- `apex-infinite-cli/tests/test_event_stream.py` - added machine-output loop tests with notification-failure sentinels.
-- `apex-infinite-cli/tests/test_cli_options.py` - verifies `notifications_enabled` is false in machine-output loop wiring.
+- `src/apex_infinite/cli.py` - added notification suppression plumbing.
+- `tests/test_event_stream.py` - added machine-output loop tests with notification-failure sentinels.
+- `tests/test_cli_options.py` - verifies `notifications_enabled` is false in machine-output loop wiring.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T014 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
+- Command/check: `python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
   - Result: PASS - notification suppression tests passed.
   - Evidence: Pytest collected 127 items and reported `127 passed in 10.59s`.
 - UI product-surface check: PASS - machine-output stdout has JSONL only and no bell/prompt/human notification output.
 - UI craft check: N/A - no visual surface change.
 
 **BQC Fixes**:
-- External dependency resilience: Machine-output mode avoids optional `notify-send` calls entirely (`apex-infinite-cli/apex_infinite.py`).
-- Contract alignment: Tests assert machine-output loop wiring disables notifications while normal mode keeps them enabled (`apex-infinite-cli/tests/test_cli_options.py`).
+- External dependency resilience: Machine-output mode avoids optional `notify-send` calls entirely (`src/apex_infinite/cli.py`).
+- Contract alignment: Tests assert machine-output loop wiring disables notifications while normal mode keeps them enabled (`tests/test_cli_options.py`).
 
 ---
 
@@ -545,21 +545,21 @@
 - Kept stdout JSONL exclusive to `--machine-output --event-stream -`.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_cli_options.py` - added event-file coexistence tests across human output modes.
-- `apex-infinite-cli/apex_infinite.py` - event-file mode keeps normal renderer active; machine-output mode selects the no-output adapter.
+- `tests/test_cli_options.py` - added event-file coexistence tests across human output modes.
+- `src/apex_infinite/cli.py` - event-file mode keeps normal renderer active; machine-output mode selects the no-output adapter.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T015 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
+- Command/check: `python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
   - Result: PASS - event-file coexistence tests passed.
   - Evidence: Pytest collected 127 items and reported `127 passed in 10.59s`.
 - UI product-surface check: PASS - normal human startup surface remains visible with `--event-stream PATH`; machine-output stdout remains JSONL-only.
 - UI craft check: PASS - no normal renderer layout or label changes were required.
 
 **BQC Fixes**:
-- Product surface discipline: Event-file mode does not replace the operator console with implementation telemetry (`apex-infinite-cli/tests/test_cli_options.py`).
-- Contract alignment: Tests assert JSONL is written to the file side channel while human stdout remains normal (`apex-infinite-cli/tests/test_cli_options.py`).
+- Product surface discipline: Event-file mode does not replace the operator console with implementation telemetry (`tests/test_cli_options.py`).
+- Contract alignment: Tests assert JSONL is written to the file side channel while human stdout remains normal (`tests/test_cli_options.py`).
 
 ---
 
@@ -578,25 +578,25 @@
   DB schema were not changed.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - added observer events without changing prompt, DB, or subprocess return contracts.
-- `apex-infinite-cli/tests/test_subprocess_execution.py` - preserved return-text assertions while adding event assertions.
-- `apex-infinite-cli/tests/test_cli_options.py` - preserved prompt-routing test coverage.
+- `src/apex_infinite/cli.py` - added observer events without changing prompt, DB, or subprocess return contracts.
+- `tests/test_subprocess_execution.py` - preserved return-text assertions while adding event assertions.
+- `tests/test_cli_options.py` - preserved prompt-routing test coverage.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T016 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
+- Command/check: `python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
   - Result: PASS - focused compatibility tests passed.
   - Evidence: Pytest collected 127 items and reported `127 passed in 10.59s`.
-- Command/check: Targeted inspection of `apex-infinite-cli/apex_infinite.py`
+- Command/check: Targeted inspection of `src/apex_infinite/cli.py`
   - Result: PASS - `MANAGER_SYSTEM_PROMPT`, `SUMMARIZER_SYSTEM_PROMPT`, `build_codex_prompt()`, `db_init()` schema, and `db_log()` SQL shape remain unchanged.
   - Evidence: Event code wraps existing call sites and does not edit prompt constants, `cc_response`, table creation, or SQL columns.
 - UI product-surface check: PASS - compatibility tests include renderer and machine-output surface checks.
 - UI craft check: PASS - no normal renderer layout change was made for compatibility preservation.
 
 **BQC Fixes**:
-- Contract alignment: Focused tests cover prompt routing, subprocess return semantics, renderer safety, event emissions, and CLI guardrails together (`apex-infinite-cli/tests/`).
-- Database alignment: Event additions are side-channel only and no schema artifact is required because persisted data shape did not change (`apex-infinite-cli/apex_infinite.py`).
+- Contract alignment: Focused tests cover prompt routing, subprocess return semantics, renderer safety, event emissions, and CLI guardrails together (`tests/`).
+- Database alignment: Event additions are side-channel only and no schema artifact is required because persisted data shape did not change (`src/apex_infinite/cli.py`).
 
 ---
 
@@ -607,22 +607,22 @@
 **Duration**: 3 minutes
 
 **Notes**:
-- Created `apex-infinite-cli/docs/event-stream.md` with CLI modes, JSONL event
+- Created `docs/event-stream.md` with CLI modes, JSONL event
   shape, event names, payload principles, examples, failure behavior, wrapper
   guidance, and safety boundaries.
 - Documented `--event-stream PATH` as a file side channel and
   `--event-stream - --machine-output` as JSONL-only stdout mode.
 
 **Files Changed**:
-- `apex-infinite-cli/docs/event-stream.md` - added event-stream contract.
+- `docs/event-stream.md` - added event-stream contract.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T017 complete.
 
 **Verification**:
-- Command/check: `LC_ALL=C grep -n '[^[:print:][:space:]]' apex-infinite-cli/docs/event-stream.md ... || true`
+- Command/check: `LC_ALL=C grep -n '[^[:print:][:space:]]' docs/event-stream.md ... || true`
   - Result: PASS - no non-ASCII/control characters found.
   - Evidence: Command produced no output.
-- Command/check: `grep -n $'\\r' apex-infinite-cli/docs/event-stream.md ... || true`
+- Command/check: `grep -n $'\\r' docs/event-stream.md ... || true`
   - Result: PASS - no CRLF line endings found.
   - Evidence: Command produced no output.
 - UI product-surface check: N/A - documentation only.
@@ -648,7 +648,7 @@
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T019 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
+- Command/check: `python -m pytest tests/test_event_stream.py tests/test_cli_options.py tests/test_subprocess_execution.py tests/test_renderer.py tests/test_prompts.py -q`
   - Result: PASS - focused regression tests passed.
   - Evidence: Pytest collected 127 items and reported `127 passed in 10.56s`.
 - UI product-surface check: PASS - focused tests include machine-output stdout isolation and normal renderer surface checks.
@@ -666,28 +666,28 @@
 **Duration**: 1 minute
 
 **Notes**:
-- Ran Black, which reformatted `apex_infinite.py`,
+- Ran Black, which reformatted `src/apex_infinite/cli.py`,
   `tests/test_event_stream.py`, and `tests/test_subprocess_execution.py`.
 - Reran Black check, Pylint, full tests, whitespace, ASCII, and LF scans after
   formatting and final lint fixes.
 - Marked the task checklist completion items after all verification passed.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - Black formatting and targeted Pylint disables for existing long runtime functions.
-- `apex-infinite-cli/apex_infinite_events.py` - targeted Pylint disable for managed file stream ownership.
-- `apex-infinite-cli/tests/test_event_stream.py` - Black formatting.
-- `apex-infinite-cli/tests/test_subprocess_execution.py` - Black formatting.
+- `src/apex_infinite/cli.py` - Black formatting and targeted Pylint disables for existing long runtime functions.
+- `src/apex_infinite/events.py` - targeted Pylint disable for managed file stream ownership.
+- `tests/test_event_stream.py` - Black formatting.
+- `tests/test_subprocess_execution.py` - Black formatting.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T021 and completion checklist complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py apex_infinite_events.py tests/`
+- Command/check: `python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py src/apex_infinite/events.py tests/`
   - Result: PASS - Black check passed.
   - Evidence: Black reported 13 files would be left unchanged.
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py apex_infinite_events.py`
+- Command/check: `python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py src/apex_infinite/events.py`
   - Result: PASS - Pylint passed.
   - Evidence: Pylint rated the checked modules `10.00/10`.
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v`
+- Command/check: `python -m pytest tests/ -v`
   - Result: PASS - full CLI test suite passed after formatting.
   - Evidence: Pytest collected 170 items and reported `170 passed in 10.70s`.
 - Command/check: `git diff --check`
@@ -722,7 +722,7 @@
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T020 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v`
+- Command/check: `python -m pytest tests/ -v`
   - Result: PASS - full CLI test suite passed.
   - Evidence: Pytest collected 170 items and reported `170 passed in 10.66s`.
 - UI product-surface check: PASS - full suite includes renderer, fallback mode, history, and machine-output surface checks.
@@ -749,21 +749,21 @@
   JSONL/stdout collision guidance, and wrapper parsing guidance.
 
 **Files Changed**:
-- `apex-infinite-cli/README_apex-infinite-cli.md` - documented event-stream and machine-output usage.
-- `apex-infinite-cli/docs/operator-runbook.md` - added event-file and machine-output operating modes.
-- `apex-infinite-cli/docs/prompt-contract.md` - clarified event stream does not alter prompt routing.
-- `apex-infinite-cli/docs/troubleshooting.md` - added event stream troubleshooting.
+- `README.md` - documented event-stream and machine-output usage.
+- `docs/operator-runbook.md` - added event-file and machine-output operating modes.
+- `docs/prompt-contract.md` - clarified event stream does not alter prompt routing.
+- `docs/troubleshooting.md` - added event stream troubleshooting.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` - marked T018 complete.
 
 **Verification**:
-- Command/check: `LC_ALL=C grep -n '[^[:print:][:space:]]' apex-infinite-cli/docs/event-stream.md apex-infinite-cli/README_apex-infinite-cli.md apex-infinite-cli/docs/operator-runbook.md apex-infinite-cli/docs/prompt-contract.md apex-infinite-cli/docs/troubleshooting.md || true`
+- Command/check: `LC_ALL=C grep -n '[^[:print:][:space:]]' docs/event-stream.md README.md docs/operator-runbook.md docs/prompt-contract.md docs/troubleshooting.md || true`
   - Result: PASS - docs are ASCII-only.
   - Evidence: Command produced no output.
-- Command/check: `grep -n $'\\r' apex-infinite-cli/docs/event-stream.md apex-infinite-cli/README_apex-infinite-cli.md apex-infinite-cli/docs/operator-runbook.md apex-infinite-cli/docs/prompt-contract.md apex-infinite-cli/docs/troubleshooting.md || true`
+- Command/check: `grep -n $'\\r' docs/event-stream.md README.md docs/operator-runbook.md docs/prompt-contract.md docs/troubleshooting.md || true`
   - Result: PASS - docs use LF line endings.
   - Evidence: Command produced no output.
-- Command/check: `rg -n "event-stream|event stream|machine-output|machine output|--event-stream|--machine-output|JSONL" apex-infinite-cli/README_apex-infinite-cli.md apex-infinite-cli/docs/operator-runbook.md apex-infinite-cli/docs/prompt-contract.md apex-infinite-cli/docs/troubleshooting.md`
+- Command/check: `rg -n "event-stream|event stream|machine-output|machine output|--event-stream|--machine-output|JSONL" README.md docs/operator-runbook.md docs/prompt-contract.md docs/troubleshooting.md`
   - Result: PASS - updated docs contain the expected event-stream references.
   - Evidence: Search output lists README, runbook, prompt-contract, and troubleshooting references.
 - UI product-surface check: N/A - documentation only.

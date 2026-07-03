@@ -25,18 +25,18 @@
 
 | Check | Command or Inspection | Result | Evidence / Blocker |
 |-------|-----------------------|--------|--------------------|
-| Project state | `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash scripts/analyze-project.sh --json; fi` | PASS | Current session is `phase00-session01-config-and-renderer-boundary`; session directory exists; monorepo is false. |
+| Project state | `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash .spec_system/scripts/analyze-project.sh --json; fi` | PASS | Current session is `phase00-session01-config-and-renderer-boundary`; session directory exists; monorepo is false. |
 | Code review | `rg -n "^Result:|^\*\*Result\*\*:|Result:" .spec_system/specs/phase00-session01-config-and-renderer-boundary/code-review.md` plus review-file inspection | PASS | `**Result**: RESOLVED`; report states scope is all uncommitted changes and lists tracked and untracked session files. |
 | Task completion | `rg -n "^- \[[ x]\] T[0-9]{3}" .spec_system/specs/phase00-session01-config-and-renderer-boundary/tasks.md` | PASS | 20 task rows found; all are marked `[x]`. |
 | Deliverables | `for f in ...; do if [ -s "$f" ]; then printf 'FOUND %s %s\n' "$f" "$(wc -c < "$f")"; else ...; fi; done` | PASS | 8/8 deliverables were found and non-empty. |
 | ASCII/LF | `file ...`; `LC_ALL=C grep -n '[^[:print:][:space:]]' ...`; `grep -l $'\r' ...` | PASS | All deliverables report ASCII text; deliverable and changed-file scans printed PASS for ASCII and LF. |
-| Tests | `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py tests/ && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py` | PASS | 93 tests passed; Black left 8 files unchanged; pylint rated 10.00/10. |
-| Root checks | `bats tests/`; `bash scripts/sync-plugin-payload.sh --check`; `bash scripts/analyze-project.sh --json \| jq .`; `bash scripts/check-prereqs.sh --json --env \| jq .` | PASS | 61 Bats tests passed; plugin payload current; analyzer and prereq smoke commands returned valid passing JSON. |
+| Tests | `python -m pytest tests/ -v && python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/ && python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py` | PASS | 93 tests passed; Black left 8 files unchanged; pylint rated 10.00/10. |
+| Root checks | `python -m pytest tests/ -v`; `bash .spec_system/scripts/analyze-project.sh --json`; `bash .spec_system/scripts/analyze-project.sh --json \| jq .`; `bash .spec_system/scripts/check-prereqs.sh --json --env \| jq .` | PASS | 61 Bats tests passed; plugin payload current; analyzer and prereq smoke commands returned valid passing JSON. |
 | Database/schema | `rg -n "CREATE TABLE|ALTER TABLE|INSERT INTO|SELECT |UPDATE |DELETE |sqlite|migrations?|schema|cc_response" ...` plus diff inspection | N/A | No schema or migration files changed; SQLite table definition unchanged; display code consumes existing `cc_response` rows. |
 | Success criteria | `spec.md` checklist inspection plus full test gate and targeted smoke commands | PASS | All Click flags, resolver modes, invalid config, renderer output, history safety, existing prompt/routing, and quality gates verified. |
 | Conventions | `.spec_system/CONVENTIONS.md` inspection plus changed-code spot-check | PASS | Long kebab-case Click flags, fail-fast config errors, injected console renderers, raw SQLite boundary, tests, docs, ASCII, and LF requirements are met. |
 | Security/GDPR | `security-compliance.md` report plus `rg` security scan and dependency-change inspection | PASS | No injection, hardcoded secret, dependency, sensitive exposure, or misconfiguration findings; GDPR N/A. |
-| Behavioral quality | `behavioral-quality-checklist.md` priority spot-check of `apex_infinite.py`, `apex_infinite_ui.py`, and new tests | PASS | Validation, failure paths, timeout handling, raw-data contracts, and history isolation are tested. |
+| Behavioral quality | `behavioral-quality-checklist.md` priority spot-check of `src/apex_infinite/cli.py`, `src/apex_infinite/ui.py`, and new tests | PASS | Validation, failure paths, timeout handling, raw-data contracts, and history isolation are tested. |
 | UI product surface | Plain/ASCII and styled dry-run startup smoke commands plus `rg` inspection for debug/scaffolding labels | PASS | Output shows startup/safety-stop product facts; `secret-value` was not echoed; no debug panels or scaffolding labels found in normal product surfaces. |
 
 ## 1. Code Review Gate
@@ -55,14 +55,14 @@
 
 | File | Found | Status |
 |------|-------|--------|
-| `apex-infinite-cli/apex_infinite_ui.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_ui_config.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_cli_options.py` | Yes | PASS |
-| `apex-infinite-cli/tests/test_renderer.py` | Yes | PASS |
-| `apex-infinite-cli/apex_infinite.py` | Yes | PASS |
-| `apex-infinite-cli/config.yaml` | Yes | PASS |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Yes | PASS |
-| `apex-infinite-cli/tests/conftest.py` | Yes | PASS |
+| `src/apex_infinite/ui.py` | Yes | PASS |
+| `tests/test_ui_config.py` | Yes | PASS |
+| `tests/test_cli_options.py` | Yes | PASS |
+| `tests/test_renderer.py` | Yes | PASS |
+| `src/apex_infinite/cli.py` | Yes | PASS |
+| `src/apex_infinite/config.yaml` | Yes | PASS |
+| `README.md` | Yes | PASS |
+| `tests/conftest.py` | Yes | PASS |
 
 **Missing deliverables**: None
 
@@ -71,14 +71,14 @@
 
 | File | Encoding | Line Endings | Status |
 |------|----------|--------------|--------|
-| `apex-infinite-cli/apex_infinite_ui.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/tests/test_ui_config.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/tests/test_cli_options.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/tests/test_renderer.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/apex_infinite.py` | ASCII | LF | PASS |
-| `apex-infinite-cli/config.yaml` | ASCII | LF | PASS |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | ASCII | LF | PASS |
-| `apex-infinite-cli/tests/conftest.py` | ASCII | LF | PASS |
+| `src/apex_infinite/ui.py` | ASCII | LF | PASS |
+| `tests/test_ui_config.py` | ASCII | LF | PASS |
+| `tests/test_cli_options.py` | ASCII | LF | PASS |
+| `tests/test_renderer.py` | ASCII | LF | PASS |
+| `src/apex_infinite/cli.py` | ASCII | LF | PASS |
+| `src/apex_infinite/config.yaml` | ASCII | LF | PASS |
+| `README.md` | ASCII | LF | PASS |
+| `tests/conftest.py` | ASCII | LF | PASS |
 
 **Encoding issues**: None
 
@@ -99,7 +99,7 @@
 ## 6. Database/Schema Alignment
 ### Status: N/A
 
-**Evidence**: N/A -- the session introduced no DB schema, migration, seed, or persisted data-shape change. `apex_infinite.py` still defines the same `history` table and `cc_response` column, query paths remain parameterized, and `tests/test_renderer.py::test_sqlite_history_stores_raw_values_without_renderer_labels` verifies renderer labels and styling do not enter stored rows.
+**Evidence**: N/A -- the session introduced no DB schema, migration, seed, or persisted data-shape change. `src/apex_infinite/cli.py` still defines the same `history` table and `cc_response` column, query paths remain parameterized, and `tests/test_renderer.py::test_sqlite_history_stores_raw_values_without_renderer_labels` verifies renderer labels and styling do not enter stored rows.
 
 **Issues found**: None
 
@@ -108,7 +108,7 @@ From spec.md:
 
 **Functional requirements**:
 - PASS -- `--theme`, `--plain`, `--ascii`, and `--compact` are accepted and tested by `tests/test_cli_options.py`.
-- PASS -- built-in `auto`, `crt-green`, `crt-amber`, `ibm-dos`, and `plain` theme definitions exist in `apex_infinite_ui.py` and are covered by resolver tests.
+- PASS -- built-in `auto`, `crt-green`, `crt-amber`, `ibm-dos`, and `plain` theme definitions exist in `src/apex_infinite/ui.py` and are covered by resolver tests.
 - PASS -- `auto`, `NO_COLOR`, `TERM=dumb`, non-terminal console, and explicit-theme override behavior are covered by `tests/test_ui_config.py`.
 - PASS -- invalid theme and malformed UI config fail fast via `UiConfigError` and CLI tests.
 - PASS -- history, dry-run, direct execution, interrupt/help/completion/timeout/non-zero display paths are covered by focused tests, smoke commands, and implementation-note evidence.
@@ -122,9 +122,9 @@ From spec.md:
 
 **Quality gates**:
 - PASS -- all files ASCII-encoded and LF-only.
-- PASS -- `pytest tests/ -v` passes from `apex-infinite-cli/`.
-- PASS -- `black --check apex_infinite.py apex_infinite_ui.py tests/` passes from `apex-infinite-cli/`.
-- PASS -- `pylint apex_infinite.py apex_infinite_ui.py` passes from `apex-infinite-cli/`.
+- PASS -- `pytest tests/ -v` passes from `./`.
+- PASS -- `black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/` passes from `./`.
+- PASS -- `pylint src/apex_infinite/cli.py src/apex_infinite/ui.py` passes from `./`.
 
 ## 8. Conventions Compliance
 ### Status: PASS
@@ -150,7 +150,7 @@ From spec.md:
 ### Status: PASS
 
 **Checklist applied**: Yes
-**Files spot-checked**: `apex-infinite-cli/apex_infinite.py`, `apex-infinite-cli/apex_infinite_ui.py`, `apex-infinite-cli/tests/test_ui_config.py`, `apex-infinite-cli/tests/test_cli_options.py`, `apex-infinite-cli/tests/test_renderer.py`
+**Files spot-checked**: `src/apex_infinite/cli.py`, `src/apex_infinite/ui.py`, `tests/test_ui_config.py`, `tests/test_cli_options.py`, `tests/test_renderer.py`
 
 **Categories spot-checked**: trust boundaries, resource cleanup, mutation safety, failure paths, and contract alignment.
 
@@ -161,7 +161,7 @@ From spec.md:
 ## 11. UI Product-Surface Spot-Check
 ### Status: PASS
 
-**Surfaces inspected**: `apex_infinite.py` dry-run startup and safety-stop output in compact plain/ASCII mode and styled `crt-green` mode; renderer code and tests for history, startup, manager decision, prompt preview, Codex execution, interrupt, help, completion, and safety-stop surfaces.
+**Surfaces inspected**: `src/apex_infinite/cli.py` dry-run startup and safety-stop output in compact plain/ASCII mode and styled `crt-green` mode; renderer code and tests for history, startup, manager decision, prompt preview, Codex execution, interrupt, help, completion, and safety-stop surfaces.
 
 **Diagnostics found in primary UI**: None
 

@@ -79,42 +79,42 @@ mode, or record a precise deferral if the spike blocks.
 <!-- FOLDED_SESSION_SOURCE_START -->
 
 This section carries forward the actionable session material formerly stored in
-`docs/ongoing-projects/apex-infinite-cli-upgrade-plan.md`. The Phase 00 PRD
+`.spec_system/archive/phases/phase_00/PRD_phase_00.md`. The Phase 00 PRD
 contains the verbatim archive; this stub keeps the session-specific details and
 full-path `EXAMPLE/` references close to the session executor.
 
 ### EXAMPLE Reference Links
 
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.cpp](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.cpp)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.h](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.h)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.cpp](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.cpp)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.h](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.h)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.pro](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.pro)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/app.pro](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/app.pro)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.desktop](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.desktop)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/snap/snapcraft.yaml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/snap/snapcraft.yaml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/scripts/build-appimage.sh](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/scripts/build-appimage.sh)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/resources.qrc](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/resources.qrc)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/crt256.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/crt256.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/crt.icns](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/crt.icns)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml)
+- [EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml](../../../../EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml)
+- [EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml](../../../../EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml)
+- [EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml](../../../../EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml)
+- [EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml](../../../../EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml)
+- [EXAMPLE/cool-retro-term/app/qml/Storage.qml](../../../../EXAMPLE/cool-retro-term/app/qml/Storage.qml)
+- [EXAMPLE/cool-retro-term/app/fileio.cpp](../../../../EXAMPLE/cool-retro-term/app/fileio.cpp)
+- [EXAMPLE/cool-retro-term/app/fileio.h](../../../../EXAMPLE/cool-retro-term/app/fileio.h)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml)
+- [EXAMPLE/cool-retro-term/app/fontmanager.cpp](../../../../EXAMPLE/cool-retro-term/app/fontmanager.cpp)
+- [EXAMPLE/cool-retro-term/app/fontmanager.h](../../../../EXAMPLE/cool-retro-term/app/fontmanager.h)
+- [EXAMPLE/cool-retro-term/app/fontlistmodel.cpp](../../../../EXAMPLE/cool-retro-term/app/fontlistmodel.cpp)
+- [EXAMPLE/cool-retro-term/app/fontlistmodel.h](../../../../EXAMPLE/cool-retro-term/app/fontlistmodel.h)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml)
+- [EXAMPLE/cool-retro-term/cool-retro-term.pro](../../../../EXAMPLE/cool-retro-term/cool-retro-term.pro)
+- [EXAMPLE/cool-retro-term/app/app.pro](../../../../EXAMPLE/cool-retro-term/app/app.pro)
+- [EXAMPLE/cool-retro-term/cool-retro-term.desktop](../../../../EXAMPLE/cool-retro-term/cool-retro-term.desktop)
+- [EXAMPLE/cool-retro-term/snap/snapcraft.yaml](../../../../EXAMPLE/cool-retro-term/snap/snapcraft.yaml)
+- [EXAMPLE/cool-retro-term/scripts/build-appimage.sh](../../../../EXAMPLE/cool-retro-term/scripts/build-appimage.sh)
+- [EXAMPLE/cool-retro-term/app/qml/resources.qrc](../../../../EXAMPLE/cool-retro-term/app/qml/resources.qrc)
+- [EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png](../../../../EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png)
+- [EXAMPLE/cool-retro-term/app/qml/images/crt256.png](../../../../EXAMPLE/cool-retro-term/app/qml/images/crt256.png)
+- [EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png](../../../../EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png)
+- [EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png](../../../../EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png)
+- [EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png](../../../../EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png)
+- [EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png](../../../../EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png)
+- [EXAMPLE/cool-retro-term/app/icons/crt.icns](../../../../EXAMPLE/cool-retro-term/app/icons/crt.icns)
 
 ### Detailed Session Split Source
 
@@ -156,52 +156,52 @@ standalone visual mode, or record a precise deferral if the spike blocks.
 
 **EXAMPLE Reference Paths**:
 - Study maintainable wrapper surface and window actions:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`
 - Study tab/session structure only if productizing multiple visual sessions:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml`
 - Study menu, profile, copy/paste, settings, fullscreen, zoom, and action
   organization:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml`
+  `EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml`
 - Study settings persistence and profile import/export concepts:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/Storage.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.cpp`,
+  `EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/Storage.qml`,
+  `EXAMPLE/cool-retro-term/app/fileio.cpp`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fileio.h`
+  `EXAMPLE/cool-retro-term/app/fileio.h`
 - Study font/scaling controls and then implement independent optional controls:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.cpp`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontmanager.h`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.cpp`,
+  `EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml`,
+  `EXAMPLE/cool-retro-term/app/fontmanager.cpp`,
+  `EXAMPLE/cool-retro-term/app/fontmanager.h`,
+  `EXAMPLE/cool-retro-term/app/fontlistmodel.cpp`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/fontlistmodel.h`
+  `EXAMPLE/cool-retro-term/app/fontlistmodel.h`
 - Study effects and performance controls for productized user settings:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml`
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml`
 - Study packaging and install surfaces without copying build scripts or
   manifests:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.pro`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/app.pro`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/cool-retro-term.desktop`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/snap/snapcraft.yaml`,
+  `EXAMPLE/cool-retro-term/cool-retro-term.pro`,
+  `EXAMPLE/cool-retro-term/app/app.pro`,
+  `EXAMPLE/cool-retro-term/cool-retro-term.desktop`,
+  `EXAMPLE/cool-retro-term/snap/snapcraft.yaml`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/scripts/build-appimage.sh`
+  `EXAMPLE/cool-retro-term/scripts/build-appimage.sh`
 - Treat resource manifests, image assets, icons, and fonts as forbidden source
   material while auditing for accidental copying:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/resources.qrc`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/crt256.png`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png`,
+  `EXAMPLE/cool-retro-term/app/qml/resources.qrc`,
+  `EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png`,
+  `EXAMPLE/cool-retro-term/app/qml/images/crt256.png`,
+  `EXAMPLE/cool-retro-term/app/icons/32x32/cool-retro-term.png`,
+  `EXAMPLE/cool-retro-term/app/icons/64x64/cool-retro-term.png`,
+  `EXAMPLE/cool-retro-term/app/icons/128x128/cool-retro-term.png`,
+  `EXAMPLE/cool-retro-term/app/icons/256x256/cool-retro-term.png`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/icons/crt.icns`
+  `EXAMPLE/cool-retro-term/app/icons/crt.icns`
 
 **Acceptance Checks**:
 - Users can run the visual mode without installing or launching `cool-retro-term`.

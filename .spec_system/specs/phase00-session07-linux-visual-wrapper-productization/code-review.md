@@ -13,20 +13,20 @@
 - `.spec_system/specs/phase00-session07-linux-visual-wrapper-productization/spec.md` - untracked
 - `.spec_system/specs/phase00-session07-linux-visual-wrapper-productization/tasks.md` - untracked
 - `.spec_system/specs/phase00-session07-linux-visual-wrapper-productization/implementation-notes.md` - untracked
-- `apex-infinite-cli/README_apex-infinite-cli.md` - tracked-modified
-- `apex-infinite-cli/apex_infinite_visual/__init__.py` - tracked-modified
-- `apex-infinite-cli/apex_infinite_visual/events.py` - tracked-modified
-- `apex-infinite-cli/apex_infinite_visual/launcher.py` - tracked-modified
-- `apex-infinite-cli/apex_infinite_visual/main.py` - tracked-modified
-- `apex-infinite-cli/apex_infinite_visual/qml/Main.qml` - tracked-modified
-- `apex-infinite-cli/apex_infinite_visual/settings.py` - untracked
-- `apex-infinite-cli/requirements-wrapper.txt` - tracked-modified
-- `apex-infinite-cli/tests/test_visual_wrapper_spike.py` - tracked-modified
-- `apex-infinite-cli/tests/test_visual_wrapper_productization.py` - untracked
-- `apex-infinite-cli/docs/operator-runbook.md` - tracked-modified
-- `apex-infinite-cli/docs/troubleshooting.md` - tracked-modified
-- `apex-infinite-cli/docs/visual-wrapper-boundary.md` - tracked-modified
-- `apex-infinite-cli/docs/visual-wrapper-productization.md` - untracked
+- `README.md` - tracked-modified
+- `src/apex_infinite_visual/__init__.py` - tracked-modified
+- `src/apex_infinite_visual/events.py` - tracked-modified
+- `src/apex_infinite_visual/launcher.py` - tracked-modified
+- `src/apex_infinite_visual/main.py` - tracked-modified
+- `src/apex_infinite_visual/qml/Main.qml` - tracked-modified
+- `src/apex_infinite_visual/settings.py` - untracked
+- `requirements-wrapper.txt` - tracked-modified
+- `tests/test_visual_wrapper_spike.py` - tracked-modified
+- `tests/test_visual_wrapper_productization.py` - untracked
+- `docs/operator-runbook.md` - tracked-modified
+- `docs/troubleshooting.md` - tracked-modified
+- `docs/visual-wrapper-boundary.md` - tracked-modified
+- `docs/visual-wrapper-productization.md` - untracked
 
 **Inventory commands**: `git status`, `git log --oneline "$BASE"..HEAD`,
 `git diff "$BASE"`, `git diff --cached "$BASE"`,
@@ -42,7 +42,7 @@ No findings.
 
 ### High
 
-- `apex-infinite-cli/apex_infinite_visual/main.py:501` - The wrapper worker
+- `src/apex_infinite_visual/main.py:501` - The wrapper worker
   consumed `iter_stdout_lines()` before calling `process.wait()`, so a hung base
   CLI with an open stdout pipe could block forever and never enforce
   `--process-timeout-seconds`. | Fix: moved stdout consumption to a daemon
@@ -52,14 +52,14 @@ No findings.
 
 ### Medium
 
-- `apex-infinite-cli/apex_infinite_visual/main.py:565` - Raw stderr was placed
+- `src/apex_infinite_visual/main.py:565` - Raw stderr was placed
   in the synthetic event payload. Unsafe stderr containing ANSI escapes,
   secret-like text, or visual-token words was rejected by the event validator,
   causing the UI to show `Malformed event` instead of `Subprocess stderr`. |
   Fix: replaced raw stderr display with a safe summary and updated the
   productization doc. Added
   `test_bridge_maps_unsafe_stderr_to_safe_stderr_state`. | Status: FIXED
-- `apex-infinite-cli/apex_infinite_visual/events.py:301` - Failure events set
+- `src/apex_infinite_visual/events.py:301` - Failure events set
   error status but did not clear adapter `running`, so after a prior
   `startup_begin` a terminal subprocess failure could leave the bridge running
   state true after the worker completed. | Fix: `_apply_failure()` now clears
@@ -68,7 +68,7 @@ No findings.
 
 ### Low
 
-- `apex-infinite-cli/apex_infinite_visual/settings.py:259` - Font scale bounds
+- `src/apex_infinite_visual/settings.py:259` - Font scale bounds
   accepted `NaN` because non-finite floats compare false against both bounds,
   allowing invalid values into QML sizing. | Fix: reject non-finite font scale
   values with `math.isfinite()` and added `NaN`/`inf` settings tests. |
@@ -92,20 +92,20 @@ No findings.
 
 ## Verification
 
-- Tests: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v` -
+- Tests: `python -m pytest tests/ -v` -
   PASS - 221 passed in 10.81s.
-- Focused tests: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_visual_wrapper_productization.py tests/test_visual_wrapper_spike.py -v` -
+- Focused tests: `python -m pytest tests/test_visual_wrapper_productization.py tests/test_visual_wrapper_spike.py -v` -
   PASS - 48 passed.
-- Formatter: `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite_visual tests/test_visual_wrapper_productization.py` -
+- Formatter: `python -m black --check apex_infinite_visual tests/test_visual_wrapper_productization.py` -
   PASS - 6 files unchanged after formatting `main.py`.
-- Linter: `cd apex-infinite-cli && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_events.py apex_infinite_ui.py apex_infinite_visual` -
+- Linter: `python -m pylint src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py apex_infinite_visual` -
   PASS - 10.00/10.
 - Type checker: N/A - no Python type checker is configured for this project.
-- Compile: `cd apex-infinite-cli && ./.venv/bin/python -m py_compile apex_infinite_visual/__init__.py apex_infinite_visual/events.py apex_infinite_visual/launcher.py apex_infinite_visual/main.py apex_infinite_visual/settings.py` -
+- Compile: `python -m py_compile src/apex_infinite_visual/__init__.py src/apex_infinite_visual/events.py src/apex_infinite_visual/launcher.py src/apex_infinite_visual/main.py src/apex_infinite_visual/settings.py` -
   PASS.
-- QML lint: `cd apex-infinite-cli && ./.venv/bin/pyside6-qmllint apex_infinite_visual/qml/Main.qml` -
+- QML lint: `pyside6-qmllint src/apex_infinite_visual/qml/Main.qml` -
   PASS - exit 0 with non-blocking unqualified-access warnings.
-- Offscreen smoke: `cd apex-infinite-cli && QT_QPA_PLATFORM=offscreen ./.venv/bin/python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` -
+- Offscreen smoke: `QT_QPA_PLATFORM=offscreen python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` -
   PASS.
 - Whitespace: `git diff --check` - PASS.
 - ASCII/control characters: focused `LC_ALL=C grep` checks - PASS.

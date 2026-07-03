@@ -9,11 +9,11 @@
 **Files reviewed**:
 - `.spec_system/SECURITY-COMPLIANCE.md` - cumulative security posture refresh.
 - `.spec_system/state.json` - spec-system workflow state.
-- `apex-infinite-cli/README_apex-infinite-cli.md` - CLI release documentation.
-- `apex-infinite-cli/apex_infinite.py` - notification behavior fix.
-- `apex-infinite-cli/tests/test_cli_options.py` - focused regression test.
-- `apex-infinite-cli/docs/operator-runbook.md` - operator release guidance.
-- `apex-infinite-cli/docs/visual-wrapper-productization.md` - wrapper release posture.
+- `README.md` - CLI release documentation.
+- `src/apex_infinite/cli.py` - notification behavior fix.
+- `tests/test_cli_options.py` - focused regression test.
+- `docs/operator-runbook.md` - operator release guidance.
+- `docs/visual-wrapper-productization.md` - wrapper release posture.
 - `.spec_system/specs/phase00-session08-release-verification/clean-room-audit.md` - clean-room audit.
 - `.spec_system/specs/phase00-session08-release-verification/code-review.md` - code review report.
 - `.spec_system/specs/phase00-session08-release-verification/compatibility-fixes.md` - fix ledger.
@@ -27,17 +27,17 @@ ledger, targeted security checklist, dependency audit, secret/reference scans,
 and focused inspection of the runtime code diff.
 
 **Review evidence**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/pip-audit -r requirements.txt -r requirements-dev.txt -r requirements-wrapper.txt`
+- Command/check: `python -m pip_audit -r requirements.txt -r requirements-dev.txt -r requirements-wrapper.txt`
   - Result: PASS - no known vulnerabilities found.
-- Command/check: `rg -n 'PySide6|Qt|QML|Nuitka|pyside6|qml|qtquick|QtQuick' apex-infinite-cli/requirements.txt apex-infinite-cli/apex_infinite.py apex-infinite-cli/apex_infinite_events.py apex-infinite-cli/apex_infinite_ui.py || true`
+- Command/check: `rg -n 'PySide6|Qt|QML|Nuitka|pyside6|qml|qtquick|QtQuick' requirements.txt src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py || true`
   - Result: PASS - no base CLI graphical dependency or import hits.
 - Command/check: `rg -n 'api_key|sk-[A-Za-z0-9]|Bearer [A-Za-z0-9]|password|secret|token|private_key|BEGIN .*KEY' ...`
   - Result: PASS - hits are documented risk text, environment variable examples, and `ollama` test fixtures; no hardcoded real secret found.
-- Command/check: `git diff -- apex-infinite-cli/apex_infinite.py apex-infinite-cli/tests/test_cli_options.py`
+- Command/check: `git diff -- src/apex_infinite/cli.py tests/test_cli_options.py`
   - Result: PASS - runtime change is limited to gating terminal BEL output on `sys.stdout.isatty()` plus a focused regression test.
 - Command/check: NUL-safe tracked reference-material scans with `git ls-files -z ... | xargs -0 rg ...`
   - Result: PASS - no tracked `EXAMPLE/` files or binary/reference extensions; excluded-component hits are documentation only.
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v`
+- Command/check: `python -m pytest tests/ -v`
   - Result: PASS - 222 tests passed, including event safety, history raw-storage, prompt routing, output fallback, and wrapper tests.
 
 ## Security Assessment

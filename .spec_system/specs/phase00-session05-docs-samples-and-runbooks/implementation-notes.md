@@ -31,7 +31,7 @@
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T020 and completion checklist complete
 
 **Verification**:
-- Command/check: `bats tests/ && bash scripts/sync-plugin-payload.sh --check && bash scripts/analyze-project.sh --json | jq . && bash scripts/check-prereqs.sh --json --env | jq . && git diff --check`
+- Command/check: `python -m pytest tests/ -v && bash .spec_system/scripts/analyze-project.sh --json && bash .spec_system/scripts/analyze-project.sh --json | jq . && bash .spec_system/scripts/check-prereqs.sh --json --env | jq . && git diff --check`
   - Result: PASS
   - Evidence: 61/61 Bats tests passed; plugin payload is current; analyzer JSON resolved current session and Phase 00 state; prereq JSON reported overall `pass`; `git diff --check` produced no whitespace errors.
 - UI product-surface check: N/A - root verification gate only.
@@ -89,7 +89,7 @@ point while operator docs stay concise.
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T019 complete
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v`
+- Command/check: `python -m pytest tests/ -v`
   - Result: PASS
   - Evidence: 173/173 tests passed in 10.79s.
 - UI product-surface check: N/A - automated test gate only.
@@ -113,7 +113,7 @@ point while operator docs stay concise.
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T017 complete
 
 **Verification**:
-- Command/check: `files='apex-infinite-cli/README_apex-infinite-cli.md docs/CREDITS.md apex-infinite-cli/docs/operator-runbook.md apex-infinite-cli/docs/event-stream.md apex-infinite-cli/docs/history-db.md apex-infinite-cli/docs/prompt-contract.md apex-infinite-cli/docs/troubleshooting.md apex-infinite-cli/docs/visual-wrapper-boundary.md apex-infinite-cli/docs/transcripts/README_transcripts.md apex-infinite-cli/docs/transcripts/dry-run-plain.txt apex-infinite-cli/docs/transcripts/history-ledger.txt apex-infinite-cli/docs/transcripts/machine-output-events.jsonl .spec_system/specs/phase00-session05-docs-samples-and-runbooks/spec.md .spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md .spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md'; if LC_ALL=C grep -nP '[^\x00-\x7F]' $files; then exit 1; else echo ASCII_OK; fi; if grep -n $'\r' $files; then exit 1; else echo LF_OK; fi; jq -c . apex-infinite-cli/docs/transcripts/machine-output-events.jsonl >/dev/null && echo JSONL_OK`
+- Command/check: `files='README.md docs/visual-wrapper-boundary.md docs/operator-runbook.md docs/event-stream.md docs/history-db.md docs/prompt-contract.md docs/troubleshooting.md docs/visual-wrapper-boundary.md docs/transcripts/README_transcripts.md docs/transcripts/dry-run-plain.txt docs/transcripts/history-ledger.txt docs/transcripts/machine-output-events.jsonl .spec_system/specs/phase00-session05-docs-samples-and-runbooks/spec.md .spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md .spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md'; if LC_ALL=C grep -nP '[^\x00-\x7F]' $files; then exit 1; else echo ASCII_OK; fi; if grep -n $'\r' $files; then exit 1; else echo LF_OK; fi; jq -c . docs/transcripts/machine-output-events.jsonl >/dev/null && echo JSONL_OK`
   - Result: PASS
   - Evidence: Command printed `ASCII_OK`, `LF_OK`, and `JSONL_OK`.
 - UI product-surface check: N/A - encoding verification only.
@@ -139,10 +139,10 @@ point while operator docs stay concise.
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T018 complete
 
 **Verification**:
-- Command/check: `find apex-infinite-cli -path 'apex-infinite-cli/.venv' -prune -o -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.gif' -o -iname '*.webp' -o -iname '*.svg' -o -iname '*.qsb' -o -iname '*.qml' -o -iname '*.ttf' -o -iname '*.otf' -o -iname '*.ico' -o -iname '*.icns' -o -iname '*.qrc' -o -iname '*.pro' -o -iname '*screenshot*' \) -print; git ls-files apex-infinite-cli | rg -n 'EXAMPLE/|cool-retro-term/|qmltermwidget|QTermWidget|PyQt|\.qsb$|\.qml$|\.ttf$|\.otf$|\.icns$|\.qrc$|\.pro$|screenshot' || true`
+- Command/check: `find . -path './.venv' -prune -o -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.gif' -o -iname '*.webp' -o -iname '*.svg' -o -iname '*.qsb' -o -iname '*.qml' -o -iname '*.ttf' -o -iname '*.otf' -o -iname '*.ico' -o -iname '*.icns' -o -iname '*.qrc' -o -iname '*.pro' -o -iname '*screenshot*' \) -print; find . -type f | rg -n 'EXAMPLE/|cool-retro-term/|qmltermwidget|QTermWidget|PyQt|\.qsb$|\.qml$|\.ttf$|\.otf$|\.icns$|\.qrc$|\.pro$|screenshot' || true`
   - Result: PASS
   - Evidence: Command produced no matches.
-- Command/check: `rg -n "Visual wrapper boundary|Transcript samples|Event stream contract|Operator runbook|Troubleshooting guide|History DB reference|Prompt contract|CLI README" apex-infinite-cli/README_apex-infinite-cli.md apex-infinite-cli`
+- Command/check: `rg -n "Visual wrapper boundary|Transcript samples|Event stream contract|Operator runbook|Troubleshooting guide|History DB reference|Prompt contract|CLI README" README.md docs`
   - Result: PASS
   - Evidence: Cross-links are present across README and deep-dive docs.
 - UI product-surface check: N/A - asset hygiene verification only.
@@ -162,12 +162,12 @@ point while operator docs stay concise.
   prompt docs.
 
 **Files Changed**:
-- `apex-infinite-cli/docs/transcripts/README_transcripts.md` - added related docs cross-links
+- `docs/transcripts/README_transcripts.md` - added related docs cross-links
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T016 complete
 
 **Verification**:
-- Command/check: `rg -n "Visual wrapper boundary|Transcript samples|Event stream contract|Operator runbook|Troubleshooting guide|History DB reference|Prompt contract|CLI README" apex-infinite-cli/README_apex-infinite-cli.md apex-infinite-cli`
+- Command/check: `rg -n "Visual wrapper boundary|Transcript samples|Event stream contract|Operator runbook|Troubleshooting guide|History DB reference|Prompt contract|CLI README" README.md docs`
   - Result: PASS
   - Evidence: Cross-link labels appear across README and deep-dive docs, including transcript index links back to the main docs.
 - UI product-surface check: N/A - documentation cross-link task.
@@ -186,12 +186,12 @@ point while operator docs stay concise.
   conceptual visual inspiration language and explicit no-copy categories.
 
 **Files Changed**:
-- `docs/CREDITS.md` - updated clean-room credit wording
+- `docs/visual-wrapper-boundary.md` - updated clean-room credit wording
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T015 complete
 
 **Verification**:
-- Command/check: `sed -n '1,80p' docs/CREDITS.md`
+- Command/check: `sed -n '1,80p' docs/visual-wrapper-boundary.md`
   - Result: PASS
   - Evidence: Credits now acknowledge conceptual visual inspiration and state that no source code, QML, shaders, assets, fonts, profiles, manifests, build scripts, or terminal-emulator code are copied.
 - UI product-surface check: N/A - credits documentation only.
@@ -211,12 +211,12 @@ point while operator docs stay concise.
   JSONL/human-output mixing, and wrapper parsing mistakes.
 
 **Files Changed**:
-- `apex-infinite-cli/docs/troubleshooting.md` - expanded display fallback, event misuse, and wrapper guidance
+- `docs/troubleshooting.md` - expanded display fallback, event misuse, and wrapper guidance
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T014 complete
 
 **Verification**:
-- Command/check: `sed -n '1,300p' apex-infinite-cli/docs/troubleshooting.md`
+- Command/check: `sed -n '1,300p' docs/troubleshooting.md`
   - Result: PASS
   - Evidence: Troubleshooting now covers color readability, encoding, terminal width, `NO_COLOR`, `TERM=dumb`, redirected output, remote shells, event-stream misuse, wrapper parsing mistakes, and related docs.
 - UI product-surface check: N/A - troubleshooting documentation only.
@@ -238,12 +238,12 @@ point while operator docs stay concise.
 - Added wrapper and transcript cross-links.
 
 **Files Changed**:
-- `apex-infinite-cli/docs/prompt-contract.md` - documented display, history, event, machine-output, and wrapper non-impact on prompt routing
+- `docs/prompt-contract.md` - documented display, history, event, machine-output, and wrapper non-impact on prompt routing
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T013 complete
 
 **Verification**:
-- Command/check: `sed -n '130,240p' apex-infinite-cli/docs/prompt-contract.md`
+- Command/check: `sed -n '130,240p' docs/prompt-contract.md`
   - Result: PASS
   - Evidence: Prompt contract states UI flags, history labels, event stream, machine-output, transcripts, and wrapper docs do not alter prompts or routing.
 - UI product-surface check: N/A - prompt contract documentation only.
@@ -263,12 +263,12 @@ point while operator docs stay concise.
   transcript links.
 
 **Files Changed**:
-- `apex-infinite-cli/docs/history-db.md` - expanded history display semantics and raw storage boundary
+- `docs/history-db.md` - expanded history display semantics and raw storage boundary
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T012 complete
 
 **Verification**:
-- Command/check: `sed -n '1,240p' apex-infinite-cli/docs/history-db.md`
+- Command/check: `sed -n '1,240p' docs/history-db.md`
   - Result: PASS
   - Evidence: History docs now describe render-time statuses, truncation, verbose expansion, raw SQLite boundary, and sample link.
 - UI product-surface check: N/A - history reference documentation only.
@@ -288,12 +288,12 @@ point while operator docs stay concise.
   consumption guidance, no-Rich-parsing language, and cross-links.
 
 **Files Changed**:
-- `apex-infinite-cli/docs/event-stream.md` - expanded event contract, sample links, wrapper guidance, and alias notes
+- `docs/event-stream.md` - expanded event contract, sample links, wrapper guidance, and alias notes
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T011 complete
 
 **Verification**:
-- Command/check: `sed -n '1,240p' apex-infinite-cli/docs/event-stream.md`
+- Command/check: `sed -n '1,240p' docs/event-stream.md`
   - Result: PASS
   - Evidence: Event docs cover file mode, stdout machine-output mode, guardrails, sample link, payload safety, primary emitted names, accepted aliases, wrapper event consumption, and no Rich/plain/history scraping.
 - UI product-surface check: N/A - event contract documentation only.
@@ -314,12 +314,12 @@ point while operator docs stay concise.
   wrapper links.
 
 **Files Changed**:
-- `apex-infinite-cli/docs/operator-runbook.md` - expanded display, fallback, event, sample, and wrapper guidance
+- `docs/operator-runbook.md` - expanded display, fallback, event, sample, and wrapper guidance
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T010 complete
 
 **Verification**:
-- Command/check: `sed -n '1,260p' apex-infinite-cli/docs/operator-runbook.md`
+- Command/check: `sed -n '1,260p' docs/operator-runbook.md`
   - Result: PASS
   - Evidence: Runbook now covers theme selection, plain/ASCII/compact use, CI/logs, remote and constrained terminals, `NO_COLOR`, `TERM=dumb`, non-UTF terminals, event-stream file/stdout modes, and sample references.
 - UI product-surface check: N/A - operator documentation only.
@@ -341,12 +341,12 @@ point while operator docs stay concise.
   transcript samples.
 
 **Files Changed**:
-- `apex-infinite-cli/README_apex-infinite-cli.md` - added theme summary, sample links, event sample link, wrapper boundary, and deep-dive links
+- `README.md` - added theme summary, sample links, event sample link, wrapper boundary, and deep-dive links
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T009 complete
 
 **Verification**:
-- Command/check: `sed -n '100,330p' apex-infinite-cli/README_apex-infinite-cli.md`
+- Command/check: `sed -n '100,330p' README.md`
   - Result: PASS
   - Evidence: README now documents built-in themes, display flags, custom theme override shape, fallback transcript, history transcript, event JSONL sample, visual wrapper boundary, and deep-dive docs.
 - UI product-surface check: N/A - README documentation only.
@@ -368,12 +368,12 @@ point while operator docs stay concise.
   no Rich markup, ANSI escapes, secrets, frame glyphs, or visual token values.
 
 **Files Changed**:
-- `apex-infinite-cli/docs/transcripts/machine-output-events.jsonl` - added deterministic machine-output sample
+- `docs/transcripts/machine-output-events.jsonl` - added deterministic machine-output sample
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T008 complete
 
 **Verification**:
-- Command/check: `sed -n '1,40p' apex-infinite-cli/docs/transcripts/machine-output-events.jsonl`
+- Command/check: `sed -n '1,40p' docs/transcripts/machine-output-events.jsonl`
   - Result: PASS
   - Evidence: File contains one JSON event object per line and covers startup, UI, prompt, dry-run, DB log, and stop states.
 - UI product-surface check: N/A - JSONL machine-output sample only.
@@ -393,12 +393,12 @@ point while operator docs stay concise.
   and raw SQLite storage boundaries.
 
 **Files Changed**:
-- `apex-infinite-cli/docs/transcripts/history-ledger.txt` - added deterministic history ledger transcript
+- `docs/transcripts/history-ledger.txt` - added deterministic history ledger transcript
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T007 complete
 
 **Verification**:
-- Command/check: `sed -n '1,220p' apex-infinite-cli/docs/transcripts/history-ledger.txt`
+- Command/check: `sed -n '1,220p' docs/transcripts/history-ledger.txt`
   - Result: PASS
   - Evidence: Transcript covers compact rows, verbose detail, `help_or_done_msg` precedence, `alldonebaby` complete status, help status, legacy status, truncation behavior, and raw column boundaries.
 - UI product-surface check: N/A - deterministic documentation transcript, not rendered UI.
@@ -420,12 +420,12 @@ point while operator docs stay concise.
   provider secrets, and binary screenshot data.
 
 **Files Changed**:
-- `apex-infinite-cli/docs/transcripts/dry-run-plain.txt` - added deterministic dry-run transcript
+- `docs/transcripts/dry-run-plain.txt` - added deterministic dry-run transcript
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T006 complete
 
 **Verification**:
-- Command/check: `sed -n '1,220p' apex-infinite-cli/docs/transcripts/dry-run-plain.txt`
+- Command/check: `sed -n '1,220p' docs/transcripts/dry-run-plain.txt`
   - Result: PASS
   - Evidence: Transcript shows startup, theme/effect/glyph resolution, prompt preview, dry-run execution, DB log, and safety stop with ASCII text only.
 - UI product-surface check: N/A - deterministic documentation transcript, not rendered UI.
@@ -448,12 +448,12 @@ point while operator docs stay concise.
   pywebview plus xterm.js backup option.
 
 **Files Changed**:
-- `apex-infinite-cli/docs/visual-wrapper-boundary.md` - added clean-room wrapper boundary
+- `docs/visual-wrapper-boundary.md` - added clean-room wrapper boundary
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T005 complete
 
 **Verification**:
-- Command/check: `sed -n '1,260p' apex-infinite-cli/docs/visual-wrapper-boundary.md`
+- Command/check: `sed -n '1,260p' docs/visual-wrapper-boundary.md`
   - Result: PASS
   - Evidence: Document covers ignored reference tree, no-copy categories, base CLI dependency boundary, selected wrapper direction, exclusions, backup option, and future wrapper checklist.
 - UI product-surface check: N/A - documentation-only clean-room boundary.
@@ -474,12 +474,12 @@ point while operator docs stay concise.
   or live terminal captures.
 
 **Files Changed**:
-- `apex-infinite-cli/docs/transcripts/README_transcripts.md` - added transcript index and usage rules
+- `docs/transcripts/README_transcripts.md` - added transcript index and usage rules
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/implementation-notes.md` - recorded task evidence
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T004 complete
 
 **Verification**:
-- Command/check: `sed -n '1,220p' apex-infinite-cli/docs/transcripts/README_transcripts.md`
+- Command/check: `sed -n '1,220p' docs/transcripts/README_transcripts.md`
   - Result: PASS
   - Evidence: Index lists the planned TXT and JSONL samples and forbids secrets, ANSI escapes, Rich markup, screenshots, QML, shaders, fonts, icons, and binary assets.
 - UI product-surface check: N/A - documentation index only.
@@ -517,10 +517,10 @@ point while operator docs stay concise.
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T001 complete
 
 **Verification**:
-- Command/check: `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash scripts/analyze-project.sh --json; fi`
+- Command/check: `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash .spec_system/scripts/analyze-project.sh --json; fi`
   - Result: PASS
   - Evidence: JSON reported current session `phase00-session05-docs-samples-and-runbooks`, `current_session_dir_exists: true`, monorepo `false`, and Sessions 01-04 complete.
-- Command/check: `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/check-prereqs.sh --json --env; else bash scripts/check-prereqs.sh --json --env; fi`
+- Command/check: `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/check-prereqs.sh --json --env; else bash .spec_system/scripts/check-prereqs.sh --json --env; fi`
   - Result: PASS
   - Evidence: JSON reported overall `pass` with `.spec_system`, jq, and git available.
 - Command/check: `rg -n "Result|PASS|Tasks|Tests|Next command" .spec_system/specs/phase00-session0{1,2,3,4}-*/validation.md .spec_system/specs/phase00-session0{1,2,3,4}-*/tasks.md`
@@ -550,16 +550,16 @@ point while operator docs stay concise.
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T002 complete
 
 **Verification**:
-- Command/check: `sed -n '1,360p' apex-infinite-cli/README_apex-infinite-cli.md`
+- Command/check: `sed -n '1,360p' README.md`
   - Result: PASS
   - Evidence: README documents current `ui` config, display flags, history, and event-stream basics.
-- Command/check: `sed -n '1,260p' apex-infinite-cli/docs/operator-runbook.md apex-infinite-cli/docs/event-stream.md apex-infinite-cli/docs/history-db.md apex-infinite-cli/docs/prompt-contract.md apex-infinite-cli/docs/troubleshooting.md`
+- Command/check: `sed -n '1,260p' docs/operator-runbook.md docs/event-stream.md docs/history-db.md docs/prompt-contract.md docs/troubleshooting.md`
   - Result: PASS
   - Evidence: Deep-dive docs were inspected for existing content and gaps.
-- Command/check: `sed -n '1,240p' apex-infinite-cli/apex_infinite_events.py`; `sed -n '1,240p' apex-infinite-cli/config.yaml`; targeted `sed` inspections of `apex_infinite.py` and `apex_infinite_ui.py`
+- Command/check: `sed -n '1,240p' src/apex_infinite/events.py`; `sed -n '1,240p' src/apex_infinite/config.yaml`; targeted `sed` inspections of `src/apex_infinite/cli.py` and `src/apex_infinite/ui.py`
   - Result: PASS
   - Evidence: Verified current UI keys, built-in theme names, event names, machine-output guardrails, and history display semantics from source.
-- Command/check: `sed -n '1,220p' apex-infinite-cli/tests/test_history_rendering.py`; `sed -n '1,260p' apex-infinite-cli/tests/test_cli_options.py`; `sed -n '1,240p' apex-infinite-cli/tests/test_event_stream.py`
+- Command/check: `sed -n '1,220p' tests/test_history_rendering.py`; `sed -n '1,260p' tests/test_cli_options.py`; `sed -n '1,240p' tests/test_event_stream.py`
   - Result: PASS
   - Evidence: Tests confirm fallback history labels, `--plain`/`--ascii`/`--compact`, event-stream file mode, and stdout JSONL isolation.
 - UI product-surface check: N/A - audit-only task.
@@ -579,7 +579,7 @@ point while operator docs stay concise.
 - Confirmed Phase 00 and Session 05 require clean-room translation and forbid
   copied source, QML, shaders, images, icons, fonts, resource manifests,
   build scripts, profile data, and terminal-emulator code.
-- Identified `docs/CREDITS.md` wording that currently implies direct code
+- Identified `docs/visual-wrapper-boundary.md` wording that currently implies direct code
   examples and must be corrected.
 
 **Files Changed**:
@@ -587,10 +587,10 @@ point while operator docs stay concise.
 - `.spec_system/specs/phase00-session05-docs-samples-and-runbooks/tasks.md` - marked T003 complete
 
 **Verification**:
-- Command/check: `sed -n '1,220p' .gitignore && sed -n '1,220p' docs/CREDITS.md && test -d EXAMPLE/cool-retro-term; printf 'example_dir_status=%s\n' "$?"; find EXAMPLE/cool-retro-term -maxdepth 2 -type f \( -name 'gpl-*.txt' -o -name 'copyright' -o -name '.gitmodules' -o -name 'README.md' \) -print 2>/dev/null | sort`
+- Command/check: `sed -n '1,220p' .gitignore && sed -n '1,220p' docs/visual-wrapper-boundary.md && test -d EXAMPLE/cool-retro-term; printf 'example_dir_status=%s\n' "$?"; find EXAMPLE/cool-retro-term -maxdepth 2 -type f \( -name 'gpl-*.txt' -o -name 'copyright' -o -name '.gitmodules' -o -name 'README.md' \) -print 2>/dev/null | sort`
   - Result: PASS
   - Evidence: `.gitignore` lists `/EXAMPLE/`; `example_dir_status=0`; GPL files and `.gitmodules` are present; credits wording says "DIRECT influence/code examples".
-- Command/check: `sed -n '1,240p' .spec_system/PRD/phase_00/PRD_phase_00.md`
+- Command/check: `sed -n '1,240p' .spec_system/archive/phases/phase_00/PRD_phase_00.md`
   - Result: PASS
   - Evidence: Phase 00 PRD defines allowed conceptual translation and forbidden copied reference material.
 - Command/check: `sed -n '1,260p' .spec_system/SECURITY-COMPLIANCE.md && sed -n '1,260p' .spec_system/CONSIDERATIONS.md`

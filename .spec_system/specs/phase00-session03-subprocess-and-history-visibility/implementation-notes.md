@@ -23,21 +23,21 @@
 **Duration**: 3 minutes
 
 **Notes**:
-- Ran Black check and found formatting required in `apex_infinite.py` and `tests/test_subprocess_execution.py`.
+- Ran Black check and found formatting required in `src/apex_infinite/cli.py` and `tests/test_subprocess_execution.py`.
 - Applied Black formatting and reran Black check successfully.
-- Pylint initially failed because `apex_infinite_ui.py` crossed the configured 1000-line module threshold after adding history helpers; added an explicit module-level `too-many-lines` waiver matching the existing `apex_infinite.py` pattern because splitting the renderer is outside this session scope.
+- Pylint initially failed because `src/apex_infinite/ui.py` crossed the configured 1000-line module threshold after adding history helpers; added an explicit module-level `too-many-lines` waiver matching the existing `src/apex_infinite/cli.py` pattern because splitting the renderer is outside this session scope.
 - Verified changed authored files are ASCII-only and LF-only.
 - Ran `git diff --check` and a final full pytest after formatting.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - Black formatting after subprocess edits.
-- `apex-infinite-cli/apex_infinite_ui.py` - added explicit `too-many-lines` pylint waiver.
-- `apex-infinite-cli/tests/test_subprocess_execution.py` - Black formatting after test additions.
+- `src/apex_infinite/cli.py` - Black formatting after subprocess edits.
+- `src/apex_infinite/ui.py` - added explicit `too-many-lines` pylint waiver.
+- `tests/test_subprocess_execution.py` - Black formatting after test additions.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T020 and completion checklist complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_ui.py tests/ && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_ui.py`
+- Command/check: `python -m black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/ && python -m pylint src/apex_infinite/cli.py src/apex_infinite/ui.py`
   - Result: PASS - formatter and linter gates pass.
   - Evidence: Black reported 11 files unchanged; pylint rated code 10.00/10.
 - Command/check: `file ...; LC_ALL=C grep -n '[^[:print:][:space:]]' ...; grep -l $'\r' ...`
@@ -46,7 +46,7 @@
 - Command/check: `git diff --check`
   - Result: PASS - no whitespace errors.
   - Evidence: command produced no output and exited 0.
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -q`
+- Command/check: `python -m pytest tests/ -q`
   - Result: PASS - final post-format test suite passes.
   - Evidence: 133 tests collected and 133 passed.
 - UI product-surface check: PASS - final full suite includes operator-console and history rendering surface coverage.
@@ -61,7 +61,7 @@
 **Duration**: 1 minute
 
 **Notes**:
-- Ran the full CLI pytest suite from `apex-infinite-cli/`.
+- Ran the full CLI pytest suite from `./`.
 - Prompt routing, Click options, renderer behavior, UI config, subprocess execution, and history rendering tests all passed.
 
 **Files Changed**:
@@ -69,7 +69,7 @@
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T019 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v`
+- Command/check: `python -m pytest tests/ -v`
   - Result: PASS - full CLI regression suite passes.
   - Evidence: 133 tests collected and 133 passed.
 - UI product-surface check: PASS - renderer and operator-console product-surface tests are part of the suite.
@@ -92,7 +92,7 @@
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T018 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_history_rendering.py tests/test_renderer.py -q`
+- Command/check: `python -m pytest tests/test_history_rendering.py tests/test_renderer.py -q`
   - Result: PASS - history and renderer tests pass.
   - Evidence: 21 tests collected and 21 passed.
 - UI product-surface check: PASS - history output tests cover normal operator history surfaces.
@@ -115,7 +115,7 @@
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T017 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_subprocess_execution.py -q`
+- Command/check: `python -m pytest tests/test_subprocess_execution.py -q`
   - Result: PASS - subprocess tests pass.
   - Evidence: 11 tests collected and 11 passed.
 - UI product-surface check: N/A - test gate only.
@@ -135,15 +135,15 @@
 - No schema, migration, table definition, or `cc_response` column behavior was changed.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_history_rendering.py` - added raw-storage display boundary test.
+- `tests/test_history_rendering.py` - added raw-storage display boundary test.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T016 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_history_rendering.py tests/test_renderer.py -q`
+- Command/check: `python -m pytest tests/test_history_rendering.py tests/test_renderer.py -q`
   - Result: PASS - history display and existing raw SQLite safety tests pass.
   - Evidence: 21 tests collected and 21 passed.
-- Command/check: `rg -n "CREATE TABLE|ALTER TABLE|cc_response|INSERT INTO history|SELECT \\* FROM history" apex-infinite-cli/apex_infinite.py`
+- Command/check: `rg -n "CREATE TABLE|ALTER TABLE|cc_response|INSERT INTO history|SELECT \\* FROM history" src/apex_infinite/cli.py`
   - Result: PASS - schema and history queries remain compatible.
   - Evidence: existing `history` table and `cc_response` column definitions are unchanged; no `ALTER TABLE` was introduced.
 - UI product-surface check: PASS - renderer displays derived labels only in terminal output.
@@ -162,12 +162,12 @@
 - Added a Click regression test proving `--history-verbose` is not registered.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_cli_options.py` - added duplicate-flag rejection coverage.
+- `tests/test_cli_options.py` - added duplicate-flag rejection coverage.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T015 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_cli_options.py -q`
+- Command/check: `python -m pytest tests/test_cli_options.py -q`
   - Result: PASS - CLI history routing remains correct.
   - Evidence: 8 tests collected and 8 passed.
 - UI product-surface check: N/A - Click routing task only.
@@ -186,12 +186,12 @@
 - Verified deterministic ledger labels, blank-safe stored state, explicit truncation counts, verbose stored-state detail, and ASCII-only fallback output where required.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_history_rendering.py` - added fallback-mode history tests.
+- `tests/test_history_rendering.py` - added fallback-mode history tests.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T014 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_history_rendering.py -q`
+- Command/check: `python -m pytest tests/test_history_rendering.py -q`
   - Result: PASS - fallback history behavior is covered.
   - Evidence: 11 tests collected and 11 passed.
 - UI product-surface check: PASS - fallback output uses deterministic operational labels only.
@@ -210,12 +210,12 @@
 - Verified the ledger exposes timestamp, status, project key, command, full path detail, reason, and response summary.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_history_rendering.py` - added styled compact-ledger contract test.
+- `tests/test_history_rendering.py` - added styled compact-ledger contract test.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T013 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_history_rendering.py -q`
+- Command/check: `python -m pytest tests/test_history_rendering.py -q`
   - Result: PASS - history ledger tests pass.
   - Evidence: 7 tests collected and 7 passed.
 - UI product-surface check: PASS - styled history ledger shows operational history fields only.
@@ -238,7 +238,7 @@
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T012 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_subprocess_execution.py -q`
+- Command/check: `python -m pytest tests/test_subprocess_execution.py -q`
   - Result: PASS - preservation tests pass through the new execution path.
   - Evidence: 11 tests collected and 11 passed; covered dry-run, stdout success, stderr-only success, non-zero exit, timeout, missing binary, generic exception, verbose response routing, process-state rendering, and cleanup.
 - UI product-surface check: PASS - failure states are rendered through existing operator-visible `Codex Execution` blocks.
@@ -257,12 +257,12 @@
 - Verified the snapshots include binary, project, timeout threshold, elapsed time, and return code.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_subprocess_execution.py` - added renderer process-state assertions.
+- `tests/test_subprocess_execution.py` - added renderer process-state assertions.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T011 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_subprocess_execution.py tests/test_renderer.py tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_subprocess_execution.py tests/test_renderer.py tests/test_operator_console.py -q`
   - Result: PASS - subprocess and renderer paths expose process state correctly.
   - Evidence: 33 tests collected and 33 passed.
 - UI product-surface check: PASS - rendered facts are expected operator process state details.
@@ -282,12 +282,12 @@
 - Verified the helper escalates to `kill()` and drains stdout/stderr when the terminated process does not exit during the cleanup window.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_subprocess_execution.py` - added process lifecycle cleanup tests.
+- `tests/test_subprocess_execution.py` - added process lifecycle cleanup tests.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T010 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_subprocess_execution.py -q`
+- Command/check: `python -m pytest tests/test_subprocess_execution.py -q`
   - Result: PASS - subprocess suite includes cleanup coverage.
   - Evidence: 10 tests collected and 10 passed.
 - UI product-surface check: N/A - process cleanup task only.
@@ -309,12 +309,12 @@
 - Preserved stdout preference, stderr fallback, non-zero wrapping, timeout text, missing-binary text, generic exception text, dry-run return text, and verbose response routing.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - wired process helper and renderer snapshots into `execute_codex()`.
+- `src/apex_infinite/cli.py` - wired process helper and renderer snapshots into `execute_codex()`.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T009 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_subprocess_execution.py -q`
+- Command/check: `python -m pytest tests/test_subprocess_execution.py -q`
   - Result: PASS - compatibility suite remains green after the subprocess boundary swap.
   - Evidence: 8 tests collected and 8 passed.
 - UI product-surface check: PASS - added state facts are operator-facing process status, not implementation diagnostics.
@@ -336,13 +336,13 @@
 - Kept all derived labels and truncation counts in renderer output only; no DB writes or schemas changed.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - added ledger formatting helpers and updated styled/plain history rendering.
-- `apex-infinite-cli/tests/test_history_rendering.py` - aligned plain-mode assertion with the new `command=...` ledger format.
+- `src/apex_infinite/ui.py` - added ledger formatting helpers and updated styled/plain history rendering.
+- `tests/test_history_rendering.py` - aligned plain-mode assertion with the new `command=...` ledger format.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T008 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_history_rendering.py tests/test_renderer.py tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_history_rendering.py tests/test_renderer.py tests/test_operator_console.py -q`
   - Result: PASS - history and renderer behavior is compatible after helper extraction.
   - Evidence: 28 tests collected and 28 passed.
 - UI product-surface check: PASS - ledger output contains operational history facts only: rows, status, project, command, path, reason, response, and stored state.
@@ -362,12 +362,12 @@
 - Kept defaults optional so existing renderer callers remain compatible.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite_ui.py` - added execution fact fields and rendering.
+- `src/apex_infinite/ui.py` - added execution fact fields and rendering.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T007 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
+- Command/check: `python -m pytest tests/test_renderer.py tests/test_operator_console.py -q`
   - Result: PASS - renderer and operator-console compatibility remains intact.
   - Evidence: 22 tests collected and 22 passed.
 - UI product-surface check: PASS - new rendered labels are product-facing subprocess state facts, not debug/scaffolding text.
@@ -388,15 +388,15 @@
 - Added timeout cleanup that terminates the child process first, then escalates to kill if the process does not exit during the cleanup window.
 
 **Files Changed**:
-- `apex-infinite-cli/apex_infinite.py` - added process result type, Popen helper, cleanup timeout constant, and helper routing.
+- `src/apex_infinite/cli.py` - added process result type, Popen helper, cleanup timeout constant, and helper routing.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T006 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_subprocess_execution.py -q`
+- Command/check: `python -m pytest tests/test_subprocess_execution.py -q`
   - Result: PASS - subprocess return semantics remain stable after helper routing.
   - Evidence: 8 tests collected and 8 passed.
-- Command/check: `sed -n '1,110p' apex-infinite-cli/apex_infinite.py && sed -n '800,875p' apex-infinite-cli/apex_infinite.py`
+- Command/check: `sed -n '1,110p' src/apex_infinite/cli.py && sed -n '800,875p' src/apex_infinite/cli.py`
   - Result: PASS - helper and `execute_codex()` routing inspected.
   - Evidence: `run_codex_process()` uses `subprocess.Popen()` with stdout/stderr pipes, timeout cleanup, and returns `CodexProcessResult`; `execute_codex()` calls the helper.
 - UI product-surface check: N/A - process helper task only.
@@ -417,12 +417,12 @@
 - Covered styled history output at 80, 100, and 120 columns with semantic assertions that tolerate Rich line wrapping.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_history_rendering.py` - added 6 history characterization tests.
+- `tests/test_history_rendering.py` - added 6 history characterization tests.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T005 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_history_rendering.py -q`
+- Command/check: `python -m pytest tests/test_history_rendering.py -q`
   - Result: PASS - history characterization suite passes before renderer redesign.
   - Evidence: 6 tests collected and 6 passed.
 - UI product-surface check: PASS - renderer output was inspected through recorded consoles for normal history surfaces only; no debug/admin/scaffolding content was introduced.
@@ -441,12 +441,12 @@
 - Kept fixtures compatible with both the current `subprocess.run()` implementation and the planned helper boundary.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_subprocess_execution.py` - added 8 characterization tests.
+- `tests/test_subprocess_execution.py` - added 8 characterization tests.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T004 complete.
 
 **Verification**:
-- Command/check: `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/test_subprocess_execution.py -q`
+- Command/check: `python -m pytest tests/test_subprocess_execution.py -q`
   - Result: PASS - subprocess characterization suite passes before runtime rewrites.
   - Evidence: 8 tests collected and 8 passed.
 - UI product-surface check: N/A - subprocess compatibility tests only.
@@ -466,16 +466,16 @@
 - Added history renderer fixtures using `Console(record=True, width=...)` and representative SQLite row data.
 
 **Files Changed**:
-- `apex-infinite-cli/tests/test_subprocess_execution.py` - added fake process and renderer helpers.
-- `apex-infinite-cli/tests/test_history_rendering.py` - added recorded-console history fixtures and sample row helper.
+- `tests/test_subprocess_execution.py` - added fake process and renderer helpers.
+- `tests/test_history_rendering.py` - added recorded-console history fixtures and sample row helper.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/implementation-notes.md` - recorded task evidence.
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T003 complete.
 
 **Verification**:
-- Command/check: `sed -n '1,220p' apex-infinite-cli/tests/test_subprocess_execution.py`
+- Command/check: `sed -n '1,220p' tests/test_subprocess_execution.py`
   - Result: PASS - subprocess fixtures exist and are scoped to test code.
   - Evidence: File defines `CapturingRenderer`, `set_process_result()`, and `set_process_error()`.
-- Command/check: `sed -n '1,220p' apex-infinite-cli/tests/test_history_rendering.py`
+- Command/check: `sed -n '1,220p' tests/test_history_rendering.py`
   - Result: PASS - history fixtures exist and use recorded Rich consoles.
   - Evidence: File defines `make_history_renderer()` and `sample_history_row()`.
 - UI product-surface check: N/A - fixture-only task.
@@ -502,7 +502,7 @@
 
 **Notes**:
 - Confirmed the analyzer resolves the current session as `phase00-session03-subprocess-and-history-visibility`.
-- Confirmed the repository is not configured as a monorepo and the session stays scoped to `apex-infinite-cli/`.
+- Confirmed the repository is not configured as a monorepo and the session stays scoped to `./`.
 - Confirmed Session 01 and Session 02 validation reports both passed with no unresolved blockers.
 
 **Files Changed**:
@@ -510,7 +510,7 @@
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T001 complete.
 
 **Verification**:
-- Command/check: `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash scripts/analyze-project.sh --json; fi`
+- Command/check: `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash .spec_system/scripts/analyze-project.sh --json; fi`
   - Result: PASS - current session resolved and session directory exists.
   - Evidence: JSON reported `current_session` as `phase00-session03-subprocess-and-history-visibility`, `current_session_dir_exists` as `true`, and `monorepo` as `false`.
 - Command/check: `sed -n '1,260p' .spec_system/specs/phase00-session02-rich-operator-console/validation.md`
@@ -542,13 +542,13 @@
 - `.spec_system/specs/phase00-session03-subprocess-and-history-visibility/tasks.md` - marked T002 complete.
 
 **Verification**:
-- Command/check: `rg -n "def execute_codex|def db_show_history|def db_log|def db_fetch_history|history|verbose|subprocess|COMMAND_TIMEOUT" apex-infinite-cli/apex_infinite.py`
+- Command/check: `rg -n "def execute_codex|def db_show_history|def db_log|def db_fetch_history|history|verbose|subprocess|COMMAND_TIMEOUT" src/apex_infinite/cli.py`
   - Result: PASS - located subprocess and history boundaries.
   - Evidence: `execute_codex()`, `db_show_history()`, `db_log()`, `db_fetch_history()`, `COMMAND_TIMEOUT`, and CLI `--history`/`--verbose` wiring were identified.
-- Command/check: `sed -n '800,930p' apex-infinite-cli/apex_infinite.py`
+- Command/check: `sed -n '800,930p' src/apex_infinite/cli.py`
   - Result: PASS - current subprocess behavior mapped before edits.
   - Evidence: Inspected dry-run, success, stderr fallback, non-zero, timeout, missing binary, generic exception, and verbose rendering branches.
-- Command/check: `sed -n '630,920p' apex-infinite-cli/apex_infinite_ui.py`
+- Command/check: `sed -n '630,920p' src/apex_infinite/ui.py`
   - Result: PASS - renderer history and Codex command behavior mapped.
   - Evidence: Inspected `print_history()`, `_print_plain_history()`, `print_codex_command()`, and response rendering.
 - UI product-surface check: N/A - mapping task only.

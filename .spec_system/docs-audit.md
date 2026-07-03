@@ -16,12 +16,12 @@
 
 Root files are `README.md`, `CHANGELOG.md`, `LICENSE`, `pyproject.toml`, and
 `.env.example`. Package docs are under `docs/`. The repository is a standalone
-Python package and does not currently include `.github/workflows/`, ADRs, or
-the broader Apex Spec System plugin source tree.
+Python package and does not currently include CI workflows, ADRs, or the broader
+Apex Spec System plugin source tree.
 
 ## Audit Scope
 
-The repository was rearranged from a nested `apex-infinite-cli/` subproject into
+The repository was rearranged from a nested `./` subproject into
 a standalone package. This audit checks that `.spec_system` references the
 current root layout:
 
@@ -60,14 +60,14 @@ current root layout:
 
 | Previous Reference | Current Reference |
 |--------------------|-------------------|
-| `apex-infinite-cli/apex_infinite.py` | `src/apex_infinite/cli.py` |
-| `apex-infinite-cli/apex_infinite_ui.py` | `src/apex_infinite/ui.py` |
-| `apex-infinite-cli/apex_infinite_events.py` | `src/apex_infinite/events.py` |
-| `apex-infinite-cli/apex_infinite_visual/` | `src/apex_infinite_visual/` |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | `README.md` |
-| `apex-infinite-cli/docs/` | `docs/` |
-| `apex-infinite-cli/tests/` | `tests/` |
-| `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/` | `EXAMPLE/` |
+| `src/apex_infinite/cli.py` | `src/apex_infinite/cli.py` |
+| `src/apex_infinite/ui.py` | `src/apex_infinite/ui.py` |
+| `src/apex_infinite/events.py` | `src/apex_infinite/events.py` |
+| `src/apex_infinite_visual/` | `src/apex_infinite_visual/` |
+| `README.md` | `README.md` |
+| `docs/` | `docs/` |
+| `tests/` | `tests/` |
+| Old parent-checkout `EXAMPLE/` links | `EXAMPLE/` |
 
 ## Remaining Notes
 
@@ -75,7 +75,7 @@ Archived Phase 00 session files are historical records. Their file and command
 references have been normalized to current standalone paths where a current
 equivalent exists, while preserving the session content and acceptance evidence.
 
-No CI workflow documents are listed because this standalone copy has no
-`.github/workflows/` directory. Until CI is added, release checks remain local:
+No CI workflow documents are listed because this standalone copy has no workflow
+directory. Until CI is added, release checks remain local:
 `python -m pytest tests/ -v`, formatter/linter checks from `pyproject.toml`,
 event-stream smoke checks, and optional wrapper smoke checks.

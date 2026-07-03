@@ -66,23 +66,23 @@ in Session 08.
 
 ### Required Tools Or Knowledge
 
-- Current wrapper prototype under `apex-infinite-cli/apex_infinite_visual/`.
+- Current wrapper prototype under `src/apex_infinite_visual/`.
 - Current event names and payload validation in
-  `apex-infinite-cli/apex_infinite_events.py`.
+  `src/apex_infinite/events.py`.
 - Session 06 decision record in
-  `apex-infinite-cli/docs/visual-wrapper-spike.md`.
+  `docs/visual-wrapper-spike.md`.
 - PySide6/Qt Quick/QML optional dependency behavior from
-  `apex-infinite-cli/requirements-wrapper.txt`.
+  `requirements-wrapper.txt`.
 - Clean-room and license boundaries from `CONVENTIONS.md`,
   `SECURITY-COMPLIANCE.md`, and
-  `apex-infinite-cli/docs/visual-wrapper-boundary.md`.
+  `docs/visual-wrapper-boundary.md`.
 
 ### Environment Requirements
 
 - Linux development environment.
-- Python virtual environment for `apex-infinite-cli/`.
+- Python virtual environment for `./`.
 - Optional wrapper dependencies available from
-  `apex-infinite-cli/requirements-wrapper.txt` for smoke checks.
+  `requirements-wrapper.txt` for smoke checks.
 - `QT_QPA_PLATFORM=offscreen` or a graphical display for wrapper smoke tests.
 - No provider API keys or live Codex execution required for unit tests;
   fixture events and dry-run subprocess invocation are sufficient.
@@ -131,13 +131,13 @@ in Session 08.
 ### Architecture
 
 Productize the existing optional package at
-`apex-infinite-cli/apex_infinite_visual/`. Add a settings/preset module that
+`src/apex_infinite_visual/`. Add a settings/preset module that
 owns theme tokens, effect intensity, font defaults, scaling bounds, reduced
 effects, and plain fallback rules. The PySide6 bridge consumes those settings
 and exposes validated properties and slots to QML.
 
 Keep the base CLI unchanged except where existing event contracts require
-tests. The wrapper launcher continues to run `apex_infinite.py` as a subprocess
+tests. The wrapper launcher continues to run `src/apex_infinite/cli.py` as a subprocess
 with `--event-stream - --machine-output`. The launcher validates the CLI script,
 builds guarded commands, separates stdout JSONL from stderr, enforces cleanup,
 and reports missing CLI, timeout, return-code, and stderr conditions as wrapper
@@ -172,24 +172,24 @@ verification commands without copying third-party build scripts.
 
 | File | Purpose | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/apex_infinite_visual/settings.py` | Validated wrapper presets, effect controls, font/scale bounds, and plain fallback settings | ~190 |
-| `apex-infinite-cli/tests/test_visual_wrapper_productization.py` | Productization tests for settings, launch validation, bridge failure states, and smoke helpers | ~280 |
-| `apex-infinite-cli/docs/visual-wrapper-productization.md` | Linux visual mode setup, packaging, release checklist, license obligations, and verification plan | ~240 |
+| `src/apex_infinite_visual/settings.py` | Validated wrapper presets, effect controls, font/scale bounds, and plain fallback settings | ~190 |
+| `tests/test_visual_wrapper_productization.py` | Productization tests for settings, launch validation, bridge failure states, and smoke helpers | ~280 |
+| `docs/visual-wrapper-productization.md` | Linux visual mode setup, packaging, release checklist, license obligations, and verification plan | ~240 |
 
 ### Files To Modify
 
 | File | Changes | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/apex_infinite_visual/__init__.py` | Export productized wrapper metadata and stable public names | ~20 |
-| `apex-infinite-cli/apex_infinite_visual/events.py` | Extend product-facing state mappings for launch, timeout, non-zero, stderr, and malformed-event failures | ~70 |
-| `apex-infinite-cli/apex_infinite_visual/launcher.py` | Add Linux/source-tree validation, missing CLI checks, timeout handling, failure summaries, and cleanup coverage | ~120 |
-| `apex-infinite-cli/apex_infinite_visual/main.py` | Wire settings, bridge controls, launch validation, duplicate-trigger prevention, and productized failure handling | ~190 |
-| `apex-infinite-cli/apex_infinite_visual/qml/Main.qml` | Add productized controls, presets, failure surfaces, stable layout sizing, accessibility labels, and plain fallback | ~180 |
-| `apex-infinite-cli/requirements-wrapper.txt` | Clarify optional wrapper and packaging dependency boundaries | ~20 |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Update visual mode setup, run commands, packaging status, and productization doc links | ~45 |
-| `apex-infinite-cli/docs/operator-runbook.md` | Update operator flow for source visual mode, settings, smoke, and failure recovery | ~45 |
-| `apex-infinite-cli/docs/troubleshooting.md` | Add productized wrapper failure modes and recovery steps | ~45 |
-| `apex-infinite-cli/docs/visual-wrapper-boundary.md` | Record Session 07 productization boundaries and release gates | ~35 |
+| `src/apex_infinite_visual/__init__.py` | Export productized wrapper metadata and stable public names | ~20 |
+| `src/apex_infinite_visual/events.py` | Extend product-facing state mappings for launch, timeout, non-zero, stderr, and malformed-event failures | ~70 |
+| `src/apex_infinite_visual/launcher.py` | Add Linux/source-tree validation, missing CLI checks, timeout handling, failure summaries, and cleanup coverage | ~120 |
+| `src/apex_infinite_visual/main.py` | Wire settings, bridge controls, launch validation, duplicate-trigger prevention, and productized failure handling | ~190 |
+| `src/apex_infinite_visual/qml/Main.qml` | Add productized controls, presets, failure surfaces, stable layout sizing, accessibility labels, and plain fallback | ~180 |
+| `requirements-wrapper.txt` | Clarify optional wrapper and packaging dependency boundaries | ~20 |
+| `README.md` | Update visual mode setup, run commands, packaging status, and productization doc links | ~45 |
+| `docs/operator-runbook.md` | Update operator flow for source visual mode, settings, smoke, and failure recovery | ~45 |
+| `docs/troubleshooting.md` | Add productized wrapper failure modes and recovery steps | ~45 |
+| `docs/visual-wrapper-boundary.md` | Record Session 07 productization boundaries and release gates | ~35 |
 
 ---
 
@@ -255,9 +255,9 @@ verification commands without copying third-party build scripts.
   instructions, not publishing a binary in this session: Session 08 owns final
   release verification, and the spike record requires license and generated
   bundle review before binary distribution.
-- Wrapper code remains under `apex-infinite-cli/apex_infinite_visual/`: the
+- Wrapper code remains under `src/apex_infinite_visual/`: the
   analyzer reports `monorepo: false`, while PRD and conventions identify
-  `apex-infinite-cli/` as the active project area.
+  `./` as the active project area.
 
 ### Conflict Resolutions
 
@@ -326,22 +326,22 @@ Top behavioral risks for this session:
 
 ### Integration Tests
 
-- Run the existing CLI test suite from `apex-infinite-cli/` with
-  `./.venv/bin/python -m pytest tests/ -v`.
+- Run the existing CLI test suite from `./` with
+  `python -m pytest tests/ -v`.
 - Add productization tests beside the existing visual wrapper spike tests.
-- Run `pyside6-qmllint` against `apex_infinite_visual/qml/Main.qml` when the
+- Run `pyside6-qmllint` against `src/apex_infinite_visual/qml/Main.qml` when the
   optional wrapper environment provides it.
 
 ### Runtime Verification
 
 - Run an offscreen smoke check:
-  `QT_QPA_PLATFORM=offscreen ./.venv/bin/python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300`.
+  `QT_QPA_PLATFORM=offscreen python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300`.
 - Run a guarded launch smoke with `--launch-cli`, `--dry-run`, and
   `--max-iterations 1` when local environment supports it.
 
 ### Edge Cases
 
-- Missing `apex_infinite.py` path.
+- Missing `src/apex_infinite/cli.py` path.
 - Missing PySide6.
 - Headless or unsupported Qt platform backend.
 - Malformed JSONL and unsupported event versions.

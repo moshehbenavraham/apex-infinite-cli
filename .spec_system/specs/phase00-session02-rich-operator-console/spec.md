@@ -10,7 +10,7 @@
 ## 1. Session Overview
 
 This session turns the renderer boundary from Session 01 into the first cohesive
-Rich operator console for `apex-infinite-cli/`. It improves the visible startup
+Rich operator console for `./`. It improves the visible startup
 panel, iteration framing, status strips, themed lifecycle states, and fallback
 rendering without changing manager routing, prompt text, SQLite schema, or
 Codex subprocess return semantics.
@@ -21,7 +21,7 @@ unfinished candidate, and Sessions 03 through 08 depend on richer semantic
 labels or later event and wrapper boundaries.
 
 The work stays path-scoped to the CLI subproject. It uses the existing
-`apex_infinite_ui.py` renderer and settings module as the implementation
+`src/apex_infinite/ui.py` renderer and settings module as the implementation
 boundary, adds focused tests for supported terminal widths and fallback modes,
 and preserves the clean-room visual rule from the phase PRD.
 
@@ -52,15 +52,15 @@ and preserves the clean-room visual rule from the phase PRD.
 ### Required Tools Or Knowledge
 
 - Python 3.10+ CLI development with Click, Rich, SQLite, and pytest.
-- Existing renderer contracts in `apex-infinite-cli/apex_infinite_ui.py`.
+- Existing renderer contracts in `src/apex_infinite/ui.py`.
 - Existing CLI loop, DB, LLM, and subprocess contracts in
-  `apex-infinite-cli/apex_infinite.py`.
+  `src/apex_infinite/cli.py`.
 - Clean-room visual translation rules from the Phase 00 PRD and PRD UX.
 
 ### Environment Requirements
 
-- CLI dependencies from `apex-infinite-cli/requirements.txt` and
-  `apex-infinite-cli/requirements-dev.txt`.
+- CLI dependencies from `requirements.txt` and
+  `requirements-dev.txt`.
 - No graphical runtime dependencies for the base CLI.
 - Authored files remain ASCII-only with Unix LF line endings.
 
@@ -115,9 +115,9 @@ and preserves the clean-room visual rule from the phase PRD.
 
 ### Architecture
 
-Extend `apex-infinite-cli/apex_infinite_ui.py` as the display boundary created
+Extend `src/apex_infinite/ui.py` as the display boundary created
 in Session 01. Keep workflow, LLM, DB, and subprocess execution in
-`apex_infinite.py`, but pass richer display snapshots into renderer methods
+`src/apex_infinite/cli.py`, but pass richer display snapshots into renderer methods
 where the loop already knows provider, model, path, iteration, dry-run, and
 operation state.
 
@@ -153,18 +153,18 @@ data, or build scripts from the local reference tree.
 
 | File | Purpose | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/tests/test_operator_console.py` | Session 02 renderer tests for boot panel, iteration frame, status strips, critical states, fallback modes, and width behavior | ~260 |
+| `tests/test_operator_console.py` | Session 02 renderer tests for boot panel, iteration frame, status strips, critical states, fallback modes, and width behavior | ~260 |
 
 ### Files To Modify
 
 | File | Changes | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/apex_infinite_ui.py` | Add richer theme tokens, status-strip and iteration-frame helpers, DB write rendering, low-effect separators, and critical-state labels | ~280 |
-| `apex-infinite-cli/apex_infinite.py` | Pass run context into renderer calls and render DB write confirmation after successful log calls without changing DB data | ~90 |
-| `apex-infinite-cli/tests/test_renderer.py` | Extend existing renderer and raw-history safety coverage for new console states | ~120 |
-| `apex-infinite-cli/tests/test_ui_config.py` | Add preset and fallback assertions for the operator-console token behavior | ~60 |
-| `apex-infinite-cli/tests/test_cli_options.py` | Add CLI smoke coverage for dry-run startup and renderer context wiring | ~60 |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Add a minimal note for the richer operator console and current fallback guarantees | ~40 |
+| `src/apex_infinite/ui.py` | Add richer theme tokens, status-strip and iteration-frame helpers, DB write rendering, low-effect separators, and critical-state labels | ~280 |
+| `src/apex_infinite/cli.py` | Pass run context into renderer calls and render DB write confirmation after successful log calls without changing DB data | ~90 |
+| `tests/test_renderer.py` | Extend existing renderer and raw-history safety coverage for new console states | ~120 |
+| `tests/test_ui_config.py` | Add preset and fallback assertions for the operator-console token behavior | ~60 |
+| `tests/test_cli_options.py` | Add CLI smoke coverage for dry-run startup and renderer context wiring | ~60 |
+| `README.md` | Add a minimal note for the richer operator console and current fallback guarantees | ~40 |
 
 ---
 
@@ -219,11 +219,11 @@ data, or build scripts from the local reference tree.
 - [ ] All files ASCII-encoded
 - [ ] Unix LF line endings
 - [ ] Code follows project conventions
-- [ ] `pytest tests/ -v` passes from `apex-infinite-cli/`
-- [ ] `black --check apex_infinite.py apex_infinite_ui.py tests/` passes from
-      `apex-infinite-cli/`
-- [ ] `pylint apex_infinite.py apex_infinite_ui.py` passes from
-      `apex-infinite-cli/`
+- [ ] `pytest tests/ -v` passes from `./`
+- [ ] `black --check src/apex_infinite/cli.py src/apex_infinite/ui.py tests/` passes from
+      `./`
+- [ ] `pylint src/apex_infinite/cli.py src/apex_infinite/ui.py` passes from
+      `./`
 - [ ] Primary user-facing surfaces contain product-facing copy only
 
 ---
@@ -232,12 +232,12 @@ data, or build scripts from the local reference tree.
 
 ### Working Assumptions
 
-- This session is path-scoped to `apex-infinite-cli/`: the analysis script
+- This session is path-scoped to `./`: the analysis script
   reports `monorepo: false`, the master PRD says there is no formal workspace
-  manager config, and `CONVENTIONS.md` names `apex-infinite-cli/` as the
+  manager config, and `CONVENTIONS.md` names `./` as the
   primary development target.
 - Session 02 should extend the existing renderer module rather than replacing
-  it: Session 01 validated `apex_infinite_ui.py`, injected consoles, config
+  it: Session 01 validated `src/apex_infinite/ui.py`, injected consoles, config
   resolution, and Click flag wiring, and the current session objective is a
   richer console on top of that boundary.
 - Minimal README updates are allowed for behavior that changes visible operator
@@ -318,17 +318,17 @@ Top behavioral risks for this session:
 
 - Test renderer theme labels, boot/status panels, iteration frames, status
   strips, low-effect separators, and critical states in
-  `apex-infinite-cli/tests/test_operator_console.py`.
+  `tests/test_operator_console.py`.
 - Extend UI config tests for preset token behavior and constrained fallback
-  decisions in `apex-infinite-cli/tests/test_ui_config.py`.
+  decisions in `tests/test_ui_config.py`.
 
 ### Integration Tests
 
 - Extend CLI option tests to verify dry-run startup and loop context reach the
   renderer without changing prompt routing in
-  `apex-infinite-cli/tests/test_cli_options.py`.
+  `tests/test_cli_options.py`.
 - Extend renderer safety tests to verify DB log visibility does not affect
-  stored history rows in `apex-infinite-cli/tests/test_renderer.py`.
+  stored history rows in `tests/test_renderer.py`.
 
 ### Runtime Verification
 

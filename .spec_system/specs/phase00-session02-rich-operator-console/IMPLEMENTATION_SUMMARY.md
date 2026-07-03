@@ -9,7 +9,7 @@
 ## Overview
 
 Session 02 delivered the first cohesive Rich operator console for
-`apex-infinite-cli/`. The work added boot and iteration status surfaces,
+`./`. The work added boot and iteration status surfaces,
 semantic labels for key workflow states, fallback-aware low-effect separators,
 renderer-only loop and DB write snapshots, and tests proving display labels do
 not leak into SQLite history.
@@ -21,7 +21,7 @@ not leak into SQLite history.
 ### Files Created
 | File | Purpose | Lines |
 |------|---------|-------|
-| `apex-infinite-cli/tests/test_operator_console.py` | Operator-console width, state, and fallback tests | ~202 |
+| `tests/test_operator_console.py` | Operator-console width, state, and fallback tests | ~202 |
 | `.spec_system/specs/phase00-session02-rich-operator-console/spec.md` | Session 02 specification | ~366 |
 | `.spec_system/specs/phase00-session02-rich-operator-console/tasks.md` | Session 02 task checklist | ~67 |
 | `.spec_system/specs/phase00-session02-rich-operator-console/implementation-notes.md` | Task log and implementation evidence | ~736 |
@@ -32,14 +32,14 @@ not leak into SQLite history.
 ### Files Modified
 | File | Changes |
 |------|---------|
-| `apex-infinite-cli/apex_infinite_ui.py` | Added operator-console tokens, semantic labels, iteration and DB snapshots, status strip rendering, DB write display, Codex state labels, and fallback separator handling. |
-| `apex-infinite-cli/apex_infinite.py` | Wired renderer-only iteration context and post-commit DB write confirmations without changing prompts, subprocess returns, or SQLite row values. |
-| `apex-infinite-cli/tests/test_renderer.py` | Updated semantic renderer assertions and raw-history display-leak coverage. |
-| `apex-infinite-cli/tests/test_ui_config.py` | Added built-in token coverage for operator-console states. |
-| `apex-infinite-cli/tests/test_cli_options.py` | Added loop context wiring coverage and prompt-routing compatibility assertions. |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Documented the richer operator console, token keys, fallback guarantees, and display-only SQLite boundary. |
+| `src/apex_infinite/ui.py` | Added operator-console tokens, semantic labels, iteration and DB snapshots, status strip rendering, DB write display, Codex state labels, and fallback separator handling. |
+| `src/apex_infinite/cli.py` | Wired renderer-only iteration context and post-commit DB write confirmations without changing prompts, subprocess returns, or SQLite row values. |
+| `tests/test_renderer.py` | Updated semantic renderer assertions and raw-history display-leak coverage. |
+| `tests/test_ui_config.py` | Added built-in token coverage for operator-console states. |
+| `tests/test_cli_options.py` | Added loop context wiring coverage and prompt-routing compatibility assertions. |
+| `README.md` | Documented the richer operator console, token keys, fallback guarantees, and display-only SQLite boundary. |
 | `.spec_system/state.json` | Marked the session complete and cleared the active session. |
-| `.spec_system/PRD/phase_00/PRD_phase_00.md` | Marked Session 02 complete and advanced phase progress. |
+| `.spec_system/archive/phases/phase_00/PRD_phase_00.md` | Marked Session 02 complete and advanced phase progress. |
 
 ---
 

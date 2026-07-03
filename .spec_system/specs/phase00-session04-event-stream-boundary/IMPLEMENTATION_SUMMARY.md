@@ -22,9 +22,9 @@ compatibility, and raw durable history storage.
 
 | File | Purpose | Lines |
 |------|---------|-------|
-| `apex-infinite-cli/apex_infinite_events.py` | Rich-independent event emitter API, JSONL stream handling, payload validation, flushing, and cleanup | 278 |
-| `apex-infinite-cli/tests/test_event_stream.py` | Event API, CLI guardrail, dry-run lifecycle, stdout isolation, payload safety, and failure-path coverage | 538 |
-| `apex-infinite-cli/docs/event-stream.md` | Wrapper-facing JSONL event contract, event names, CLI examples, and safety boundaries | 156 |
+| `src/apex_infinite/events.py` | Rich-independent event emitter API, JSONL stream handling, payload validation, flushing, and cleanup | 278 |
+| `tests/test_event_stream.py` | Event API, CLI guardrail, dry-run lifecycle, stdout isolation, payload safety, and failure-path coverage | 538 |
+| `docs/event-stream.md` | Wrapper-facing JSONL event contract, event names, CLI examples, and safety boundaries | 156 |
 | `.spec_system/specs/phase00-session04-event-stream-boundary/code-review.md` | Code review and repair report | 85 |
 | `.spec_system/specs/phase00-session04-event-stream-boundary/security-compliance.md` | Security and GDPR compliance report | 84 |
 | `.spec_system/specs/phase00-session04-event-stream-boundary/validation.md` | Validation evidence and final PASS report | 220 |
@@ -33,18 +33,18 @@ compatibility, and raw durable history storage.
 
 | File | Changes |
 |------|---------|
-| `apex-infinite-cli/apex_infinite.py` | Added event stream and machine-output CLI options, event lifecycle wiring, startup error handling, subprocess events, DB events, and notification suppression |
-| `apex-infinite-cli/apex_infinite_ui.py` | Added `NoHumanOutputRenderer` so machine-output mode cannot emit human rendering to stdout |
-| `apex-infinite-cli/tests/test_cli_options.py` | Added event-stream flag validation, loop wiring, JSONL-only stdout, and startup failure coverage |
-| `apex-infinite-cli/tests/test_subprocess_execution.py` | Added Codex lifecycle event coverage for dry-run, success, non-zero, timeout, missing binary, and generic errors |
-| `apex-infinite-cli/tests/test_renderer.py` | Added no-human-output renderer suppression coverage |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Documented event stream usage, `--machine-output`, stdout guardrails, and payload safety |
-| `apex-infinite-cli/docs/operator-runbook.md` | Added operator guidance for event files, machine-output mode, and wrapper consumption |
-| `apex-infinite-cli/docs/prompt-contract.md` | Clarified that event and machine-output behavior do not change prompt generation or manager parsing |
-| `apex-infinite-cli/docs/troubleshooting.md` | Added event-stream misuse, write failure, stdout collision, and machine-output troubleshooting |
+| `src/apex_infinite/cli.py` | Added event stream and machine-output CLI options, event lifecycle wiring, startup error handling, subprocess events, DB events, and notification suppression |
+| `src/apex_infinite/ui.py` | Added `NoHumanOutputRenderer` so machine-output mode cannot emit human rendering to stdout |
+| `tests/test_cli_options.py` | Added event-stream flag validation, loop wiring, JSONL-only stdout, and startup failure coverage |
+| `tests/test_subprocess_execution.py` | Added Codex lifecycle event coverage for dry-run, success, non-zero, timeout, missing binary, and generic errors |
+| `tests/test_renderer.py` | Added no-human-output renderer suppression coverage |
+| `README.md` | Documented event stream usage, `--machine-output`, stdout guardrails, and payload safety |
+| `docs/operator-runbook.md` | Added operator guidance for event files, machine-output mode, and wrapper consumption |
+| `docs/prompt-contract.md` | Clarified that event and machine-output behavior do not change prompt generation or manager parsing |
+| `docs/troubleshooting.md` | Added event-stream misuse, write failure, stdout collision, and machine-output troubleshooting |
 | `.spec_system/state.json` | Recorded Session 04 planning, validation, and completion state |
-| `.spec_system/PRD/phase_00/PRD_phase_00.md` | Marked Session 04 complete and updated phase progress to 4/8 |
-| `.spec_system/PRD/phase_00/session_04_event_stream_boundary.md` | Marked prerequisites and success criteria complete |
+| `.spec_system/archive/phases/phase_00/PRD_phase_00.md` | Marked Session 04 complete and updated phase progress to 4/8 |
+| `.spec_system/archive/phases/phase_00/session_04_event_stream_boundary.md` | Marked prerequisites and success criteria complete |
 | `.spec_system/specs/phase00-session04-event-stream-boundary/spec.md` | Updated session status and final handoff |
 | `.spec_system/specs/phase00-session04-event-stream-boundary/tasks.md` | Updated final handoff after all tasks passed validation |
 | `.spec_system/specs/phase00-session04-event-stream-boundary/implementation-notes.md` | Recorded task-by-task implementation and verification evidence |
@@ -60,7 +60,7 @@ compatibility, and raw durable history storage.
    is valid only with `--machine-output`, and machine mode uses
    `NoHumanOutputRenderer` plus notification suppression to prevent stdout
    collisions.
-3. **Keep the event API independent from Rich**: `apex_infinite_events.py`
+3. **Keep the event API independent from Rich**: `src/apex_infinite/events.py`
    imports only standard library modules so future wrappers can consume events
    without terminal UI dependencies.
 4. **Treat payload validation as a safety boundary**: Event payloads reject

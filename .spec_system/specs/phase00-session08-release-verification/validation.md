@@ -25,24 +25,24 @@
 
 | Check | Command or Inspection | Result | Evidence / Blocker |
 |-------|-----------------------|--------|--------------------|
-| Project state | `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash scripts/analyze-project.sh --json; fi` | PASS | Current session is `phase00-session08-release-verification`; directory exists; monorepo is false; seven sessions complete. |
+| Project state | `if [ -d ".spec_system/scripts" ]; then bash .spec_system/scripts/analyze-project.sh --json; else bash .spec_system/scripts/analyze-project.sh --json; fi` | PASS | Current session is `phase00-session08-release-verification`; directory exists; monorepo is false; seven sessions complete. |
 | Code review | `grep -n '^\*\*Result\*\*: RESOLVED$\|^\*\*Scope\*\*: All uncommitted changes in the working tree$' .../code-review.md` | PASS | Lines 5-6 confirm scope and `RESOLVED`. |
 | Task completion | Python task-row count over `tasks.md` | PASS | `task_rows_total=22`, `task_rows_completed=22`, `task_rows_pending=0`. |
 | Deliverables | `test -s` for release, compatibility, and clean-room ledgers | PASS | All three required created deliverables are non-empty. |
 | ASCII/LF | Changed-file `file`, `LC_ALL=C grep '[^[:print:][:space:]]'`, and `grep -l $'\r'` scan | PASS | All 14 changed/untracked session files are ASCII text/JSON/Python with no non-ASCII or CRLF findings. |
-| Tests | `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v` | PASS | 222 collected, 222 passed in 11.16s. |
-| Tests | `bats tests/` | PASS | 61 Bats tests passed. |
-| Root checks | `bash scripts/sync-plugin-payload.sh --check` | PASS | Plugin payload is current. |
-| Root checks | `bash scripts/analyze-project.sh --json | jq .` | PASS | Valid JSON; current session remains Session 08. |
-| Root checks | `bash scripts/check-prereqs.sh --json --env | jq .` | PASS | `overall: pass`; `.spec_system`, jq, and git detected. |
-| Quality | `cd apex-infinite-cli && ./.venv/bin/python -m black --check apex_infinite.py apex_infinite_events.py apex_infinite_ui.py apex_infinite_visual tests` | PASS | 20 files would be left unchanged. |
-| Quality | `cd apex-infinite-cli && ./.venv/bin/python -m pylint apex_infinite.py apex_infinite_events.py apex_infinite_ui.py apex_infinite_visual` | PASS | 10.00/10. |
-| Quality | `cd apex-infinite-cli && ./.venv/bin/python -m py_compile apex_infinite.py apex_infinite_events.py apex_infinite_ui.py apex_infinite_visual/*.py` | PASS | Exit 0. |
-| Quality | `cd apex-infinite-cli && ./.venv/bin/pyside6-qmllint apex_infinite_visual/qml/Main.qml` | PASS | Exit 0 with known unqualified-access warnings. |
-| Wrapper smoke | `cd apex-infinite-cli && QT_QPA_PLATFORM=offscreen ./.venv/bin/python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` | PASS | Exit 0. |
-| Dependency audit | `cd apex-infinite-cli && ./.venv/bin/pip-audit -r requirements.txt -r requirements-dev.txt -r requirements-wrapper.txt` | PASS | No known vulnerabilities found. |
+| Tests | `python -m pytest tests/ -v` | PASS | 222 collected, 222 passed in 11.16s. |
+| Tests | `python -m pytest tests/ -v` | PASS | 61 Bats tests passed. |
+| Root checks | `bash .spec_system/scripts/analyze-project.sh --json` | PASS | Plugin payload is current. |
+| Root checks | `bash .spec_system/scripts/analyze-project.sh --json | jq .` | PASS | Valid JSON; current session remains Session 08. |
+| Root checks | `bash .spec_system/scripts/check-prereqs.sh --json --env | jq .` | PASS | `overall: pass`; `.spec_system`, jq, and git detected. |
+| Quality | `python -m black --check src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py apex_infinite_visual tests` | PASS | 20 files would be left unchanged. |
+| Quality | `python -m pylint src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py apex_infinite_visual` | PASS | 10.00/10. |
+| Quality | `python -m py_compile src/apex_infinite/cli.py src/apex_infinite/events.py src/apex_infinite/ui.py src/apex_infinite_visual/*.py` | PASS | Exit 0. |
+| Quality | `pyside6-qmllint src/apex_infinite_visual/qml/Main.qml` | PASS | Exit 0 with known unqualified-access warnings. |
+| Wrapper smoke | `QT_QPA_PLATFORM=offscreen python -m apex_infinite_visual.main --dry-run --max-iterations 1 --auto-close-ms 300` | PASS | Exit 0. |
+| Dependency audit | `python -m pip_audit -r requirements.txt -r requirements-dev.txt -r requirements-wrapper.txt` | PASS | No known vulnerabilities found. |
 | Whitespace | `git diff --check` | PASS | No output. |
-| Database/schema | `git diff -- apex-infinite-cli/apex_infinite.py` inspection plus pytest history tests | N/A | Diff touches only `notify()`; no DB code changed. History tests passed in full pytest suite. |
+| Database/schema | `git diff -- src/apex_infinite/cli.py` inspection plus pytest history tests | N/A | Diff touches only `notify()`; no DB code changed. History tests passed in full pytest suite. |
 | Success criteria | `rg` inspection of `release-verification.md` R001-R030 and fresh gate commands above | PASS | Release ledger marks all criteria PASS; fresh validation reran core test, quality, dependency, wrapper, docs, clean-room, and hygiene gates. |
 | Conventions | `.spec_system/CONVENTIONS.md` spot-check against diff and docs | PASS | Python code is black/pylint clean; docs and artifacts are ASCII/LF; plugin payload sync is clean. |
 | Security/GDPR | `references/security-compliance-checklist.md` inspection, secret scan, diff review, dependency audit | PASS | No session security findings; GDPR N/A because no new personal-data handling. |
@@ -101,7 +101,7 @@ local doc link check, and clean-room scans.
 ## 6. Database/Schema Alignment
 ### Status: N/A
 
-**Evidence**: `git diff -- apex-infinite-cli/apex_infinite.py` shows only the
+**Evidence**: `git diff -- src/apex_infinite/cli.py` shows only the
 `notify()` terminal BEL guard. No schema, migration, SQL query, model, seed,
 or persisted data shape changed. Full pytest still passed history and raw-data
 boundary tests.
@@ -152,11 +152,11 @@ database conventions when relevant.
 
 **Checklist applied**: Yes
 **Files spot-checked**:
-- `apex-infinite-cli/apex_infinite.py`
-- `apex-infinite-cli/tests/test_cli_options.py`
-- `apex-infinite-cli/README_apex-infinite-cli.md`
-- `apex-infinite-cli/docs/operator-runbook.md`
-- `apex-infinite-cli/docs/visual-wrapper-productization.md`
+- `src/apex_infinite/cli.py`
+- `tests/test_cli_options.py`
+- `README.md`
+- `docs/operator-runbook.md`
+- `docs/visual-wrapper-productization.md`
 
 **Categories spot-checked**: trust boundaries, resource cleanup, mutation
 safety, failure paths, contract alignment, and product surface discipline.

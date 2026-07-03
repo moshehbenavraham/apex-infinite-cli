@@ -67,15 +67,15 @@ surface and must be recorded in the release verification ledger.
 
 ### Required Tools Or Knowledge
 
-- Python virtual environment under `apex-infinite-cli/.venv/`.
-- CLI test suite under `apex-infinite-cli/tests/`.
+- Python virtual environment under local virtualenv.
+- CLI test suite under `tests/`.
 - Root script and reference tests under `tests/`.
-- Wrapper source under `apex-infinite-cli/apex_infinite_visual/`.
-- CLI docs under `apex-infinite-cli/README_apex-infinite-cli.md` and
-  `apex-infinite-cli/`.
+- Wrapper source under `src/apex_infinite_visual/`.
+- CLI docs under `README.md` and
+  `./`.
 - Clean-room and license rules from `.spec_system/CONVENTIONS.md`,
   `.spec_system/SECURITY-COMPLIANCE.md`, and
-  `apex-infinite-cli/docs/visual-wrapper-boundary.md`.
+  `docs/visual-wrapper-boundary.md`.
 
 ### Environment Requirements
 
@@ -137,7 +137,7 @@ surface and must be recorded in the release verification ledger.
 
 Create a release verification ledger in the Session 08 spec directory and map
 each PRD completion criterion to a command, inspection, or explicit deferral.
-Run verification from the repo root and `apex-infinite-cli/` without depending
+Run verification from the repo root and `./` without depending
 on real LLM calls or live Codex execution. Use dry-run, temp files, redirected
 output, constrained environment variables, and machine-output JSONL to exercise
 operator paths safely.
@@ -185,13 +185,13 @@ checksum, notice, source/relink, and clean-room gates before any binary release.
 
 | File | Changes | Est. Lines |
 |------|---------|------------|
-| `apex-infinite-cli/apex_infinite.py` | Small CLI compatibility fixes only if smoke or tests expose release-blocking behavior | ~0-80 |
-| `apex-infinite-cli/apex_infinite_ui.py` | Small renderer, fallback, width, ASCII, or plain-mode fixes only if verification fails | ~0-80 |
-| `apex-infinite-cli/apex_infinite_events.py` | Small event-stream safety or machine-output fixes only if verification fails | ~0-60 |
-| `apex-infinite-cli/apex_infinite_visual/` | Small wrapper smoke, failure-state, or optional dependency fixes only if verification fails | ~0-100 |
-| `apex-infinite-cli/tests/` | Focused regression tests for any compatibility fix applied during verification | ~0-160 |
-| `apex-infinite-cli/README_apex-infinite-cli.md` | Release-status, CLI flag, event, history, wrapper, or troubleshooting corrections found by audit | ~0-80 |
-| `apex-infinite-cli/` | Documentation corrections for event stream, history DB, operator runbook, prompt contract, transcripts, troubleshooting, or wrapper release gates | ~0-160 |
+| `src/apex_infinite/cli.py` | Small CLI compatibility fixes only if smoke or tests expose release-blocking behavior | ~0-80 |
+| `src/apex_infinite/ui.py` | Small renderer, fallback, width, ASCII, or plain-mode fixes only if verification fails | ~0-80 |
+| `src/apex_infinite/events.py` | Small event-stream safety or machine-output fixes only if verification fails | ~0-60 |
+| `src/apex_infinite_visual/` | Small wrapper smoke, failure-state, or optional dependency fixes only if verification fails | ~0-100 |
+| `tests/` | Focused regression tests for any compatibility fix applied during verification | ~0-160 |
+| `README.md` | Release-status, CLI flag, event, history, wrapper, or troubleshooting corrections found by audit | ~0-80 |
+| `./` | Documentation corrections for event stream, history DB, operator runbook, prompt contract, transcripts, troubleshooting, or wrapper release gates | ~0-160 |
 | `.spec_system/SECURITY-COMPLIANCE.md` | Updated cumulative security, GDPR, dependency, and clean-room release posture after verification | ~0-160 |
 
 ---
@@ -219,13 +219,13 @@ checksum, notice, source/relink, and clean-room gates before any binary release.
 
 ### Testing Requirements
 
-- [ ] `cd apex-infinite-cli && ./.venv/bin/python -m pytest tests/ -v` passes.
+- [ ] `python -m pytest tests/ -v` passes.
 - [ ] Formatter, linter, bytecode compile, QML lint, offscreen wrapper smoke,
       and dependency audit pass or have recorded release-blocking evidence.
-- [ ] Root checks pass: `bats tests/`,
-      `bash scripts/sync-plugin-payload.sh --check`,
-      `bash scripts/analyze-project.sh --json | jq .`, and
-      `bash scripts/check-prereqs.sh --json --env | jq .`.
+- [ ] Root checks pass: `python -m pytest tests/ -v`,
+      `bash .spec_system/scripts/analyze-project.sh --json`,
+      `bash .spec_system/scripts/analyze-project.sh --json | jq .`, and
+      `bash .spec_system/scripts/check-prereqs.sh --json --env | jq .`.
 - [ ] CLI smoke matrix covers `--dry-run`, `--history`, `--verbose`,
       `--plain`, `--ascii`, `--compact`, every built-in theme,
       `--event-stream PATH`, guarded `--event-stream - --machine-output`,
@@ -347,7 +347,7 @@ Top behavioral risks for this session:
 
 ### Unit Tests
 
-- Run all existing CLI tests under `apex-infinite-cli/tests/`.
+- Run all existing CLI tests under `tests/`.
 - Add focused regression tests only if release verification finds a CLI,
   renderer, event, history, or wrapper compatibility bug.
 
@@ -361,7 +361,7 @@ Top behavioral risks for this session:
 ### Runtime Verification
 
 - Execute initialized-project dry-run smoke against this repository with
-  `--path /home/aiwithapex/projects/apex-spec-system-open`,
+  `--path /home/aiwithapex/projects/apex-infinite-cli`,
   `--start plansession`, and a small `--max-iterations` value.
 - Capture event-stream output to a temp file and inspect JSONL payloads for
   schema validity and raw-data safety.

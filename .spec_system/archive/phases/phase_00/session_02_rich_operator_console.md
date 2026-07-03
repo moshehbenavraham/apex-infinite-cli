@@ -73,26 +73,26 @@ the renderer and configuration boundary from Session 01.
 <!-- FOLDED_SESSION_SOURCE_START -->
 
 This section carries forward the actionable session material formerly stored in
-`docs/ongoing-projects/apex-infinite-cli-upgrade-plan.md`. The Phase 00 PRD
+`.spec_system/archive/phases/phase_00/PRD_phase_00.md`. The Phase 00 PRD
 contains the verbatim archive; this stub keeps the session-specific details and
 full-path `EXAMPLE/` references close to the session executor.
 
 ### EXAMPLE Reference Links
 
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/README.md](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/README.md)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/utils.js](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/utils.js)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/crt256.png](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/crt256.png)
+- [EXAMPLE/cool-retro-term/README.md](../../../../EXAMPLE/cool-retro-term/README.md)
+- [EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml](../../../../EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TimeManager.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TimeManager.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml)
+- [EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag](../../../../EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag)
+- [EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag](../../../../EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag)
+- [EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag](../../../../EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag)
+- [EXAMPLE/cool-retro-term/app/qml/utils.js](../../../../EXAMPLE/cool-retro-term/app/qml/utils.js)
+- [EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png](../../../../EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png)
+- [EXAMPLE/cool-retro-term/app/qml/images/crt256.png](../../../../EXAMPLE/cool-retro-term/app/qml/images/crt256.png)
 
 ### Detailed Session Split Source
 
@@ -132,36 +132,36 @@ full-path `EXAMPLE/` references close to the session executor.
 **EXAMPLE Reference Paths**:
 - Study top-level visual moods and README screenshots/descriptions for
   inspiration only:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/README.md`
+  `EXAMPLE/cool-retro-term/README.md`
 - Study profile names and visual families as a checklist, not literal values:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`
+  `EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`
 - Study application shell, window status, actions, fullscreen, settings,
   copy/paste, zoom, and size overlay concepts:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`
 - Study terminal framing, viewport composition, bloom source placement, and
   source-to-frame hierarchy for Rich layout translation:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml`
 - Study static frame concepts only:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml`
 - Study terminal-size display behavior for compact status readouts:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml`
 - Study timing concepts for elapsed/live display naming:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TimeManager.qml`
 - Study low-fidelity effect categories for Rich separators only:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml`
 - Study shader effect categories only; do not copy shader source, constants, or
   formulas:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag`,
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag`,
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag`
+  `EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag`
 - Study utility color/math categories only; do not copy implementation:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/utils.js`
+  `EXAMPLE/cool-retro-term/app/qml/utils.js`
 - Treat texture/image assets as forbidden source material while using them to
   understand what must not be copied:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png`
+  `EXAMPLE/cool-retro-term/app/qml/images/allNoise512.png`
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/images/crt256.png`
+  `EXAMPLE/cool-retro-term/app/qml/images/crt256.png`
 
 **Acceptance Checks**:
 - Normal interactive output presents a coherent operator-console look.

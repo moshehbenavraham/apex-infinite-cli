@@ -74,20 +74,20 @@ captured-output semantics and history compatibility.
 <!-- FOLDED_SESSION_SOURCE_START -->
 
 This section carries forward the actionable session material formerly stored in
-`docs/ongoing-projects/apex-infinite-cli-upgrade-plan.md`. The Phase 00 PRD
+`.spec_system/archive/phases/phase_00/PRD_phase_00.md`. The Phase 00 PRD
 contains the verbatim archive; this stub keeps the session-specific details and
 full-path `EXAMPLE/` references close to the session executor.
 
 ### EXAMPLE Reference Links
 
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/main.cpp](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/main.cpp)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml)
-- [/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml](/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml)
+- [EXAMPLE/cool-retro-term/app/main.cpp](../../../../EXAMPLE/cool-retro-term/app/main.cpp)
+- [EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml](../../../../EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml)
+- [EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml](../../../../EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml)
+- [EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml](../../../../EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml)
+- [EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml](../../../../EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml)
+- [EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml](../../../../EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml)
+- [EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml](../../../../EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml)
 
 ### Detailed Session Split Source
 
@@ -124,23 +124,23 @@ full-path `EXAMPLE/` references close to the session executor.
 **EXAMPLE Reference Paths**:
 - Study command-line argument handling and process launch concepts for wrapper
   parity only:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/main.cpp`
+  `EXAMPLE/cool-retro-term/app/main.cpp`
 - Study session start/finish, terminal source updates, copy/paste, focus,
   resize, and mouse/wheel event handling as a checklist for subprocess status
   and failure visibility:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml`
+  `EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml`
 - Study tab lifecycle and session-finished handling:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml`
 - Study operator actions and failure-visible window controls:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`
+  `EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`
 - Study terminal-size overlay concepts for narrow history/status displays:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml`
+  `EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml`
 - Study menu placement for copy, paste, settings, profile, fullscreen, zoom,
   and new tab actions:
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml`,
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/menus/FullContextMenu.qml`,
+  `EXAMPLE/cool-retro-term/app/qml/menus/ShortContextMenu.qml`,
   and
-  `/home/aiwithapex/projects/apex-spec-system-open/EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml`
+  `EXAMPLE/cool-retro-term/app/qml/menus/WindowMenu.qml`
 
 **Acceptance Checks**:
 - Operators can tell whether Codex is running and how long it has been running.
