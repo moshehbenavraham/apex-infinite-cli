@@ -71,7 +71,17 @@ Startup and configuration:
 - `codex_flags_check_started`
 - `codex_flags_check_failed`
 - `codex_flags_check_finished`
+- `provider_check_started`
+- `provider_check_failed`
+- `provider_check_finished`
 - `startup`
+
+Provider preflight events are startup lifecycle events. Normal startup emits
+them after project resolution, after Codex flag validation when that non-dry-run
+validation runs, and before the main loop `startup` event. `--check-provider
+--event-stream PATH` emits the same provider lifecycle names and exits before
+project selection or loop startup. Failure paths emit `provider_check_failed`
+followed by the generic `error` event.
 
 Loop lifecycle:
 
@@ -120,6 +130,8 @@ Events report bounded facts, not full terminal output:
 
 - Project path key, provider name, model name, dry-run state, and iteration
   number when relevant.
+- Provider preflight lifecycle facts such as provider name, model name, base
+  URL, completion-check state, model count, and controlled failure message.
 - Prompt and response lengths instead of full prompt or full Codex output.
 - Return code, elapsed seconds, timeout seconds, and output lengths for
   subprocess facts.
@@ -142,6 +154,8 @@ Events do not include:
 {"event":"config_loaded","payload":{"config_path":"config.yaml","model_name":"qwen2.5-coder:7b-instruct-q4_K_M","provider_name":"ollama"},"timestamp":"2026-07-03T00:00:01Z","version":1}
 {"event":"ui_resolved","payload":{"ascii_only":false,"color_enabled":false,"compact":false,"constraint_reason":"non-terminal output","effect_level":"off","plain":true,"requested_theme":"auto","theme_name":"plain"},"timestamp":"2026-07-03T00:00:01Z","version":1}
 {"event":"project_resolved","payload":{"project_path":"/home/user/projects/my-app/"},"timestamp":"2026-07-03T00:00:01Z","version":1}
+{"event":"provider_check_started","payload":{"base_url":"http://localhost:11434/v1","completion_check":false,"model_name":"qwen2.5-coder:7b-instruct-q4_K_M","provider_name":"ollama"},"timestamp":"2026-07-03T00:00:01Z","version":1}
+{"event":"provider_check_finished","payload":{"base_url":"http://localhost:11434/v1","completion_checked":false,"model_count":1,"model_name":"qwen2.5-coder:7b-instruct-q4_K_M","provider_name":"ollama"},"timestamp":"2026-07-03T00:00:01Z","version":1}
 {"event":"startup","payload":{"ceo_present":false,"config_path":"config.yaml","dry_run":true,"event_stream_path":"/tmp/apex-events.jsonl","machine_output":false,"max_iterations":1,"model_name":"qwen2.5-coder:7b-instruct-q4_K_M","project_path":"/home/user/projects/my-app/","provider_name":"ollama","start_command":"implement","theme_name":"plain"},"timestamp":"2026-07-03T00:00:01Z","version":1}
 ```
 

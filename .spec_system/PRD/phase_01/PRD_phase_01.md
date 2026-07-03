@@ -4,7 +4,7 @@
 **Sessions**: 6 (initial estimate)
 **Estimated Duration**: 3-6 days
 
-**Progress**: 1/6 sessions (17%)
+**Progress**: 2/6 sessions (33%)
 
 ---
 
@@ -22,7 +22,7 @@ The full source smoke report is preserved at
 | Session | Name | Status | Est. Tasks | Validated |
 |---------|------|--------|------------|-----------|
 | 01 | Codex Invocation Compatibility | Complete | ~12-25 | 2026-07-03 |
-| 02 | Provider Event Stream Contract | Not Started | ~12-25 | - |
+| 02 | Provider Event Stream Contract | Complete | ~12-25 | 2026-07-03 |
 | 03 | History Path Normalization | Not Started | ~12-25 | - |
 | 04 | Output Observability Polish | Not Started | ~12-25 | - |
 | 05 | Agent Config Semantics | Not Started | ~12-25 | - |
@@ -33,12 +33,12 @@ The full source smoke report is preserved at
 ## Completed Sessions
 
 - 2026-07-03 - Session 01: Codex Invocation Compatibility
+- 2026-07-03 - Session 02: Provider Event Stream Contract
 
 ---
 
 ## Upcoming Sessions
 
-- Session 02: Provider Event Stream Contract
 - Session 03: History Path Normalization
 - Session 04: Output Observability Polish
 - Session 05: Agent Config Semantics

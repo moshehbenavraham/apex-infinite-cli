@@ -28,26 +28,12 @@
     "phase00-session06-linux-wrapper-spike",
     "phase00-session07-linux-visual-wrapper-productization",
     "phase00-session08-release-verification",
-    "phase01-session01-codex-invocation-compatibility"
+    "phase01-session01-codex-invocation-compatibility",
+    "phase01-session02-provider-event-stream-contract"
   ],
   "next_session_history": [
     {
       "date": "2026-07-03",
-      "session": "phase00-session03-subprocess-and-history-visibility",
-      "status": "validated"
-    },
-    {
-      "date": "2026-07-03",
-      "session": "phase00-session03-subprocess-and-history-visibility",
-      "status": "completed"
-    },
-    {
-      "date": "2026-07-03",
-      "session": "phase00-session04-event-stream-boundary",
-      "status": "planned"
-    },
-    {
-      "date": "2026-07-03",
       "session": "phase00-session04-event-stream-boundary",
       "status": "validated"
     },
@@ -129,6 +115,21 @@
     {
       "date": "2026-07-03",
       "session": "phase01-session01-codex-invocation-compatibility",
+      "status": "completed"
+    },
+    {
+      "date": "2026-07-03",
+      "session": "phase01-session02-provider-event-stream-contract",
+      "status": "planned"
+    },
+    {
+      "date": "2026-07-03",
+      "session": "phase01-session02-provider-event-stream-contract",
+      "status": "validated"
+    },
+    {
+      "date": "2026-07-03",
+      "session": "phase01-session02-provider-event-stream-contract",
       "status": "completed"
     }
   ]

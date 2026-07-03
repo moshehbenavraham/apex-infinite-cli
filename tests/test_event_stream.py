@@ -235,6 +235,25 @@ def test_open_event_stream_stdout_uses_provided_stdout(capsys):
     assert rows[0]["payload"] == {"reason": "dry-run"}
 
 
+@pytest.mark.parametrize(
+    "event_name",
+    [
+        "provider_check_started",
+        "provider_check_failed",
+        "provider_check_finished",
+    ],
+)
+def test_event_emitter_accepts_provider_preflight_event_names(event_name):
+    stream = FlushTrackingStream()
+    emitter = EventEmitter(stream)
+
+    emitter.emit(event_name, {"provider_name": "ollama"})
+
+    rows = [json.loads(line) for line in stream.text.splitlines()]
+    assert rows[0]["event"] == event_name
+    assert rows[0]["payload"] == {"provider_name": "ollama"}
+
+
 @pytest.mark.parametrize("event_name", ["", "bad event", "unknown_event"])
 def test_event_emitter_rejects_invalid_event_names(event_name):
     stream = FlushTrackingStream()

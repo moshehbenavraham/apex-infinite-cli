@@ -227,7 +227,6 @@ def test_event_stream_path_writes_startup_events_and_reaches_loop(
         [
             "--start",
             "implement",
-            "--dry-run",
             "--event-stream",
             str(event_path),
         ],
@@ -238,14 +237,32 @@ def test_event_stream_path_writes_startup_events_and_reaches_loop(
     assert captured["machine_output"] is False
     assert captured["notifications_enabled"] is True
     assert captured["path"] == f"{project_path}/"
+    assert captured["codex_flag_checks"][0]["exec_flags"] == SUPPORTED_CODEX_FLAGS
+    assert captured["preflight_calls"] == [False]
     rows = jsonl_rows(event_path.read_text(encoding="ascii"))
-    assert [row["event"] for row in rows[:4]] == [
+    event_names = [row["event"] for row in rows]
+    assert event_names[:4] == [
         "startup_begin",
         "config_loaded",
         "ui_resolved",
         "project_resolved",
     ]
-    assert rows[-1]["event"] == "startup"
+    assert "event_stream_error" not in event_names
+    assert event_names.index("codex_flags_check_started") < event_names.index(
+        "codex_flags_check_finished"
+    )
+    assert event_names.index("codex_flags_check_finished") < event_names.index(
+        "provider_check_started"
+    )
+    assert event_names.index("provider_check_started") < event_names.index(
+        "provider_check_finished"
+    )
+    assert event_names.index("provider_check_finished") < event_names.index("startup")
+    assert (
+        rows[event_names.index("provider_check_finished")]["payload"]["model_count"]
+        == 1
+    )
+    assert event_names[-1] == "startup"
 
 
 def test_event_stream_stdout_requires_machine_output(monkeypatch, tmp_path):
@@ -283,15 +300,26 @@ def test_machine_output_stdout_is_jsonl_only(monkeypatch, tmp_path):
     assert "BOOT" not in result.output
     assert "Apex Infinite Operator Console" not in result.output
     rows = jsonl_rows(result.output)
+    event_names = [row["event"] for row in rows]
     assert rows
     assert all("event" in row and "payload" in row for row in rows)
-    assert [row["event"] for row in rows[:3]] == [
+    assert event_names[:3] == [
         "startup_begin",
         "config_loaded",
         "ui_resolved",
     ]
+    assert "event_stream_error" not in event_names
+    assert event_names.index("provider_check_started") < event_names.index(
+        "provider_check_finished"
+    )
+    assert event_names.index("provider_check_finished") < event_names.index("startup")
+    assert (
+        rows[event_names.index("provider_check_finished")]["payload"]["model_count"]
+        == 1
+    )
     assert captured["machine_output"] is True
     assert captured["notifications_enabled"] is False
+    assert captured["preflight_calls"] == [False]
 
 
 def test_machine_output_startup_error_is_jsonl_only(monkeypatch, tmp_path):
@@ -383,6 +411,59 @@ def test_check_provider_flag_runs_preflight_without_project_path(monkeypatch, tm
         "completion_check": True,
     }
     assert "Provider Preflight" in result.output
+
+
+def test_check_provider_event_stream_writes_valid_provider_events(
+    monkeypatch, tmp_path
+):
+    config_path = write_config(tmp_path)
+    event_path = tmp_path / "provider-events.jsonl"
+
+    def fake_loop(**_kwargs):
+        raise AssertionError("check-provider mode should not start the loop")
+
+    def fake_preflight(config, check_completion=False):
+        provider_name = config["provider"]
+        provider = config["providers"][provider_name]
+        return apex_infinite.ProviderPreflightResult(
+            provider_name=provider_name,
+            base_url=provider["base_url"],
+            model_name=provider["model"],
+            model_count=1,
+            completion_checked=check_completion,
+        )
+
+    monkeypatch.setattr(apex_infinite, "DB_DIR", tmp_path / "db")
+    monkeypatch.setattr(apex_infinite, "DB_PATH", tmp_path / "db" / "history.db")
+    monkeypatch.setattr(apex_infinite, "infinite_loop", fake_loop)
+    monkeypatch.setattr(apex_infinite, "run_provider_preflight", fake_preflight)
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--check-provider",
+            "--event-stream",
+            str(event_path),
+            "--plain",
+        ],
+    )
+
+    assert result.exit_code == 0
+    rows = jsonl_rows(event_path.read_text(encoding="ascii"))
+    event_names = [row["event"] for row in rows]
+    assert event_names == [
+        "startup_begin",
+        "config_loaded",
+        "ui_resolved",
+        "provider_check_started",
+        "provider_check_finished",
+    ]
+    assert "event_stream_error" not in event_names
+    assert "project_resolved" not in event_names
+    assert "startup" not in event_names
+    assert rows[-1]["payload"]["model_count"] == 1
 
 
 def test_startup_provider_preflight_runs_before_loop(monkeypatch, tmp_path):
@@ -573,6 +654,80 @@ def test_provider_preflight_failure_stops_before_loop(monkeypatch, tmp_path):
     assert "local provider is down" in result.output
     assert "path" not in captured
     assert captured["codex_flag_checks"][0]["exec_flags"] == SUPPORTED_CODEX_FLAGS
+
+
+def test_provider_preflight_failure_writes_file_stream_events(monkeypatch, tmp_path):
+    event_path = tmp_path / "provider-failure-events.jsonl"
+    config_path, project_path, captured = prepare_cli(monkeypatch, tmp_path)
+
+    def fail_preflight(_config, check_completion=False):
+        assert check_completion is False
+        raise apex_infinite.CliStartupError("local provider is down")
+
+    monkeypatch.setattr(apex_infinite, "run_provider_preflight", fail_preflight)
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--path",
+            str(project_path),
+            "--event-stream",
+            str(event_path),
+            "--plain",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "local provider is down" in result.output
+    assert "path" not in captured
+    rows = jsonl_rows(event_path.read_text(encoding="ascii"))
+    event_names = [row["event"] for row in rows]
+    assert "event_stream_error" not in event_names
+    assert event_names[-2:] == ["provider_check_failed", "error"]
+    failed_payload = rows[-2]["payload"]
+    assert failed_payload["provider_name"] == "ollama"
+    assert failed_payload["model_name"] == "qwen2.5-coder:7b-instruct-q4_K_M"
+    assert failed_payload["message"] == "local provider is down"
+    assert rows[-1]["payload"] == {
+        "stage": "provider_preflight",
+        "message": "local provider is down",
+    }
+
+
+def test_provider_preflight_failure_machine_output_is_jsonl_only(monkeypatch, tmp_path):
+    config_path, project_path, captured = prepare_cli(monkeypatch, tmp_path)
+
+    def fail_preflight(_config, check_completion=False):
+        assert check_completion is False
+        raise apex_infinite.CliStartupError("local provider is down")
+
+    monkeypatch.setattr(apex_infinite, "run_provider_preflight", fail_preflight)
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--path",
+            str(project_path),
+            "--event-stream",
+            "-",
+            "--machine-output",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "Provider Preflight" not in result.output
+    assert "Apex Infinite Operator Console" not in result.output
+    rows = jsonl_rows(result.output)
+    event_names = [row["event"] for row in rows]
+    assert "event_stream_error" not in event_names
+    assert event_names[-2:] == ["provider_check_failed", "error"]
+    assert rows[-2]["payload"]["message"] == "local provider is down"
+    assert rows[-1]["payload"]["stage"] == "provider_preflight"
+    assert "path" not in captured
 
 
 def test_check_provider_conflicts_with_skip_provider_check(monkeypatch, tmp_path):
