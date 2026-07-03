@@ -129,10 +129,36 @@ providers:
 ```
 
 Provider values use `${ENV_VAR}` syntax, expanded at runtime. Ollama defaults
-to `localhost`, port `11434`, API key `ollama`, and model `qwen2.5:7b` when
-those env vars are not set. The `codex` section controls the agent binary and
-execution flags -- customize `binary` if codex is not on your PATH, and adjust
-`exec_flags` or `model_reasoning_effort` as needed.
+to `localhost`, port `11434`, API key `ollama`, and model
+`qwen2.5-coder:7b-instruct-q4_K_M` when those env vars are not set. The
+`codex` section controls the agent binary and execution flags -- customize
+`binary` if codex is not on your PATH, and adjust `exec_flags` or
+`model_reasoning_effort` as needed.
+
+### Local Ollama Docker
+
+The project includes a Docker Compose setup for local Ollama. It reads
+`.env.example` first, then `.env` if present, so `OLLAMA_PORT` and
+`OLLAMA_MODEL` drive both the container endpoint and model pull.
+
+```bash
+cp .env.example .env
+./scripts/deploy-ollama.sh
+./scripts/check-ollama.sh --chat
+```
+
+`scripts/deploy-ollama.sh` starts `ollama/ollama`, auto-enables NVIDIA Docker
+GPU support when available, waits for the API, and pulls the configured
+`OLLAMA_MODEL`. Useful subcommands:
+
+```bash
+./scripts/deploy-ollama.sh status
+./scripts/deploy-ollama.sh pull --model qwen2.5-coder:7b-instruct-q4_K_M
+./scripts/deploy-ollama.sh down
+```
+
+Model data is stored in the named Docker volume from `OLLAMA_DOCKER_VOLUME`
+and is preserved by `down`.
 
 Before real runs, review the target `--path`, provider, model, Codex binary,
 and `codex.exec_flags`. Startup runs a provider preflight before the loop:
@@ -249,6 +275,7 @@ apex-infinite --history --verbose
 apex-infinite --path ~/projects/my-app/ --provider ollama --model "qwen2.5:72b"
 
 # Check provider connectivity and model availability
+./scripts/deploy-ollama.sh
 apex-infinite --provider ollama --check-provider
 apex-infinite --provider ollama --check-provider --check-provider-chat
 ./scripts/check-ollama.sh --chat
@@ -439,7 +466,7 @@ Click option wiring, renderer semantics, and SQLite history safety.
 - **Nesting**: The CLI launches `codex exec` subprocesses. Codex CLI does not require special environment variable handling for nested invocations.
 - **Slash tolerance**: The manager LLM sometimes outputs `/plansession` instead of `plansession`. The CLI strips leading slashes before routing.
 - **LLM retries**: Both LLM calls (summarizer and manager) retry 3 times with a 5-second wait between attempts, matching the original n8n workflow's `retryOnFail` + `waitBetweenTries: 5000`.
-- **Provider preflight**: Normal runs check provider connectivity and model availability before the loop starts. Set `APEX_INFINITE_PROVIDER_CHECK_TIMEOUT` to tune the timeout, and set `APEX_INFINITE_LIVE_OLLAMA=1` to include the opt-in live Ollama pytest.
+- **Provider preflight**: Normal runs check provider connectivity and model availability before the loop starts. Set `APEX_INFINITE_PROVIDER_CHECK_TIMEOUT` to tune the timeout, use `scripts/deploy-ollama.sh` to start and populate local Ollama, and set `APEX_INFINITE_LIVE_OLLAMA=1` to include the opt-in live Ollama pytest.
 - **Reference workflow**: The original n8n workflow JSON is preserved in `n8n-workflow/` for reference.
 - **DB column naming**: The SQLite `cc_response` column name is preserved for backward compatibility with existing databases. Python variable names use `agent_response` but the DB schema was not migrated to avoid breaking existing history.
 

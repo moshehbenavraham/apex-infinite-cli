@@ -136,10 +136,10 @@ Events do not include:
 
 ```jsonl
 {"event":"startup_begin","payload":{"dry_run":true,"event_stream":true,"machine_output":false,"max_iterations":1},"timestamp":"2026-07-03T00:00:00Z","version":1}
-{"event":"config_loaded","payload":{"config_path":"config.yaml","model_name":"qwen2.5:7b","provider_name":"ollama"},"timestamp":"2026-07-03T00:00:01Z","version":1}
+{"event":"config_loaded","payload":{"config_path":"config.yaml","model_name":"qwen2.5-coder:7b-instruct-q4_K_M","provider_name":"ollama"},"timestamp":"2026-07-03T00:00:01Z","version":1}
 {"event":"ui_resolved","payload":{"ascii_only":false,"color_enabled":false,"compact":false,"constraint_reason":"non-terminal output","effect_level":"off","plain":true,"requested_theme":"auto","theme_name":"plain"},"timestamp":"2026-07-03T00:00:01Z","version":1}
 {"event":"project_resolved","payload":{"project_path":"/home/user/projects/my-app/"},"timestamp":"2026-07-03T00:00:01Z","version":1}
-{"event":"startup","payload":{"ceo_present":false,"config_path":"config.yaml","dry_run":true,"event_stream_path":"/tmp/apex-events.jsonl","machine_output":false,"max_iterations":1,"model_name":"qwen2.5:7b","project_path":"/home/user/projects/my-app/","provider_name":"ollama","start_command":"implement","theme_name":"plain"},"timestamp":"2026-07-03T00:00:01Z","version":1}
+{"event":"startup","payload":{"ceo_present":false,"config_path":"config.yaml","dry_run":true,"event_stream_path":"/tmp/apex-events.jsonl","machine_output":false,"max_iterations":1,"model_name":"qwen2.5-coder:7b-instruct-q4_K_M","project_path":"/home/user/projects/my-app/","provider_name":"ollama","start_command":"implement","theme_name":"plain"},"timestamp":"2026-07-03T00:00:01Z","version":1}
 ```
 
 See

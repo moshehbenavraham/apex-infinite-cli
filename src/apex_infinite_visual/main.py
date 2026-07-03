@@ -683,7 +683,7 @@ def build_fixture_event_lines(
             {
                 "config_path": "config.yaml",
                 "provider_name": "ollama",
-                "model_name": "qwen2.5:7b",
+                "model_name": "qwen2.5-coder:7b-instruct-q4_K_M",
             },
         ),
         ("project_resolved", {"project_path": str(Path(project_path).expanduser())}),
@@ -692,7 +692,7 @@ def build_fixture_event_lines(
             {
                 "project_path": str(Path(project_path).expanduser()),
                 "provider_name": "ollama",
-                "model_name": "qwen2.5:7b",
+                "model_name": "qwen2.5-coder:7b-instruct-q4_K_M",
                 "max_iterations": max_iterations,
                 "dry_run": True,
                 "start_command": start_command,
@@ -704,7 +704,7 @@ def build_fixture_event_lines(
             {
                 "project_path": str(Path(project_path).expanduser()),
                 "provider_name": "ollama",
-                "model_name": "qwen2.5:7b",
+                "model_name": "qwen2.5-coder:7b-instruct-q4_K_M",
                 "iteration": 1,
                 "operation": "dry-run preview",
                 "dry_run": True,

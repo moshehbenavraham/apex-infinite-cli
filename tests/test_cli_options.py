@@ -25,7 +25,7 @@ providers:
   ollama:
     base_url: "http://localhost:11434/v1"
     api_key: "ollama"
-    model: "qwen2.5:7b"
+    model: "qwen2.5-coder:7b-instruct-q4_K_M"
 """
 
 OLLAMA_ENV_CONFIG_TEXT = """provider: ollama
@@ -122,7 +122,7 @@ def test_load_config_uses_ollama_env_defaults(monkeypatch, tmp_path):
 
     assert provider["base_url"] == "http://localhost:11434/v1"
     assert provider["api_key"] == "ollama"
-    assert provider["model"] == "qwen2.5:7b"
+    assert provider["model"] == "qwen2.5-coder:7b-instruct-q4_K_M"
 
 
 def test_load_config_reads_ollama_env_file(monkeypatch, tmp_path):
@@ -364,7 +364,7 @@ def test_check_provider_flag_runs_preflight_without_project_path(monkeypatch, tm
     assert result.exit_code == 0
     assert captured == {
         "provider_name": "ollama",
-        "model_name": "qwen2.5:7b",
+        "model_name": "qwen2.5-coder:7b-instruct-q4_K_M",
         "completion_check": True,
     }
     assert "Provider Preflight" in result.output
@@ -544,7 +544,7 @@ def test_infinite_loop_passes_operator_context_to_renderer(monkeypatch):
             "ollama": {
                 "base_url": "http://localhost:11434/v1",
                 "api_key": "ollama",
-                "model": "qwen2.5:7b",
+                "model": "qwen2.5-coder:7b-instruct-q4_K_M",
             }
         },
     }
@@ -602,7 +602,7 @@ def test_infinite_loop_passes_operator_context_to_renderer(monkeypatch):
     iteration = captured["iterations"][0]
     assert iteration.project_path == "/tmp/project/"
     assert iteration.provider_name == "ollama"
-    assert iteration.model_name == "qwen2.5:7b"
+    assert iteration.model_name == "qwen2.5-coder:7b-instruct-q4_K_M"
     assert iteration.iteration == 1
     assert iteration.operation == "history summary"
     assert iteration.dry_run is True

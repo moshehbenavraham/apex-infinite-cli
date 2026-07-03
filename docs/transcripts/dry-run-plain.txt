@@ -7,7 +7,7 @@ $ apex-infinite --path /home/user/projects/my-app/ --start implement --dry-run -
 BOOT Apex Infinite Operator Console
 Project: /home/user/projects/my-app/
 Provider: ollama
-Model: qwen2.5:7b
+Model: qwen2.5-coder:7b-instruct-q4_K_M
 Config: config.yaml
 Max iterations: 1
 Theme: plain requested=auto
@@ -20,7 +20,7 @@ ITERATION Iteration Frame
 Iteration: 1
 Operation: history summary
 Provider: ollama
-Model: qwen2.5:7b
+Model: qwen2.5-coder:7b-instruct-q4_K_M
 Project: /home/user/projects/my-app/
 Dry run: enabled
 

@@ -7,7 +7,7 @@ import pytest
 import apex_infinite.cli as apex_infinite
 
 
-def make_config(model="qwen2.5:7b"):
+def make_config(model="qwen2.5-coder:7b-instruct-q4_K_M"):
     """Return a minimal runtime config for provider preflight tests."""
     return {
         "provider": "ollama",
@@ -43,14 +43,14 @@ class FakeOpenAIClient:
 
 
 def test_run_provider_preflight_accepts_available_model(monkeypatch):
-    fake_client = FakeOpenAIClient(["qwen2.5:7b", "llama3.1:8b"])
+    fake_client = FakeOpenAIClient(["qwen2.5-coder:7b-instruct-q4_K_M", "llama3.1:8b"])
 
     monkeypatch.setattr(apex_infinite, "OpenAI", lambda **_kwargs: fake_client)
 
     result = apex_infinite.run_provider_preflight(make_config())
 
     assert result.provider_name == "ollama"
-    assert result.model_name == "qwen2.5:7b"
+    assert result.model_name == "qwen2.5-coder:7b-instruct-q4_K_M"
     assert result.model_count == 2
     assert result.completion_checked is False
     assert fake_client.chat_calls == []
@@ -77,7 +77,7 @@ def test_run_provider_preflight_rejects_missing_model(monkeypatch):
 
 
 def test_run_provider_preflight_checks_chat_when_requested(monkeypatch):
-    fake_client = FakeOpenAIClient(["qwen2.5:7b"])
+    fake_client = FakeOpenAIClient(["qwen2.5-coder:7b-instruct-q4_K_M"])
 
     monkeypatch.setattr(apex_infinite, "OpenAI", lambda **_kwargs: fake_client)
 
@@ -89,7 +89,7 @@ def test_run_provider_preflight_checks_chat_when_requested(monkeypatch):
     assert result.completion_checked is True
     assert fake_client.chat_calls == [
         {
-            "model": "qwen2.5:7b",
+            "model": "qwen2.5-coder:7b-instruct-q4_K_M",
             "messages": [{"role": "user", "content": "Reply with ok."}],
             "max_tokens": 8,
             "temperature": 0,

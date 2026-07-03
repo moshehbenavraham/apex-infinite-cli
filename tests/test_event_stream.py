@@ -32,7 +32,7 @@ providers:
   ollama:
     base_url: "http://localhost:11434/v1"
     api_key: "ollama"
-    model: "qwen2.5:7b"
+    model: "qwen2.5-coder:7b-instruct-q4_K_M"
 """
 
 
@@ -167,7 +167,7 @@ def make_loop_config():
             "ollama": {
                 "base_url": "http://localhost:11434/v1",
                 "api_key": "ollama",
-                "model": "qwen2.5:7b",
+                "model": "qwen2.5-coder:7b-instruct-q4_K_M",
             }
         },
     }

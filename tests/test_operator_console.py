@@ -81,7 +81,7 @@ def test_operator_console_sections_and_critical_states_at_supported_widths(
         StartupSnapshot(
             project_path="/tmp/project/",
             provider_name="ollama",
-            model_name="qwen2.5:7b",
+            model_name="qwen2.5-coder:7b-instruct-q4_K_M",
             config_path="config.yaml",
             max_iterations=5,
             theme_name="crt-green",
@@ -95,7 +95,7 @@ def test_operator_console_sections_and_critical_states_at_supported_widths(
         IterationSnapshot(
             project_path="/tmp/project/",
             provider_name="ollama",
-            model_name="qwen2.5:7b",
+            model_name="qwen2.5-coder:7b-instruct-q4_K_M",
             iteration=3,
             operation="codex execution",
             dry_run=True,
@@ -137,7 +137,7 @@ def test_operator_console_sections_and_critical_states_at_supported_widths(
         "BOOT Apex Infinite Operator Console",
         "ITERATION Iteration Frame",
         "Provider",
-        "qwen2.5:7b",
+        "qwen2.5-coder:7b-instruct-q4_K_M",
         "Elapsed",
         "Dry run",
         "DECISION Manager Decision",
@@ -171,7 +171,7 @@ def test_operator_console_fallback_modes_keep_labels_and_separator_rules(
         IterationSnapshot(
             project_path="/tmp/project/",
             provider_name="ollama",
-            model_name="qwen2.5:7b",
+            model_name="qwen2.5-coder:7b-instruct-q4_K_M",
             iteration=1,
             operation="history summary",
             dry_run=False,

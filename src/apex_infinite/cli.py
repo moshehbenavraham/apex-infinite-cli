@@ -671,7 +671,7 @@ def _provider_env_defaults(provider_name):
         "OLLAMA_HOST": "localhost",
         "OLLAMA_PORT": "11434",
         "OLLAMA_API_KEY": "ollama",
-        "OLLAMA_MODEL": "qwen2.5:7b",
+        "OLLAMA_MODEL": "qwen2.5-coder:7b-instruct-q4_K_M",
     }
 
 
@@ -2049,7 +2049,7 @@ def infinite_loop(  # pylint: disable=too-many-positional-arguments,too-many-arg
     is_flag=True,
     help="Disable human output and reserve stdout for event JSONL.",
 )
-@click.version_option(version="2.0.1", prog_name="apex-infinite")
+@click.version_option(version="2.0.2", prog_name="apex-infinite")
 def main(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches,too-many-statements
     project_path,
     start,

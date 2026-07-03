@@ -68,7 +68,7 @@ def test_renderer_outputs_semantic_sections_at_supported_widths(width):
         StartupSnapshot(
             project_path="/tmp/project/",
             provider_name="ollama",
-            model_name="qwen2.5:7b",
+            model_name="qwen2.5-coder:7b-instruct-q4_K_M",
             config_path="config.yaml",
             max_iterations=5,
             theme_name="crt-green",
@@ -157,7 +157,7 @@ def test_ascii_only_renderer_keeps_styled_layout_with_ascii_glyphs():
         StartupSnapshot(
             project_path="/tmp/project/",
             provider_name="ollama",
-            model_name="qwen2.5:7b",
+            model_name="qwen2.5-coder:7b-instruct-q4_K_M",
             config_path="config.yaml",
             max_iterations=5,
             theme_name="crt-green",
@@ -194,7 +194,7 @@ def test_no_human_output_renderer_suppresses_all_output(capsys):
         StartupSnapshot(
             project_path="/tmp/project/",
             provider_name="ollama",
-            model_name="qwen2.5:7b",
+            model_name="qwen2.5-coder:7b-instruct-q4_K_M",
             config_path="config.yaml",
             max_iterations=5,
             theme_name="plain",
