@@ -108,7 +108,7 @@ provider: grok  # ollama | grok | openai
 # Codex CLI agent configuration
 codex:
   binary: "codex"                        # Path to codex binary
-  exec_flags: "--dangerously-auto-approve"  # Flags passed to codex exec
+  exec_flags: "--dangerously-bypass-approvals-and-sandbox"
   model_reasoning_effort: "high"         # Reasoning effort level
 
 providers:
@@ -133,7 +133,9 @@ to `localhost`, port `11434`, API key `ollama`, and model
 `qwen2.5-coder:7b-instruct-q4_K_M` when those env vars are not set. The
 `codex` section controls the agent binary and execution flags -- customize
 `binary` if codex is not on your PATH, and adjust `exec_flags` or
-`model_reasoning_effort` as needed.
+`model_reasoning_effort` as needed. The packaged `exec_flags` value is the
+current Codex CLI broad-autonomy flag; it bypasses approvals and sandboxing, so
+use it only in an externally controlled workspace.
 
 ### Local Ollama Docker
 
@@ -177,13 +179,15 @@ Docker image pull output, and tune `OLLAMA_CHAT_CHECK_TIMEOUT` if a cold local
 model load needs more time.
 
 Before real runs, review the target `--path`, provider, model, Codex binary,
-and `codex.exec_flags`. Startup runs a provider preflight before the loop:
-the CLI lists provider models and fails fast when the configured model is not
-available. Use `--check-provider` to run only that preflight, add
-`--check-provider-chat` for a tiny chat completion, or pass
-`--skip-provider-check` only for deliberate offline wiring checks. The sample
-config uses broad autonomous Codex approval flags for unattended operation; use
-`--dry-run` first when validating a new project.
+and `codex.exec_flags`. Run `--dry-run` first when validating a new project or
+changing autonomy flags; dry-run prints the `codex exec` command without
+launching Codex. Non-dry-run startup checks configured `codex.exec_flags`
+against local `codex exec --help` before the loop and fails fast if a stale flag
+is rejected. Startup also runs a provider preflight before the loop: the CLI
+lists provider models and fails fast when the configured model is not available.
+Use `--check-provider` to run only that preflight, add `--check-provider-chat`
+for a tiny chat completion, or pass `--skip-provider-check` only for deliberate
+offline wiring checks.
 
 ### Display Settings
 

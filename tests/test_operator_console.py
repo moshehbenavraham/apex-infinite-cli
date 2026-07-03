@@ -16,6 +16,7 @@ from apex_infinite.ui import (
 )
 
 SUPPORTED_WIDTHS = (80, 100, 120)
+SUPPORTED_CODEX_FLAGS = "--dangerously-bypass-approvals-and-sandbox"
 
 FALLBACK_CASES = (
     ("styled", UiCliOverrides(), {}, True),
@@ -123,7 +124,7 @@ def test_operator_console_sections_and_critical_states_at_supported_widths(
             state,
             CodexCommandSnapshot(
                 binary="codex",
-                exec_flags="--dangerously-auto-approve",
+                exec_flags=SUPPORTED_CODEX_FLAGS,
                 prompt="Run the apex-spec skill command /implement",
                 project_path="/tmp/project/",
                 timeout=1800,
@@ -182,7 +183,7 @@ def test_operator_console_fallback_modes_keep_labels_and_separator_rules(
         "timeout",
         CodexCommandSnapshot(
             binary="codex",
-            exec_flags="--dangerously-auto-approve",
+            exec_flags=SUPPORTED_CODEX_FLAGS,
             prompt="Run the apex-spec skill command /implement",
             project_path="/tmp/project/",
             timeout=1800,

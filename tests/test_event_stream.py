@@ -18,7 +18,7 @@ from apex_infinite.ui import NoHumanOutputRenderer
 CONFIG_TEXT = """provider: ollama
 codex:
   binary: "codex"
-  exec_flags: "--dangerously-auto-approve"
+  exec_flags: "{supported_codex_flags}"
   model_reasoning_effort: "high"
 ui:
   theme: "auto"
@@ -33,7 +33,7 @@ providers:
     base_url: "http://localhost:11434/v1"
     api_key: "ollama"
     model: "qwen2.5-coder:7b-instruct-q4_K_M"
-"""
+""".replace("{supported_codex_flags}", apex_infinite.DEFAULT_CODEX_EXEC_FLAGS)
 
 
 @dataclass

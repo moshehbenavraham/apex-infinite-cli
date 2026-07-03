@@ -85,7 +85,7 @@ def test_renderer_outputs_semantic_sections_at_supported_widths(width):
         "dry-run",
         CodexCommandSnapshot(
             binary="codex",
-            exec_flags="--dangerously-auto-approve",
+            exec_flags=apex_infinite.DEFAULT_CODEX_EXEC_FLAGS,
             prompt="Run the apex-spec skill command /implement",
             project_path="/tmp/project/",
             timeout=1800,
@@ -209,7 +209,7 @@ def test_no_human_output_renderer_suppresses_all_output(capsys):
         "dry-run",
         CodexCommandSnapshot(
             binary="codex",
-            exec_flags="--dangerously-auto-approve",
+            exec_flags=apex_infinite.DEFAULT_CODEX_EXEC_FLAGS,
             prompt="prompt",
             project_path="/tmp/project/",
             timeout=1800,

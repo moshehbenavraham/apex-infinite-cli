@@ -4,7 +4,7 @@ provider: ollama
 # Codex CLI agent configuration
 codex:
   binary: "codex"
-  exec_flags: "--dangerously-auto-approve"
+  exec_flags: "--dangerously-bypass-approvals-and-sandbox"
   model_reasoning_effort: "xhigh"
 
 # Operator display configuration

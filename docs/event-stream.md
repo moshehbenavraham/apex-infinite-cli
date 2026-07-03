@@ -68,6 +68,9 @@ Startup and configuration:
 - `config_loaded`
 - `ui_resolved`
 - `project_resolved`
+- `codex_flags_check_started`
+- `codex_flags_check_failed`
+- `codex_flags_check_finished`
 - `startup`
 
 Loop lifecycle:

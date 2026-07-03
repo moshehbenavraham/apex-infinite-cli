@@ -119,6 +119,7 @@ This system delivers the product via phases. Each phase is implemented via multi
 | Phase | Name | Sessions | Status |
 |-------|------|----------|--------|
 | 00 | Apex Infinite CLI Upgrade | 8 | Complete |
+| 01 | Smoke Remediation And Release Hardening | 6 | In Progress |
 
 ## Phase 00: Apex Infinite CLI Upgrade
 
@@ -145,6 +146,36 @@ Completed session stubs are archived under `.spec_system/archive/phases/phase_00
 | 06 | Linux Wrapper Spike | Linux visual wrapper spike |
 | 07 | Linux Visual Wrapper Productization | Linux visual wrapper productization |
 | 08 | Release Verification | Release verification |
+
+## Phase 01: Smoke Remediation And Release Hardening
+
+### Source
+
+Phase 01 is generated from the archived smoke report at
+`.spec_system/PRD/phase_01/platform_smoke_run_report_2026_07_03.md`, which
+records the 2026-07-03 platform smoke results and the follow-up session split.
+
+### Objectives
+
+1. Restore compatible default Codex subprocess invocation for non-dry-run operation.
+2. Make provider preflight lifecycle events valid for event-stream consumers.
+3. Normalize history lookup paths before querying SQLite history.
+4. Polish plain output labels and response summary preview behavior.
+5. Align agent configuration parsing and reasoning-effort documentation with actual subprocess behavior.
+6. Add local smoke environment guidance and rerun release verification.
+
+### Sessions
+
+Active session stubs are under `.spec_system/PRD/phase_01/`.
+
+| Session | Name | Source Theme |
+|---------|------|--------------|
+| 01 | Codex Invocation Compatibility | Codex CLI flag compatibility |
+| 02 | Provider Event Stream Contract | Provider event schema |
+| 03 | History Path Normalization | SQLite history lookup |
+| 04 | Output Observability Polish | Plain output and event previews |
+| 05 | Agent Config Semantics | Codex config parsing |
+| 06 | Documentation And Release Verification | Smoke docs and final verification |
 
 ## Technical Stack
 

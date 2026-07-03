@@ -17,16 +17,22 @@ It assumes the CLI, config, and Codex skill are already installed.
 
 Before the first run:
 
-1. Confirm `src/apex_infinite/config.yaml` or your `--config` file points at the intended provider and model.
-2. Confirm the `codex.exec_flags` value matches the autonomy level you want.
-3. Run `apex-infinite --check-provider` or
+1. Confirm the target `--path` is the project you want Codex to modify.
+2. Confirm `src/apex_infinite/config.yaml` or your `--config` file points at
+   the intended provider and model.
+3. Confirm `codex.binary` resolves to the intended Codex CLI executable.
+4. Confirm `codex.exec_flags` matches the autonomy level you want. The
+   packaged default is `--dangerously-bypass-approvals-and-sandbox`, which
+   bypasses approvals and sandboxing and should be used only in an externally
+   controlled workspace.
+5. Run `apex-infinite --check-provider` or
    `scripts/check-ollama.sh --chat` for local Ollama.
-4. Verify the target project already has the Apex Spec skill available if the
+6. Verify the target project already has the Apex Spec skill available if the
    run depends on `apex-spec` workflow commands.
-5. Decide whether you want a forced starting command with `--start` or manager
+7. Decide whether you want a forced starting command with `--start` or manager
    auto-selection from the first iteration.
-6. Decide whether you want the first instruction seeded with `--ceo`.
-7. Decide which display mode fits the terminal: styled interactive output,
+8. Decide whether you want the first instruction seeded with `--ceo`.
+9. Decide which display mode fits the terminal: styled interactive output,
    plain logs, ASCII-safe output, compact output, or machine-output JSONL.
 
 ## Common Run Modes
@@ -72,6 +78,10 @@ apex-infinite --path ~/projects/my-app/ --start plansession --dry-run
 
 Use this before changing providers, models, or Codex flags. It exercises the
 manager loop and prints the exact `codex exec` command without launching Codex.
+For non-dry-run starts, the CLI checks configured `codex.exec_flags` against
+local `codex exec --help` after resolving the project path and before the
+autonomous loop begins. If a flag is stale, update the config or keep using
+dry-run until the command matches local Codex help.
 
 ### Styled interactive terminal
 

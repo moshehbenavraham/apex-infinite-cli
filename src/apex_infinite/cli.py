@@ -73,9 +73,11 @@ COMMAND_ALIASES: dict[str, str] = {}
 COMMAND_TIMEOUT = 1800  # 30 minutes
 PROCESS_CLEANUP_TIMEOUT = 5
 DEFAULT_MAX_ITERATIONS = 50
+DEFAULT_CODEX_EXEC_FLAGS = "--dangerously-bypass-approvals-and-sandbox"
 LLM_RETRY_COUNT = 3
 LLM_RETRY_WAIT = 5  # seconds (matches n8n waitBetweenTries: 5000)
 PROVIDER_PREFLIGHT_TIMEOUT = 10
+CODEX_HELP_TIMEOUT = 10
 
 console = Console()
 _ACTIVE_RENDERER = None
@@ -913,11 +915,129 @@ def get_agent_config(config):
     """Read codex agent settings from config. Returns dict with binary, exec_flags, model_reasoning_effort."""
     defaults = {
         "binary": "codex",
-        "exec_flags": "--dangerously-auto-approve",
+        "exec_flags": DEFAULT_CODEX_EXEC_FLAGS,
         "model_reasoning_effort": "high",
     }
     codex_cfg = config.get("codex", {}) or {}
     return {k: codex_cfg.get(k, v) for k, v in defaults.items()}
+
+
+def get_codex_exec_flag_tokens(agent_cfg):
+    """Return current-behavior Codex exec flag tokens from agent config."""
+    exec_flags = agent_cfg.get("exec_flags") or ""
+    return tuple(str(exec_flags).split())
+
+
+def validate_codex_exec_flags(agent_cfg):
+    """Verify configured Codex exec flags against non-mutating help output."""
+    binary = agent_cfg.get("binary") or "codex"
+    flag_tokens = get_codex_exec_flag_tokens(agent_cfg)
+    configured_flags = tuple(
+        token.split("=", 1)[0] for token in flag_tokens if token.startswith("-")
+    )
+    if not configured_flags:
+        return
+
+    try:
+        result = subprocess.run(
+            [binary, "exec", "--help"],
+            capture_output=True,
+            text=True,
+            timeout=CODEX_HELP_TIMEOUT,
+            check=False,
+        )
+    except FileNotFoundError as exc:
+        raise CliStartupError(
+            "Codex CLI binary not found while checking codex.exec_flags: " f"{binary}"
+        ) from exc
+    except subprocess.TimeoutExpired as exc:
+        raise CliStartupError(
+            "Timed out while checking codex.exec_flags with "
+            f"`{binary} exec --help` after {CODEX_HELP_TIMEOUT}s."
+        ) from exc
+    except OSError as exc:
+        raise CliStartupError(
+            "Could not inspect Codex CLI flags with "
+            f"`{binary} exec --help` ({exc.__class__.__name__}: {exc})."
+        ) from exc
+
+    help_text = "\n".join((result.stdout or "", result.stderr or ""))
+    if result.returncode != 0:
+        raise CliStartupError(
+            "Could not inspect Codex CLI flags with "
+            f"`{binary} exec --help`; command exited with code {result.returncode}."
+        )
+
+    supported_flags = _extract_codex_help_flags(help_text)
+    rejected_flags = sorted(set(configured_flags) - supported_flags)
+    if rejected_flags:
+        rejected = ", ".join(rejected_flags)
+        raise CliStartupError(
+            "Configured codex.exec_flags are not supported by local "
+            f"`{binary} exec --help`: {rejected}. Update codex.exec_flags "
+            "or run with --dry-run to inspect the configured command."
+        )
+
+
+def _extract_codex_help_flags(help_text):
+    """Extract short and long option names advertised by Codex help output."""
+    long_flags = set(re.findall(r"(?<![\w-])--[A-Za-z0-9][A-Za-z0-9-]*", help_text))
+    short_flags = set(re.findall(r"(?<!\S)-[A-Za-z](?![\w-])", help_text))
+    return long_flags | short_flags
+
+
+def _validate_codex_exec_flags_or_exit(
+    config,
+    renderer=None,
+    event_emitter=None,
+    machine_output=False,
+):
+    """Run startup Codex flag validation and report errors consistently."""
+    agent_cfg = get_agent_config(config)
+    binary = agent_cfg.get("binary") or "codex"
+    flag_count = len(get_codex_exec_flag_tokens(agent_cfg))
+    _emit_event(
+        event_emitter,
+        "codex_flags_check_started",
+        {"binary": binary, "flag_count": flag_count},
+        renderer=renderer,
+        machine_output=machine_output,
+    )
+    if renderer:
+        renderer.print_status(
+            f"Checking {binary} exec flags against local help output.",
+            "Codex Flags",
+        )
+    try:
+        validate_codex_exec_flags(agent_cfg)
+    except CliStartupError as exc:
+        _emit_event(
+            event_emitter,
+            "codex_flags_check_failed",
+            {"binary": binary, "flag_count": flag_count, "message": str(exc)},
+            renderer=renderer,
+            machine_output=machine_output,
+        )
+        _exit_with_startup_error(
+            str(exc),
+            event_emitter=event_emitter,
+            machine_output=machine_output,
+            renderer=renderer,
+            title="Codex Flags",
+        )
+
+    _emit_event(
+        event_emitter,
+        "codex_flags_check_finished",
+        {"binary": binary, "flag_count": flag_count},
+        renderer=renderer,
+        machine_output=machine_output,
+    )
+    if renderer:
+        renderer.print_status(
+            "Codex exec flags accepted by local help output.",
+            "Codex Flags",
+        )
 
 
 def build_iteration_snapshot(  # pylint: disable=too-many-arguments,too-many-positional-arguments
@@ -2321,6 +2441,14 @@ def _run_main(  # pylint: disable=too-many-arguments,too-many-positional-argumen
         renderer=renderer,
         machine_output=machine_output,
     )
+
+    if not dry_run:
+        _validate_codex_exec_flags_or_exit(
+            config,
+            renderer=renderer,
+            event_emitter=event_emitter,
+            machine_output=machine_output,
+        )
 
     if not skip_provider_check:
         _run_provider_preflight_or_exit(

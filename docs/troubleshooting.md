@@ -24,6 +24,7 @@ Start here before deeper debugging:
 | `configured model '...' is not available` | The selected model is not installed or not exposed by the provider | Pull/install the model or change `OLLAMA_MODEL`/`--model` |
 | `Invalid selection.` | Interactive project number was out of range | Re-run and choose a valid entry |
 | `[ERROR] 'codex' command not found. Is Codex CLI installed?` | Codex CLI is missing or not on `PATH` | Install Codex or set `codex.binary` in `config.yaml` |
+| `Configured codex.exec_flags are not supported by local ...` | A configured Codex flag is stale or not accepted by this Codex CLI version | Run `codex exec --help`, update `codex.exec_flags`, then retry; use `--dry-run` to inspect the command without launching Codex |
 | `[TIMEOUT] Codex command timed out after 1800s` | The underlying Codex step ran too long | Narrow the task, inspect the project state, or re-run with clearer CEO guidance |
 | `LLM call failed after 3 attempts` | Provider outage, bad API key, wrong base URL, or bad model name | Check `.env`, `config.yaml`, connectivity, and provider status |
 | `Could not parse LLM response as JSON, using raw output` | Manager returned malformed JSON | Review the raw output in history and decide whether the manager prompt needs tightening |
@@ -88,6 +89,24 @@ What to do:
 3. Review the recent history summary inputs if the run has drifted.
 
 ## Codex Execution Issues
+
+### Codex exec flags are rejected before startup
+
+Cause:
+
+- non-dry-run startup checks `codex.exec_flags` against local
+  `codex exec --help`
+- the installed Codex CLI does not list one of the configured flags
+
+What to do:
+
+1. Run `codex exec --help` and compare the configured flags.
+2. Replace stale flags in `config.yaml`; the packaged default is
+   `--dangerously-bypass-approvals-and-sandbox`.
+3. Run `apex-infinite --path <project> --dry-run` to inspect the command
+   without launching Codex.
+4. Retry without `--dry-run` only after reviewing the target path, provider,
+   model, binary, and flags.
 
 ### Codex exits non-zero
 

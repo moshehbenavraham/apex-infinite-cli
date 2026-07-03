@@ -41,7 +41,7 @@ DRY RUN Codex Execution
 State: No Codex subprocess launched
 Binary: codex
 Project: /home/user/projects/my-app/
-Flags: --dangerously-auto-approve
+Flags: --dangerously-bypass-approvals-and-sandbox
 Timeout: 1800s
 Prompt: Run the apex-spec skill command /implement
 

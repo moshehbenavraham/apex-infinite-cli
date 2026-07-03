@@ -9,7 +9,7 @@ import apex_infinite.cli as apex_infinite
 
 AGENT_CFG = {
     "binary": "codex",
-    "exec_flags": "--dangerously-auto-approve",
+    "exec_flags": apex_infinite.DEFAULT_CODEX_EXEC_FLAGS,
     "model_reasoning_effort": "high",
 }
 
@@ -113,6 +113,95 @@ def set_process_error(monkeypatch, error):
     return captured
 
 
+def test_get_agent_config_uses_supported_default_flag_when_config_omits_codex():
+    config = {
+        "provider": "ollama",
+        "providers": {"ollama": {"model": "test-model"}},
+    }
+
+    assert (
+        apex_infinite.get_agent_config(config)["exec_flags"]
+        == apex_infinite.DEFAULT_CODEX_EXEC_FLAGS
+    )
+
+
+def test_validate_codex_exec_flags_accepts_supported_help_flags(monkeypatch):
+    captured = {}
+
+    def fake_run(cmd, capture_output, text, timeout, check):
+        captured.update(
+            {
+                "cmd": cmd,
+                "capture_output": capture_output,
+                "text": text,
+                "timeout": timeout,
+                "check": check,
+            }
+        )
+        return SimpleNamespace(
+            returncode=0,
+            stdout=(
+                "Options:\n"
+                "  -c, --config <key=value>\n"
+                "      --dangerously-bypass-approvals-and-sandbox\n"
+            ),
+            stderr="",
+        )
+
+    monkeypatch.setattr(apex_infinite.subprocess, "run", fake_run)
+
+    apex_infinite.validate_codex_exec_flags(
+        {
+            "binary": "codex",
+            "exec_flags": (
+                "--dangerously-bypass-approvals-and-sandbox --config model=test"
+            ),
+        }
+    )
+
+    assert captured == {
+        "cmd": ["codex", "exec", "--help"],
+        "capture_output": True,
+        "text": True,
+        "timeout": apex_infinite.CODEX_HELP_TIMEOUT,
+        "check": False,
+    }
+
+
+def test_validate_codex_exec_flags_rejects_stale_flag(monkeypatch):
+    def fake_run(*_args, **_kwargs):
+        return SimpleNamespace(
+            returncode=0,
+            stdout="Options:\n      --dangerously-bypass-approvals-and-sandbox\n",
+            stderr="",
+        )
+
+    monkeypatch.setattr(apex_infinite.subprocess, "run", fake_run)
+
+    with pytest.raises(apex_infinite.CliStartupError) as exc_info:
+        apex_infinite.validate_codex_exec_flags(
+            {"binary": "codex", "exec_flags": "--dangerously-auto-approve"}
+        )
+
+    assert "--dangerously-auto-approve" in str(exc_info.value)
+    assert "not supported" in str(exc_info.value)
+
+
+def test_validate_codex_exec_flags_reports_missing_binary(monkeypatch):
+    def fake_run(*_args, **_kwargs):
+        raise FileNotFoundError()
+
+    monkeypatch.setattr(apex_infinite.subprocess, "run", fake_run)
+
+    with pytest.raises(apex_infinite.CliStartupError) as exc_info:
+        apex_infinite.validate_codex_exec_flags(
+            {"binary": "missing-codex", "exec_flags": "--some-flag"}
+        )
+
+    assert "missing-codex" in str(exc_info.value)
+    assert "not found" in str(exc_info.value)
+
+
 def test_execute_codex_dry_run_returns_existing_command_text(monkeypatch, tmp_path):
     def fail_if_called(*_args, **_kwargs):
         raise AssertionError("dry-run must not launch a subprocess")
@@ -171,7 +260,7 @@ def test_execute_codex_returns_stdout_and_renders_summary(monkeypatch, tmp_path)
     assert captured["cmd"] == [
         "codex",
         "exec",
-        "--dangerously-auto-approve",
+        "--dangerously-bypass-approvals-and-sandbox",
         "prompt",
     ]
     assert captured["cwd"] == str(tmp_path)

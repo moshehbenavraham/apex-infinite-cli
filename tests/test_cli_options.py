@@ -8,10 +8,12 @@ from click.testing import CliRunner
 
 import apex_infinite.cli as apex_infinite
 
+SUPPORTED_CODEX_FLAGS = apex_infinite.DEFAULT_CODEX_EXEC_FLAGS
+
 CONFIG_TEXT = """provider: ollama
 codex:
   binary: "codex"
-  exec_flags: "--dangerously-auto-approve"
+  exec_flags: "{supported_codex_flags}"
   model_reasoning_effort: "high"
 ui:
   theme: "auto"
@@ -26,12 +28,17 @@ providers:
     base_url: "http://localhost:11434/v1"
     api_key: "ollama"
     model: "qwen2.5-coder:7b-instruct-q4_K_M"
-"""
+""".replace("{supported_codex_flags}", SUPPORTED_CODEX_FLAGS)
+
+STALE_CONFIG_TEXT = CONFIG_TEXT.replace(
+    SUPPORTED_CODEX_FLAGS,
+    "--dangerously-auto-approve",
+)
 
 OLLAMA_ENV_CONFIG_TEXT = """provider: ollama
 codex:
   binary: "codex"
-  exec_flags: "--dangerously-auto-approve"
+  exec_flags: "{supported_codex_flags}"
   model_reasoning_effort: "high"
 ui:
   theme: "auto"
@@ -46,7 +53,7 @@ providers:
     base_url: "http://${OLLAMA_HOST}:${OLLAMA_PORT}/v1"
     api_key: "${OLLAMA_API_KEY}"
     model: "${OLLAMA_MODEL}"
-"""
+""".replace("{supported_codex_flags}", SUPPORTED_CODEX_FLAGS)
 
 
 def write_config(tmp_path, text=CONFIG_TEXT):
@@ -62,9 +69,9 @@ def clear_ollama_env(monkeypatch):
         monkeypatch.delenv(name, raising=False)
 
 
-def prepare_cli(monkeypatch, tmp_path):
+def prepare_cli(monkeypatch, tmp_path, config_text=CONFIG_TEXT):
     """Patch stateful CLI boundaries and return test paths plus captured loop data."""
-    config_path = write_config(tmp_path)
+    config_path = write_config(tmp_path, config_text)
     project_path = tmp_path / "project"
     project_path.mkdir()
     captured = {}
@@ -84,10 +91,18 @@ def prepare_cli(monkeypatch, tmp_path):
             completion_checked=check_completion,
         )
 
+    def fake_validate_codex_flags(agent_cfg):
+        captured.setdefault("codex_flag_checks", []).append(dict(agent_cfg))
+
     monkeypatch.setattr(apex_infinite, "DB_DIR", tmp_path / "db")
     monkeypatch.setattr(apex_infinite, "DB_PATH", tmp_path / "db" / "history.db")
     monkeypatch.setattr(apex_infinite, "infinite_loop", fake_loop)
     monkeypatch.setattr(apex_infinite, "run_provider_preflight", fake_preflight)
+    monkeypatch.setattr(
+        apex_infinite,
+        "validate_codex_exec_flags",
+        fake_validate_codex_flags,
+    )
     return config_path, project_path, captured
 
 
@@ -382,6 +397,147 @@ def test_startup_provider_preflight_runs_before_loop(monkeypatch, tmp_path):
     assert "path" in captured
 
 
+def test_startup_codex_flag_validation_runs_before_loop(monkeypatch, tmp_path):
+    result, captured, _project_path = invoke_cli(
+        monkeypatch,
+        tmp_path,
+        ["--skip-provider-check", "--max-iterations", "0"],
+    )
+
+    assert result.exit_code == 0
+    assert captured["codex_flag_checks"] == [
+        {
+            "binary": "codex",
+            "exec_flags": SUPPORTED_CODEX_FLAGS,
+            "model_reasoning_effort": "high",
+        }
+    ]
+    assert "path" in captured
+
+
+def test_stale_codex_flags_stop_non_dry_run_before_loop(monkeypatch, tmp_path):
+    config_path, project_path, captured = prepare_cli(
+        monkeypatch,
+        tmp_path,
+        config_text=STALE_CONFIG_TEXT,
+    )
+
+    def fail_codex_flag_validation(agent_cfg):
+        captured.setdefault("codex_flag_checks", []).append(dict(agent_cfg))
+        raise apex_infinite.CliStartupError(
+            "Configured codex.exec_flags are not supported by local "
+            "`codex exec --help`: --dangerously-auto-approve."
+        )
+
+    monkeypatch.setattr(
+        apex_infinite,
+        "validate_codex_exec_flags",
+        fail_codex_flag_validation,
+    )
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--path",
+            str(project_path),
+            "--skip-provider-check",
+            "--plain",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "--dangerously-auto-approve" in result.output
+    assert "not supported" in result.output
+    assert captured["codex_flag_checks"][0]["exec_flags"] == (
+        "--dangerously-auto-approve"
+    )
+    assert "path" not in captured
+
+
+def test_dry_run_skips_stale_codex_flag_validation_and_reaches_loop(
+    monkeypatch, tmp_path
+):
+    config_path, project_path, captured = prepare_cli(
+        monkeypatch,
+        tmp_path,
+        config_text=STALE_CONFIG_TEXT,
+    )
+
+    def fail_if_called(_agent_cfg):
+        raise AssertionError("dry-run must not validate Codex exec flags")
+
+    monkeypatch.setattr(apex_infinite, "validate_codex_exec_flags", fail_if_called)
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--path",
+            str(project_path),
+            "--skip-provider-check",
+            "--dry-run",
+            "--plain",
+            "--max-iterations",
+            "0",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "codex_flag_checks" not in captured
+    assert captured["path"] == f"{project_path}/"
+    assert captured["dry_run"] is True
+
+
+def test_machine_output_stale_codex_flags_are_jsonl_only(monkeypatch, tmp_path):
+    event_path = tmp_path / "events.jsonl"
+    config_path, project_path, captured = prepare_cli(
+        monkeypatch,
+        tmp_path,
+        config_text=STALE_CONFIG_TEXT,
+    )
+
+    def fail_codex_flag_validation(agent_cfg):
+        captured.setdefault("codex_flag_checks", []).append(dict(agent_cfg))
+        raise apex_infinite.CliStartupError(
+            "Configured codex.exec_flags are not supported by local "
+            "`codex exec --help`: --dangerously-auto-approve."
+        )
+
+    monkeypatch.setattr(
+        apex_infinite,
+        "validate_codex_exec_flags",
+        fail_codex_flag_validation,
+    )
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--path",
+            str(project_path),
+            "--skip-provider-check",
+            "--event-stream",
+            str(event_path),
+            "--machine-output",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert result.output == ""
+    assert "path" not in captured
+    rows = jsonl_rows(event_path.read_text(encoding="ascii"))
+    assert [row["event"] for row in rows[-3:]] == [
+        "codex_flags_check_started",
+        "codex_flags_check_failed",
+        "error",
+    ]
+    assert rows[-1]["payload"]["stage"] == "codex_flags"
+
+
 def test_skip_provider_check_reaches_loop_without_preflight(monkeypatch, tmp_path):
     result, captured, _project_path = invoke_cli(
         monkeypatch,
@@ -415,7 +571,8 @@ def test_provider_preflight_failure_stops_before_loop(monkeypatch, tmp_path):
 
     assert result.exit_code == 1
     assert "local provider is down" in result.output
-    assert captured == {}
+    assert "path" not in captured
+    assert captured["codex_flag_checks"][0]["exec_flags"] == SUPPORTED_CODEX_FLAGS
 
 
 def test_check_provider_conflicts_with_skip_provider_check(monkeypatch, tmp_path):
