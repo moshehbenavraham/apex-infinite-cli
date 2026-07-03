@@ -25,14 +25,17 @@ Before the first run:
    packaged default is `--dangerously-bypass-approvals-and-sandbox`, which
    bypasses approvals and sandboxing and should be used only in an externally
    controlled workspace.
-5. Run `apex-infinite --check-provider` or
+5. Confirm `codex.model_reasoning_effort` is one of `minimal`, `low`,
+   `medium`, `high`, or `xhigh`. The value is passed to Codex as
+   `-c model_reasoning_effort="<value>"`.
+6. Run `apex-infinite --check-provider` or
    `scripts/check-ollama.sh --chat` for local Ollama.
-6. Verify the target project already has the Apex Spec skill available if the
+7. Verify the target project already has the Apex Spec skill available if the
    run depends on `apex-spec` workflow commands.
-7. Decide whether you want a forced starting command with `--start` or manager
+8. Decide whether you want a forced starting command with `--start` or manager
    auto-selection from the first iteration.
-8. Decide whether you want the first instruction seeded with `--ceo`.
-9. Decide which display mode fits the terminal: styled interactive output,
+9. Decide whether you want the first instruction seeded with `--ceo`.
+10. Decide which display mode fits the terminal: styled interactive output,
    plain logs, ASCII-safe output, compact output, or machine-output JSONL.
 
 ## Common Run Modes
@@ -76,12 +79,15 @@ cd apex-infinite-cli
 apex-infinite --path ~/projects/my-app/ --start plansession --dry-run
 ```
 
-Use this before changing providers, models, or Codex flags. It exercises the
-manager loop and prints the exact `codex exec` command without launching Codex.
-For non-dry-run starts, the CLI checks configured `codex.exec_flags` against
-local `codex exec --help` after resolving the project path and before the
-autonomous loop begins. If a flag is stale, update the config or keep using
-dry-run until the command matches local Codex help.
+Use this before changing providers, models, Codex flags, or reasoning effort.
+It exercises the manager loop and prints the effective `codex exec` command,
+including quoted `exec_flags` values and the `-c model_reasoning_effort`
+override, without launching Codex. For non-dry-run starts, the CLI parses
+configured `codex.exec_flags`, rejects malformed quoting or unsupported
+reasoning effort, and checks flags against local `codex exec --help` after
+resolving the project path and before the autonomous loop begins. If a flag is
+stale, update the config or keep using dry-run until the command matches local
+Codex help.
 
 ### Styled interactive terminal
 
@@ -233,7 +239,8 @@ stored-state detail.
    - `help` -> emergency operator pause outside the normal workflow
    - `alldonebaby` -> stop and mark the run complete
    - Any other string -> send it to Codex as raw instructions
-5. Execute `codex exec`, unless `--dry-run` is enabled.
+5. Execute `codex exec` with parsed `exec_flags` and the configured reasoning
+   effort override, unless `--dry-run` is enabled.
 6. Log the result into `history.db`.
 7. Clear the CEO message after one iteration unless a new interruption occurs.
 
@@ -268,7 +275,8 @@ stored-state detail.
 For a new project:
 
 1. Run with `--dry-run` first.
-2. Confirm the chosen provider, model, and Codex binary are correct.
+2. Confirm the chosen provider, model, Codex binary, autonomy flags, and
+   reasoning effort are correct.
 3. Start with an explicit command such as `--start plansession`.
 4. Add `--ceo` only for real constraints or priorities, not for routine noise.
 5. Inspect history after major transitions with `--history --path ...`.

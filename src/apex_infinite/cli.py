@@ -9,6 +9,7 @@ with SQLite history, LLM-based manager decisions, and terminal output.
 import json
 import os
 import re
+import shlex
 import signal
 import sqlite3
 import subprocess
@@ -75,6 +76,33 @@ RESPONSE_PREVIEW_LIMIT = 120
 PROCESS_CLEANUP_TIMEOUT = 5
 DEFAULT_MAX_ITERATIONS = 50
 DEFAULT_CODEX_EXEC_FLAGS = "--dangerously-bypass-approvals-and-sandbox"
+CODEX_REASONING_EFFORTS = ("minimal", "low", "medium", "high", "xhigh")
+CODEX_REASONING_EFFORT_SET = frozenset(CODEX_REASONING_EFFORTS)
+CODEX_EXEC_FLAGS_WITH_VALUES = frozenset(
+    {
+        "-c",
+        "--config",
+        "--enable",
+        "--disable",
+        "-i",
+        "--image",
+        "-m",
+        "--model",
+        "--local-provider",
+        "-p",
+        "--profile",
+        "-s",
+        "--sandbox",
+        "-C",
+        "--cd",
+        "--add-dir",
+        "--output-schema",
+        "--color",
+        "-o",
+        "--output-last-message",
+    }
+)
+CODEX_CONFIG_OVERRIDE_FLAGS = frozenset({"-c", "--config"})
 LLM_RETRY_COUNT = 3
 LLM_RETRY_WAIT = 5  # seconds (matches n8n waitBetweenTries: 5000)
 PROVIDER_PREFLIGHT_TIMEOUT = 10
@@ -924,18 +952,127 @@ def get_agent_config(config):
 
 
 def get_codex_exec_flag_tokens(agent_cfg):
-    """Return current-behavior Codex exec flag tokens from agent config."""
-    exec_flags = agent_cfg.get("exec_flags") or ""
-    return tuple(str(exec_flags).split())
+    """Return shell-aware Codex exec flag tokens from agent config."""
+    exec_flags = agent_cfg.get("exec_flags")
+    if exec_flags is None:
+        return ()
+    if not isinstance(exec_flags, str):
+        raise CliStartupError("codex.exec_flags must be a string.")
+    if not exec_flags.strip():
+        return ()
+    try:
+        tokens = tuple(shlex.split(exec_flags))
+    except ValueError as exc:
+        raise CliStartupError(f"Malformed codex.exec_flags: {exc}") from exc
+    _validate_codex_exec_flag_values(tokens)
+    return tokens
+
+
+def _validate_codex_config_override_value(option_name, value):
+    """Validate Codex config override values before command construction."""
+    if "=" not in value:
+        raise CliStartupError(
+            f"codex.exec_flags option '{option_name}' requires a key=value value."
+        )
+
+
+def _validate_codex_exec_flag_values(flag_tokens):
+    """Reject value-taking Codex exec options without explicit values."""
+    index = 0
+    while index < len(flag_tokens):
+        token = flag_tokens[index]
+        if token == "--":
+            return
+        if not token.startswith("-") or token == "-":
+            index += 1
+            continue
+
+        option_name, separator, inline_value = token.partition("=")
+        if option_name not in CODEX_EXEC_FLAGS_WITH_VALUES:
+            index += 1
+            continue
+
+        if separator:
+            if option_name in CODEX_CONFIG_OVERRIDE_FLAGS:
+                _validate_codex_config_override_value(option_name, inline_value)
+            index += 1
+            continue
+
+        if index + 1 >= len(flag_tokens):
+            raise CliStartupError(
+                f"codex.exec_flags option '{option_name}' requires a value."
+            )
+        if option_name in CODEX_CONFIG_OVERRIDE_FLAGS:
+            _validate_codex_config_override_value(option_name, flag_tokens[index + 1])
+        index += 2
+
+
+def get_codex_reasoning_effort_tokens(agent_cfg):
+    """Return Codex config override tokens for model reasoning effort."""
+    raw_effort = agent_cfg.get("model_reasoning_effort")
+    if raw_effort is None:
+        return ()
+
+    effort = str(raw_effort).strip().lower()
+    if not effort:
+        return ()
+    if effort not in CODEX_REASONING_EFFORT_SET:
+        supported = ", ".join(CODEX_REASONING_EFFORTS)
+        raise CliStartupError(
+            "Unsupported codex.model_reasoning_effort "
+            f"'{raw_effort}'. Supported values: {supported}."
+        )
+    return ("-c", f'model_reasoning_effort="{effort}"')
+
+
+def get_codex_exec_option_tokens(agent_cfg):
+    """Return effective Codex exec option tokens from config."""
+    return (
+        *get_codex_exec_flag_tokens(agent_cfg),
+        *get_codex_reasoning_effort_tokens(agent_cfg),
+    )
+
+
+def build_codex_exec_command_tokens(agent_cfg, prompt):
+    """Build the exact list used for `codex exec` without invoking a shell."""
+    binary = str(agent_cfg.get("binary") or "codex")
+    return [binary, "exec", *get_codex_exec_option_tokens(agent_cfg), prompt]
+
+
+def format_codex_exec_option_tokens(agent_cfg):
+    """Format effective Codex exec options for operator display."""
+    return shlex.join(get_codex_exec_option_tokens(agent_cfg))
+
+
+def format_codex_command_tokens(command_tokens):
+    """Format a full Codex command for dry-run display."""
+    return shlex.join(command_tokens)
+
+
+def _iter_codex_option_names(option_tokens):
+    """Yield option names while skipping values for known value-taking flags."""
+    index = 0
+    while index < len(option_tokens):
+        token = option_tokens[index]
+        if token == "--":
+            return
+        if not token.startswith("-") or token == "-":
+            index += 1
+            continue
+
+        option_name = token.split("=", 1)[0]
+        yield option_name
+        if "=" not in token and option_name in CODEX_EXEC_FLAGS_WITH_VALUES:
+            index += 2
+        else:
+            index += 1
 
 
 def validate_codex_exec_flags(agent_cfg):
     """Verify configured Codex exec flags against non-mutating help output."""
     binary = agent_cfg.get("binary") or "codex"
-    flag_tokens = get_codex_exec_flag_tokens(agent_cfg)
-    configured_flags = tuple(
-        token.split("=", 1)[0] for token in flag_tokens if token.startswith("-")
-    )
+    option_tokens = get_codex_exec_option_tokens(agent_cfg)
+    configured_flags = tuple(_iter_codex_option_names(option_tokens))
     if not configured_flags:
         return
 
@@ -996,7 +1133,12 @@ def _validate_codex_exec_flags_or_exit(
     """Run startup Codex flag validation and report errors consistently."""
     agent_cfg = get_agent_config(config)
     binary = agent_cfg.get("binary") or "codex"
-    flag_count = len(get_codex_exec_flag_tokens(agent_cfg))
+    flag_count = 0
+    token_error = None
+    try:
+        flag_count = len(get_codex_exec_option_tokens(agent_cfg))
+    except CliStartupError as exc:
+        token_error = exc
     _emit_event(
         event_emitter,
         "codex_flags_check_started",
@@ -1008,6 +1150,21 @@ def _validate_codex_exec_flags_or_exit(
         renderer.print_status(
             f"Checking {binary} exec flags against local help output.",
             "Codex Flags",
+        )
+    if token_error is not None:
+        _emit_event(
+            event_emitter,
+            "codex_flags_check_failed",
+            {"binary": binary, "flag_count": flag_count, "message": str(token_error)},
+            renderer=renderer,
+            machine_output=machine_output,
+        )
+        _exit_with_startup_error(
+            str(token_error),
+            event_emitter=event_emitter,
+            machine_output=machine_output,
+            renderer=renderer,
+            title="Codex Flags",
         )
     try:
         validate_codex_exec_flags(agent_cfg)
@@ -1347,9 +1504,48 @@ def execute_codex(  # pylint: disable=too-many-positional-arguments,too-many-bra
 ):
     """Run codex exec subprocess in project directory. Returns stdout."""
     expanded_path = os.path.expanduser(path)
-    binary = agent_cfg["binary"]
-    exec_flags = agent_cfg["exec_flags"]
+    binary = str(agent_cfg.get("binary") or "codex")
     emitter = event_emitter or NoOpEventEmitter()
+    try:
+        command_tokens = build_codex_exec_command_tokens(agent_cfg, prompt)
+    except CliStartupError as exc:
+        output = f"[ERROR] {exc}"
+        _emit_event(
+            emitter,
+            "codex_error",
+            {
+                "error_type": "config_error",
+                "binary": binary,
+                "project_path": expanded_path,
+            },
+            renderer=renderer,
+            machine_output=machine_output,
+        )
+        snapshot = CodexCommandSnapshot(
+            binary=binary,
+            exec_flags="",
+            prompt=output,
+            project_path=expanded_path,
+            timeout=COMMAND_TIMEOUT,
+            process_state="config error",
+        )
+        if renderer:
+            renderer.print_codex_command("error", snapshot)
+            renderer.print_agent_response(output, verbose=verbose)
+        else:
+            console.print(f"  [red]{output}[/red]")
+        _emit_event(
+            emitter,
+            "response_summarized",
+            {
+                "source": "codex_config_error",
+                **summarize_text(output, limit=RESPONSE_PREVIEW_LIMIT),
+            },
+            renderer=renderer,
+            machine_output=machine_output,
+        )
+        return output
+    exec_flags = shlex.join(command_tokens[2:-1])
 
     def build_command_snapshot(
         snapshot_prompt,
@@ -1388,7 +1584,7 @@ def execute_codex(  # pylint: disable=too-many-positional-arguments,too-many-bra
             )
         else:
             console.print(f"  [dim][DRY RUN] Would execute in {expanded_path}:[/dim]")
-            console.print(f'  [dim]{binary} exec {exec_flags} "{prompt}"[/dim]')
+            console.print(f"  [dim]{format_codex_command_tokens(command_tokens)}[/dim]")
         output = f"[DRY RUN] Command: {prompt}"
         _emit_event(
             emitter,
@@ -1431,9 +1627,7 @@ def execute_codex(  # pylint: disable=too-many-positional-arguments,too-many-bra
         machine_output=machine_output,
     )
     try:
-        cmd = [binary, "exec", *exec_flags.split(), prompt]
-
-        result = run_codex_process(cmd, expanded_path, COMMAND_TIMEOUT)
+        result = run_codex_process(command_tokens, expanded_path, COMMAND_TIMEOUT)
         elapsed_seconds = time.monotonic() - started_at
 
         output = result.stdout

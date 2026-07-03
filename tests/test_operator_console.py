@@ -16,7 +16,9 @@ from apex_infinite.ui import (
 )
 
 SUPPORTED_WIDTHS = (80, 100, 120)
-SUPPORTED_CODEX_FLAGS = "--dangerously-bypass-approvals-and-sandbox"
+SUPPORTED_CODEX_FLAGS = (
+    "--dangerously-bypass-approvals-and-sandbox " "-c 'model_reasoning_effort=\"high\"'"
+)
 
 FALLBACK_CASES = (
     ("styled", UiCliOverrides(), {}, True),

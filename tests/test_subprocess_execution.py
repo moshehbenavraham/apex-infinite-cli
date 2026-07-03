@@ -12,6 +12,7 @@ AGENT_CFG = {
     "exec_flags": apex_infinite.DEFAULT_CODEX_EXEC_FLAGS,
     "model_reasoning_effort": "high",
 }
+REASONING_TOKEN = 'model_reasoning_effort="high"'
 
 
 class CapturingRenderer:
@@ -125,6 +126,87 @@ def test_get_agent_config_uses_supported_default_flag_when_config_omits_codex():
     )
 
 
+def test_get_codex_exec_flag_tokens_preserves_quoted_values():
+    tokens = apex_infinite.get_codex_exec_flag_tokens(
+        {
+            "exec_flags": (
+                "--config 'sandbox_permissions=[\"disk-full-read-access\"]' "
+                "--config 'model=\"gpt test\"'"
+            )
+        }
+    )
+
+    assert tokens == (
+        "--config",
+        'sandbox_permissions=["disk-full-read-access"]',
+        "--config",
+        'model="gpt test"',
+    )
+
+
+@pytest.mark.parametrize("exec_flags", [None, "", "   "])
+def test_get_codex_exec_flag_tokens_allows_empty_values(exec_flags):
+    assert apex_infinite.get_codex_exec_flag_tokens({"exec_flags": exec_flags}) == ()
+
+
+@pytest.mark.parametrize("exec_flags", [False, 0, []])
+def test_get_codex_exec_flag_tokens_rejects_non_string_values(exec_flags):
+    with pytest.raises(apex_infinite.CliStartupError) as exc_info:
+        apex_infinite.get_codex_exec_flag_tokens({"exec_flags": exec_flags})
+
+    assert str(exc_info.value) == "codex.exec_flags must be a string."
+
+
+def test_get_codex_exec_flag_tokens_rejects_malformed_quotes():
+    with pytest.raises(apex_infinite.CliStartupError) as exc_info:
+        apex_infinite.get_codex_exec_flag_tokens({"exec_flags": "--config 'open"})
+
+    assert "Malformed codex.exec_flags" in str(exc_info.value)
+    assert "No closing quotation" in str(exc_info.value)
+
+
+@pytest.mark.parametrize("exec_flags", ["--config", "--model"])
+def test_get_codex_exec_flag_tokens_rejects_missing_flag_values(exec_flags):
+    with pytest.raises(apex_infinite.CliStartupError) as exc_info:
+        apex_infinite.get_codex_exec_flag_tokens({"exec_flags": exec_flags})
+
+    option_name = exec_flags.split()[0]
+    assert str(exc_info.value) == (
+        f"codex.exec_flags option '{option_name}' requires a value."
+    )
+
+
+@pytest.mark.parametrize("exec_flags", ["--config --model", "--config=missing-key"])
+def test_get_codex_exec_flag_tokens_rejects_invalid_config_overrides(exec_flags):
+    with pytest.raises(apex_infinite.CliStartupError) as exc_info:
+        apex_infinite.get_codex_exec_flag_tokens({"exec_flags": exec_flags})
+
+    assert "requires a key=value value" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "effort",
+    ["minimal", "low", "medium", "high", "xhigh", " XHIGH "],
+)
+def test_get_codex_reasoning_effort_tokens_accepts_supported_values(effort):
+    tokens = apex_infinite.get_codex_reasoning_effort_tokens(
+        {"model_reasoning_effort": effort}
+    )
+
+    expected = str(effort).strip().lower()
+    assert tokens == ("-c", f'model_reasoning_effort="{expected}"')
+
+
+def test_get_codex_reasoning_effort_tokens_rejects_unsupported_value():
+    with pytest.raises(apex_infinite.CliStartupError) as exc_info:
+        apex_infinite.get_codex_reasoning_effort_tokens(
+            {"model_reasoning_effort": "extreme"}
+        )
+
+    assert "Unsupported codex.model_reasoning_effort" in str(exc_info.value)
+    assert "minimal, low, medium, high, xhigh" in str(exc_info.value)
+
+
 def test_validate_codex_exec_flags_accepts_supported_help_flags(monkeypatch):
     captured = {}
 
@@ -166,6 +248,31 @@ def test_validate_codex_exec_flags_accepts_supported_help_flags(monkeypatch):
         "timeout": apex_infinite.CODEX_HELP_TIMEOUT,
         "check": False,
     }
+
+
+def test_validate_codex_exec_flags_skips_config_values_that_look_like_flags(
+    monkeypatch,
+):
+    def fake_run(*_args, **_kwargs):
+        return SimpleNamespace(
+            returncode=0,
+            stdout=(
+                "Options:\n"
+                "  -c, --config <key=value>\n"
+                "  -o, --output-last-message <FILE>\n"
+            ),
+            stderr="",
+        )
+
+    monkeypatch.setattr(apex_infinite.subprocess, "run", fake_run)
+
+    apex_infinite.validate_codex_exec_flags(
+        {
+            "binary": "codex",
+            "exec_flags": "--output-last-message --not-a-flag-value",
+            "model_reasoning_effort": "xhigh",
+        }
+    )
 
 
 def test_validate_codex_exec_flags_rejects_stale_flag(monkeypatch):
@@ -221,6 +328,9 @@ def test_execute_codex_dry_run_returns_existing_command_text(monkeypatch, tmp_pa
     assert output == "[DRY RUN] Command: Run the apex-spec skill command /implement"
     assert renderer.commands[0][0] == "dry-run"
     assert renderer.commands[0][1].timeout == apex_infinite.COMMAND_TIMEOUT
+    assert renderer.commands[0][1].exec_flags == (
+        f"{apex_infinite.DEFAULT_CODEX_EXEC_FLAGS} -c '{REASONING_TOKEN}'"
+    )
 
 
 def test_execute_codex_dry_run_emits_events(monkeypatch, tmp_path):
@@ -264,12 +374,41 @@ def test_execute_codex_returns_stdout_and_renders_summary(monkeypatch, tmp_path)
         "codex",
         "exec",
         "--dangerously-bypass-approvals-and-sandbox",
+        "-c",
+        REASONING_TOKEN,
         "prompt",
     ]
     assert captured["cwd"] == str(tmp_path)
     assert captured["timeout"] == apex_infinite.COMMAND_TIMEOUT
     assert renderer.commands[0][0] == "start"
     assert renderer.responses == [("agent output\n", False)]
+
+
+def test_execute_codex_preserves_quoted_flags_and_reasoning_tokens(
+    monkeypatch, tmp_path
+):
+    agent_cfg = {
+        "binary": "codex",
+        "exec_flags": (
+            "--dangerously-bypass-approvals-and-sandbox "
+            "--config 'sandbox_permissions=[\"disk-full-read-access\"]'"
+        ),
+        "model_reasoning_effort": "xhigh",
+    }
+    captured = set_process_result(monkeypatch, stdout="agent output\n")
+
+    apex_infinite.execute_codex(str(tmp_path), "prompt", agent_cfg)
+
+    assert captured["cmd"] == [
+        "codex",
+        "exec",
+        "--dangerously-bypass-approvals-and-sandbox",
+        "--config",
+        'sandbox_permissions=["disk-full-read-access"]',
+        "-c",
+        'model_reasoning_effort="xhigh"',
+        "prompt",
+    ]
 
 
 def test_execute_codex_success_emits_start_finish_and_summary(monkeypatch, tmp_path):

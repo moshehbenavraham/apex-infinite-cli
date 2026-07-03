@@ -4,7 +4,8 @@
 
 Start here before deeper debugging:
 
-1. Re-run with `--dry-run` to inspect the chosen prompt and `codex exec` flags.
+1. Re-run with `--dry-run` to inspect the chosen prompt and effective
+   `codex exec` flags, including reasoning-effort overrides.
 2. Run `apex-infinite --check-provider` to test provider connectivity
    and configured model availability.
 3. Re-run with `--verbose` to inspect more of the Codex response.
@@ -24,7 +25,9 @@ Start here before deeper debugging:
 | `configured model '...' is not available` | The selected model is not installed or not exposed by the provider | Pull/install the model or change `OLLAMA_MODEL`/`--model` |
 | `Invalid selection.` | Interactive project number was out of range | Re-run and choose a valid entry |
 | `[ERROR] 'codex' command not found. Is Codex CLI installed?` | Codex CLI is missing or not on `PATH` | Install Codex or set `codex.binary` in `config.yaml` |
+| `Malformed codex.exec_flags: ...` | The configured flag string has shell-quote syntax that cannot be parsed | Fix quoting in `config.yaml`; quote TOML values such as `--config 'sandbox_permissions=["disk-full-read-access"]'` |
 | `Configured codex.exec_flags are not supported by local ...` | A configured Codex flag is stale or not accepted by this Codex CLI version | Run `codex exec --help`, update `codex.exec_flags`, then retry; use `--dry-run` to inspect the command without launching Codex |
+| `Unsupported codex.model_reasoning_effort ...` | The configured reasoning effort is not a supported Codex config value | Use one of `minimal`, `low`, `medium`, `high`, or `xhigh` |
 | `[TIMEOUT] Codex command timed out after 1800s` | The underlying Codex step ran too long | Narrow the task, inspect the project state, or re-run with clearer CEO guidance |
 | `LLM call failed after 3 attempts` | Provider outage, bad API key, wrong base URL, or bad model name | Check `.env`, `config.yaml`, connectivity, and provider status |
 | `Could not parse LLM response as JSON, using raw output` | Manager returned malformed JSON | Review the raw output in history and decide whether the manager prompt needs tightening |
@@ -99,19 +102,40 @@ What to do:
 
 Cause:
 
+- `codex.exec_flags` is parsed as a shell-style string, so unbalanced quotes
+  fail before Codex is launched
 - non-dry-run startup checks `codex.exec_flags` against local
   `codex exec --help`
 - the installed Codex CLI does not list one of the configured flags
 
 What to do:
 
-1. Run `codex exec --help` and compare the configured flags.
-2. Replace stale flags in `config.yaml`; the packaged default is
+1. Fix malformed quotes first. For Codex config overrides, quote the whole TOML
+   value, such as `--config 'sandbox_permissions=["disk-full-read-access"]'`.
+2. Run `codex exec --help` and compare the configured flags.
+3. Replace stale flags in `config.yaml`; the packaged default is
    `--dangerously-bypass-approvals-and-sandbox`.
-3. Run `apex-infinite --path <project> --dry-run` to inspect the command
+4. Run `apex-infinite --path <project> --dry-run` to inspect the command
    without launching Codex.
-4. Retry without `--dry-run` only after reviewing the target path, provider,
-   model, binary, and flags.
+5. Retry without `--dry-run` only after reviewing the target path, provider,
+   model, binary, flags, and reasoning effort.
+
+### Reasoning effort is rejected before startup
+
+Cause:
+
+- `codex.model_reasoning_effort` is active and is passed to Codex as
+  `-c model_reasoning_effort="<value>"`
+- the configured value is not one of the supported values
+
+What to do:
+
+1. Set `codex.model_reasoning_effort` to `minimal`, `low`, `medium`, `high`, or
+   `xhigh`.
+2. Run `apex-infinite --path <project> --dry-run` and confirm the displayed
+   flags include the expected `-c model_reasoning_effort="<value>"` override.
+3. Retry without `--dry-run` after reviewing the target path, provider, model,
+   binary, flags, and reasoning effort.
 
 ### Codex exits non-zero
 

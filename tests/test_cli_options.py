@@ -9,6 +9,10 @@ from click.testing import CliRunner
 import apex_infinite.cli as apex_infinite
 
 SUPPORTED_CODEX_FLAGS = apex_infinite.DEFAULT_CODEX_EXEC_FLAGS
+QUOTED_CODEX_FLAGS = (
+    "--dangerously-bypass-approvals-and-sandbox "
+    "--config 'sandbox_permissions=[\\\"disk-full-read-access\\\"]'"
+)
 
 CONFIG_TEXT = """provider: ollama
 codex:
@@ -33,6 +37,18 @@ providers:
 STALE_CONFIG_TEXT = CONFIG_TEXT.replace(
     SUPPORTED_CODEX_FLAGS,
     "--dangerously-auto-approve",
+)
+MALFORMED_FLAGS_CONFIG_TEXT = CONFIG_TEXT.replace(
+    SUPPORTED_CODEX_FLAGS,
+    "--config 'unterminated",
+)
+QUOTED_FLAGS_CONFIG_TEXT = CONFIG_TEXT.replace(
+    SUPPORTED_CODEX_FLAGS,
+    QUOTED_CODEX_FLAGS,
+)
+INVALID_REASONING_CONFIG_TEXT = CONFIG_TEXT.replace(
+    'model_reasoning_effort: "high"',
+    'model_reasoning_effort: "extreme"',
 )
 
 OLLAMA_ENV_CONFIG_TEXT = """provider: ollama
@@ -607,6 +623,34 @@ def test_startup_codex_flag_validation_runs_before_loop(monkeypatch, tmp_path):
     assert "path" in captured
 
 
+def test_quoted_codex_flags_reach_startup_validation(monkeypatch, tmp_path):
+    config_path, project_path, captured = prepare_cli(
+        monkeypatch,
+        tmp_path,
+        config_text=QUOTED_FLAGS_CONFIG_TEXT,
+    )
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--path",
+            str(project_path),
+            "--skip-provider-check",
+            "--max-iterations",
+            "0",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert captured["codex_flag_checks"][0]["exec_flags"] == QUOTED_CODEX_FLAGS.replace(
+        '\\"',
+        '"',
+    )
+    assert "path" in captured
+
+
 def test_stale_codex_flags_stop_non_dry_run_before_loop(monkeypatch, tmp_path):
     config_path, project_path, captured = prepare_cli(
         monkeypatch,
@@ -648,6 +692,59 @@ def test_stale_codex_flags_stop_non_dry_run_before_loop(monkeypatch, tmp_path):
     assert "path" not in captured
 
 
+def test_malformed_codex_flags_stop_non_dry_run_before_loop(monkeypatch, tmp_path):
+    config_path, project_path, captured = prepare_cli(
+        monkeypatch,
+        tmp_path,
+        config_text=MALFORMED_FLAGS_CONFIG_TEXT,
+    )
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--path",
+            str(project_path),
+            "--skip-provider-check",
+            "--plain",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "Malformed codex.exec_flags" in result.output
+    assert "No closing quotation" in result.output
+    assert "codex_flag_checks" not in captured
+    assert "path" not in captured
+
+
+def test_invalid_reasoning_effort_stops_non_dry_run_before_loop(monkeypatch, tmp_path):
+    config_path, project_path, captured = prepare_cli(
+        monkeypatch,
+        tmp_path,
+        config_text=INVALID_REASONING_CONFIG_TEXT,
+    )
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--path",
+            str(project_path),
+            "--skip-provider-check",
+            "--plain",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "Unsupported codex.model_reasoning_effort" in result.output
+    for value in ("minimal", "low", "medium", "high", "xhigh"):
+        assert value in result.output
+    assert "codex_flag_checks" not in captured
+    assert "path" not in captured
+
+
 def test_dry_run_skips_stale_codex_flag_validation_and_reaches_loop(
     monkeypatch, tmp_path
 ):
@@ -681,6 +778,56 @@ def test_dry_run_skips_stale_codex_flag_validation_and_reaches_loop(
     assert "codex_flag_checks" not in captured
     assert captured["path"] == f"{project_path}/"
     assert captured["dry_run"] is True
+
+
+def test_dry_run_output_shows_effective_codex_flags(monkeypatch, tmp_path):
+    config_path = write_config(tmp_path)
+    project_path = tmp_path / "project"
+    project_path.mkdir()
+    logged = []
+
+    monkeypatch.setattr(apex_infinite, "DB_DIR", tmp_path / "db")
+    monkeypatch.setattr(apex_infinite, "DB_PATH", tmp_path / "db" / "history.db")
+    monkeypatch.setattr(
+        apex_infinite,
+        "get_llm_client",
+        lambda _config: ("client", "model"),
+    )
+    monkeypatch.setattr(apex_infinite, "db_fetch_history", lambda _path, limit=15: [])
+    monkeypatch.setattr(
+        apex_infinite,
+        "llm_summarize",
+        lambda _client, _model, _records, renderer=None: "",
+    )
+    monkeypatch.setattr(
+        apex_infinite, "db_log", lambda *args, **kwargs: logged.append(args)
+    )
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--path",
+            str(project_path),
+            "--start",
+            "implement",
+            "--skip-provider-check",
+            "--dry-run",
+            "--plain",
+            "--ascii",
+            "--compact",
+            "--max-iterations",
+            "1",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "DRY RUN Codex Execution" in result.output
+    assert apex_infinite.DEFAULT_CODEX_EXEC_FLAGS in result.output
+    assert "-c" in result.output
+    assert 'model_reasoning_effort="high"' in result.output
+    assert logged
 
 
 def test_machine_output_stale_codex_flags_are_jsonl_only(monkeypatch, tmp_path):

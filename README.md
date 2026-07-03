@@ -109,7 +109,7 @@ provider: grok  # ollama | grok | openai
 codex:
   binary: "codex"                        # Path to codex binary
   exec_flags: "--dangerously-bypass-approvals-and-sandbox"
-  model_reasoning_effort: "high"         # Reasoning effort level
+  model_reasoning_effort: "xhigh"        # minimal | low | medium | high | xhigh
 
 providers:
   ollama:
@@ -131,11 +131,17 @@ providers:
 Provider values use `${ENV_VAR}` syntax, expanded at runtime. Ollama defaults
 to `localhost`, port `11434`, API key `ollama`, and model
 `qwen2.5-coder:7b-instruct-q4_K_M` when those env vars are not set. The
-`codex` section controls the agent binary and execution flags -- customize
-`binary` if codex is not on your PATH, and adjust `exec_flags` or
-`model_reasoning_effort` as needed. The packaged `exec_flags` value is the
-current Codex CLI broad-autonomy flag; it bypasses approvals and sandboxing, so
-use it only in an externally controlled workspace.
+`codex` section controls the agent binary, execution flags, and reasoning
+effort -- customize `binary` if codex is not on your PATH, and adjust
+`exec_flags` or `model_reasoning_effort` as needed. `exec_flags` is a
+shell-style string, so quote Codex config values that contain spaces or TOML
+punctuation, for example
+`--config 'sandbox_permissions=["disk-full-read-access"]'`. The packaged
+`exec_flags` value is the current Codex CLI broad-autonomy flag; it bypasses
+approvals and sandboxing, so use it only in an externally controlled workspace.
+`model_reasoning_effort` is passed to `codex exec` as
+`-c model_reasoning_effort="<value>"`; supported values are `minimal`, `low`,
+`medium`, `high`, and `xhigh`.
 
 ### Local Ollama Docker
 
@@ -179,15 +185,17 @@ Docker image pull output, and tune `OLLAMA_CHAT_CHECK_TIMEOUT` if a cold local
 model load needs more time.
 
 Before real runs, review the target `--path`, provider, model, Codex binary,
-and `codex.exec_flags`. Run `--dry-run` first when validating a new project or
-changing autonomy flags; dry-run prints the `codex exec` command without
-launching Codex. Non-dry-run startup checks configured `codex.exec_flags`
-against local `codex exec --help` before the loop and fails fast if a stale flag
-is rejected. Startup also runs a provider preflight before the loop: the CLI
-lists provider models and fails fast when the configured model is not available.
-Use `--check-provider` to run only that preflight, add `--check-provider-chat`
-for a tiny chat completion, or pass `--skip-provider-check` only for deliberate
-offline wiring checks.
+`codex.exec_flags`, and `codex.model_reasoning_effort`. Run `--dry-run` first
+when validating a new project or changing autonomy flags; dry-run prints the
+effective `codex exec` command, including quoted flags and the reasoning-effort
+`-c` override, without launching Codex. Non-dry-run startup parses
+`codex.exec_flags`, rejects malformed quoting or unsupported reasoning effort,
+checks configured flags against local `codex exec --help`, and fails fast if a
+stale flag is rejected. Startup also runs a provider preflight before the loop:
+the CLI lists provider models and fails fast when the configured model is not
+available. Use `--check-provider` to run only that preflight, add
+`--check-provider-chat` for a tiny chat completion, or pass
+`--skip-provider-check` only for deliberate offline wiring checks.
 
 ### Display Settings
 

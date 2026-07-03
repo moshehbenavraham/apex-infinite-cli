@@ -42,6 +42,7 @@ State: No Codex subprocess launched
 Binary: codex
 Project: /home/user/projects/my-app/
 Flags: --dangerously-bypass-approvals-and-sandbox
+       -c 'model_reasoning_effort="xhigh"'
 Timeout: 1800s
 Prompt: Run the apex-spec skill command /implement
 
@@ -62,5 +63,6 @@ Notes:
 - Plain mode disables color and effects. ASCII mode forces ASCII glyph choices.
 - Compact mode reduces spacing but does not hide decisions, prompts, dry-run
   status, DB logging, or the safety stop.
+- Dry-run displays the effective Codex flags, including reasoning effort.
 - SQLite stores raw response and manager fields; it does not store display
   labels, theme names as style tokens, ANSI escapes, or frame characters.

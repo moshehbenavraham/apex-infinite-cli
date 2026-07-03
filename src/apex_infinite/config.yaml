@@ -4,7 +4,10 @@ provider: ollama
 # Codex CLI agent configuration
 codex:
   binary: "codex"
+  # Shell-style string parsed with shlex; quote TOML values that contain spaces.
   exec_flags: "--dangerously-bypass-approvals-and-sandbox"
+  # Passed to codex exec as: -c model_reasoning_effort="<value>"
+  # Supported values: minimal, low, medium, high, xhigh.
   model_reasoning_effort: "xhigh"
 
 # Operator display configuration

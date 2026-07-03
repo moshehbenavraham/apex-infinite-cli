@@ -18,6 +18,9 @@ from apex_infinite.ui import (
 )
 
 ANSI_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
+EFFECTIVE_CODEX_FLAGS = (
+    f"{apex_infinite.DEFAULT_CODEX_EXEC_FLAGS} " "-c 'model_reasoning_effort=\"high\"'"
+)
 FORBIDDEN_HISTORY_MARKERS = [
     "Agent Response",
     "Manager Decision",
@@ -85,7 +88,7 @@ def test_renderer_outputs_semantic_sections_at_supported_widths(width):
         "dry-run",
         CodexCommandSnapshot(
             binary="codex",
-            exec_flags=apex_infinite.DEFAULT_CODEX_EXEC_FLAGS,
+            exec_flags=EFFECTIVE_CODEX_FLAGS,
             prompt="Run the apex-spec skill command /implement",
             project_path="/tmp/project/",
             timeout=1800,
@@ -250,7 +253,7 @@ def test_no_human_output_renderer_suppresses_all_output(capsys):
         "dry-run",
         CodexCommandSnapshot(
             binary="codex",
-            exec_flags=apex_infinite.DEFAULT_CODEX_EXEC_FLAGS,
+            exec_flags=EFFECTIVE_CODEX_FLAGS,
             prompt="prompt",
             project_path="/tmp/project/",
             timeout=1800,
