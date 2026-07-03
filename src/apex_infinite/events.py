@@ -222,13 +222,18 @@ def summarize_text(text: str | None, limit: int = 240) -> dict[str, JsonValue]:
     raw_text = text or ""
     stripped = raw_text.strip()
     preview = " ".join(stripped.split())
-    if len(preview) > limit:
+    preview_suppressed = False
+    if preview and _is_unsafe_payload_string(preview):
+        preview = ""
+        preview_suppressed = True
+    elif len(preview) > limit:
         preview = f"{preview[:limit].rstrip()}..."
     return {
         "length": len(raw_text),
         "line_count": len(raw_text.splitlines()),
         "has_output": bool(stripped),
         "preview": preview,
+        "preview_suppressed": preview_suppressed,
     }
 
 
@@ -271,16 +276,29 @@ def _validate_payload_key(key: str, path: str) -> None:
 
 
 def _validate_payload_string(value: str, path: str) -> None:
+    reason = _unsafe_payload_string_reason(value)
+    if reason:
+        raise EventStreamError(f"event payload string at {path} {reason}")
+
+
+def _is_unsafe_payload_string(value: str) -> bool:
+    """Return whether a preview candidate would fail event payload validation."""
+    return _unsafe_payload_string_reason(value) is not None
+
+
+def _unsafe_payload_string_reason(value: str) -> str | None:
+    """Return the event validation failure reason for unsafe strings."""
     if ANSI_ESCAPE_PATTERN.search(value):
-        raise EventStreamError(f"event payload string at {path} contains ANSI escapes")
+        return "contains ANSI escapes"
     if RICH_MARKUP_PATTERN.search(value):
-        raise EventStreamError(f"event payload string at {path} contains Rich markup")
+        return "contains Rich markup"
     if any(glyph in value for glyph in FRAME_GLYPHS):
-        raise EventStreamError(f"event payload string at {path} contains frame glyphs")
+        return "contains frame glyphs"
     if VISUAL_TOKEN_PATTERN.search(value):
-        raise EventStreamError(f"event payload string at {path} contains visual tokens")
+        return "contains visual tokens"
     if SECRET_VALUE_PATTERN.search(value):
-        raise EventStreamError(f"event payload string at {path} looks secret-like")
+        return "looks secret-like"
+    return None
 
 
 def _timestamp() -> str:

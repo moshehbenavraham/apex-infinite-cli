@@ -132,7 +132,8 @@ Events report bounded facts, not full terminal output:
   number when relevant.
 - Provider preflight lifecycle facts such as provider name, model name, base
   URL, completion-check state, model count, and controlled failure message.
-- Prompt and response lengths instead of full prompt or full Codex output.
+- Prompt lengths and bounded response summaries instead of full prompts or full
+  Codex output.
 - Return code, elapsed seconds, timeout seconds, and output lengths for
   subprocess facts.
 - DB log start/finish state around existing `db_log()` calls.
@@ -146,6 +147,32 @@ Events do not include:
 - Theme token values such as foreground, border, panel, or separator styles.
 - Copied visual reference data, shaders, images, fonts, profile data, or
   terminal-emulator implementation details.
+
+## Response Summary Preview Contract
+
+`response_summarized` payloads include:
+
+| Field | Type | Meaning |
+|-------|------|---------|
+| `source` | string | Response source, such as `codex_dry_run`, `codex`, `codex_timeout`, `codex_missing`, or `codex_error`. |
+| `length` | integer | Full raw response length in characters. |
+| `line_count` | integer | Full raw response line count. |
+| `has_output` | boolean | Whether the raw response contains non-whitespace text. |
+| `preview` | string | Whitespace-normalized response preview, bounded to the CLI response preview limit. |
+| `preview_suppressed` | boolean | `true` when the preview candidate was withheld for payload safety. |
+
+Safe short output, such as dry-run commands or
+`APEX_INFINITE_SUBPROCESS_SMOKE_OK`, appears directly in `preview`.
+
+Long output is truncated deterministically with `...`. If the preview candidate
+contains ANSI escapes, Rich markup, frame glyphs, display-theme tokens, or
+secret-like values, the event still writes successfully with `preview: ""` and
+`preview_suppressed: true`. Expected unsafe previews do not produce
+`event_stream_error` rows.
+
+Response previews are event-stream metadata only. They are not written to
+SQLite history rows and do not change the raw Codex response stored by the
+existing history contract.
 
 ## Example File Stream
 

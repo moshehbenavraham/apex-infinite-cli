@@ -147,6 +147,47 @@ def test_plain_ascii_compact_renderer_uses_ascii_and_keeps_critical_states():
     assert all(ord(character) < 128 for character in text)
 
 
+def test_plain_generic_status_and_provider_preflight_use_status_label():
+    renderer, output_console = make_renderer(plain=True)
+
+    renderer.print_status("Generic status visible.", "Status")
+    renderer.print_status("Checking provider.", "Provider Preflight")
+
+    text = output_console.export_text()
+
+    assert "STATUS Status" in text
+    assert "STATUS Provider Preflight" in text
+    assert "ACCENT Status" not in text
+    assert "ACCENT Provider Preflight" not in text
+
+
+@pytest.mark.parametrize(
+    "plain,ascii_only,compact",
+    [
+        (False, True, False),
+        (True, True, True),
+    ],
+)
+def test_provider_preflight_ascii_and_compact_modes_keep_status_and_errors(
+    plain, ascii_only, compact
+):
+    renderer, output_console = make_renderer(
+        plain=plain,
+        ascii_only=ascii_only,
+        compact=compact,
+    )
+
+    renderer.print_status("Checking provider.", "Provider Preflight")
+    renderer.print_error("Provider failed.", "Provider Preflight")
+
+    text = output_console.export_text()
+
+    assert "STATUS Provider Preflight" in text
+    assert "ERROR Provider Preflight" in text
+    assert "ACCENT Provider Preflight" not in text
+    assert all(ord(character) < 128 for character in text)
+
+
 def test_ascii_only_renderer_keeps_styled_layout_with_ascii_glyphs():
     renderer, output_console = make_renderer(ascii_only=True)
 

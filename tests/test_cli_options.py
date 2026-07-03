@@ -444,6 +444,86 @@ def test_check_provider_flag_runs_preflight_without_project_path(monkeypatch, tm
     assert "Provider Preflight" in result.output
 
 
+@pytest.mark.parametrize("mode_arg", ["--plain", "--ascii", "--compact"])
+def test_check_provider_success_output_uses_status_label_for_display_modes(
+    monkeypatch, tmp_path, mode_arg
+):
+    config_path = write_config(tmp_path)
+
+    def fake_loop(**_kwargs):
+        raise AssertionError("check-provider mode should not start the loop")
+
+    def fake_preflight(config, check_completion=False):
+        provider_name = config["provider"]
+        provider = config["providers"][provider_name]
+        assert check_completion is False
+        return apex_infinite.ProviderPreflightResult(
+            provider_name=provider_name,
+            base_url=provider["base_url"],
+            model_name=provider["model"],
+            model_count=1,
+            completion_checked=check_completion,
+        )
+
+    monkeypatch.setattr(apex_infinite, "DB_DIR", tmp_path / "db")
+    monkeypatch.setattr(apex_infinite, "DB_PATH", tmp_path / "db" / "history.db")
+    monkeypatch.setattr(apex_infinite, "infinite_loop", fake_loop)
+    monkeypatch.setattr(apex_infinite, "run_provider_preflight", fake_preflight)
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--check-provider",
+            mode_arg,
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "STATUS Provider Preflight" in result.output
+    assert "Provider check passed via models endpoint" in result.output
+    assert "ACCENT Provider Preflight" not in result.output
+    if mode_arg == "--ascii":
+        assert all(ord(character) < 128 for character in result.output)
+
+
+@pytest.mark.parametrize("mode_arg", ["--plain", "--ascii", "--compact"])
+def test_check_provider_failure_output_keeps_error_label_for_display_modes(
+    monkeypatch, tmp_path, mode_arg
+):
+    config_path = write_config(tmp_path)
+
+    def fake_loop(**_kwargs):
+        raise AssertionError("check-provider mode should not start the loop")
+
+    def fail_preflight(_config, check_completion=False):
+        assert check_completion is False
+        raise apex_infinite.CliStartupError("local provider is down")
+
+    monkeypatch.setattr(apex_infinite, "DB_DIR", tmp_path / "db")
+    monkeypatch.setattr(apex_infinite, "DB_PATH", tmp_path / "db" / "history.db")
+    monkeypatch.setattr(apex_infinite, "infinite_loop", fake_loop)
+    monkeypatch.setattr(apex_infinite, "run_provider_preflight", fail_preflight)
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--check-provider",
+            mode_arg,
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "ERROR Provider Preflight" in result.output
+    assert "local provider is down" in result.output
+    assert "ACCENT Provider Preflight" not in result.output
+    if mode_arg == "--ascii":
+        assert all(ord(character) < 128 for character in result.output)
+
+
 def test_check_provider_event_stream_writes_valid_provider_events(
     monkeypatch, tmp_path
 ):

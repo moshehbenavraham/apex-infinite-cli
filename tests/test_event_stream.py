@@ -12,6 +12,7 @@ from apex_infinite.events import (
     EventStreamError,
     NoOpEventEmitter,
     open_event_stream,
+    summarize_text,
 )
 from apex_infinite.ui import NoHumanOutputRenderer
 
@@ -288,6 +289,49 @@ def test_event_emitter_rejects_unsafe_payload_strings(bad_value):
 
     with pytest.raises(EventStreamError):
         emitter.emit("startup_begin", {"value": bad_value})
+
+
+@pytest.mark.parametrize(
+    "bad_value",
+    [
+        "\x1b[31mred\x1b[0m",
+        "[bold]markup[/bold]",
+        chr(0x2500),
+        "token accent=green",
+        "sk-1234567890abcdef1234567890abcdef12345678",
+        "Bearer abcdef1234567890",
+    ],
+)
+def test_response_summary_suppresses_unsafe_preview_without_stream_error(bad_value):
+    stream = FlushTrackingStream()
+    emitter = EventEmitter(stream)
+    summary = summarize_text(f"prefix {bad_value} suffix", limit=200)
+
+    emitter.emit("response_summarized", {"source": "codex", **summary})
+
+    assert "event_stream_error" not in stream.text
+    assert bad_value not in stream.text
+    rows = [json.loads(line) for line in stream.text.splitlines()]
+    assert rows[0]["event"] == "response_summarized"
+    assert rows[0]["payload"]["preview"] == ""
+    assert rows[0]["payload"]["preview_suppressed"] is True
+    assert rows[0]["payload"]["has_output"] is True
+
+
+def test_response_summary_suppresses_secret_that_crosses_preview_boundary():
+    stream = FlushTrackingStream()
+    emitter = EventEmitter(stream)
+    secret_value = "sk-1234567890abcdef1234567890abcdef12345678"
+    summary = summarize_text(f"{'x' * 110} {secret_value}", limit=120)
+
+    emitter.emit("response_summarized", {"source": "codex", **summary})
+
+    assert secret_value not in stream.text
+    assert "sk-123456" not in stream.text
+    rows = [json.loads(line) for line in stream.text.splitlines()]
+    assert rows[0]["payload"]["preview"] == ""
+    assert rows[0]["payload"]["preview_suppressed"] is True
+    assert rows[0]["payload"]["has_output"] is True
 
 
 def test_emit_event_surfaces_human_write_failure_without_raising():

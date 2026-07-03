@@ -71,6 +71,7 @@ KNOWN_COMMANDS = {
 COMMAND_ALIASES: dict[str, str] = {}
 
 COMMAND_TIMEOUT = 1800  # 30 minutes
+RESPONSE_PREVIEW_LIMIT = 120
 PROCESS_CLEANUP_TIMEOUT = 5
 DEFAULT_MAX_ITERATIONS = 50
 DEFAULT_CODEX_EXEC_FLAGS = "--dangerously-bypass-approvals-and-sandbox"
@@ -1392,7 +1393,10 @@ def execute_codex(  # pylint: disable=too-many-positional-arguments,too-many-bra
         _emit_event(
             emitter,
             "response_summarized",
-            {"source": "codex_dry_run", **summarize_text(output, limit=0)},
+            {
+                "source": "codex_dry_run",
+                **summarize_text(output, limit=RESPONSE_PREVIEW_LIMIT),
+            },
             renderer=renderer,
             machine_output=machine_output,
         )
@@ -1509,7 +1513,10 @@ def execute_codex(  # pylint: disable=too-many-positional-arguments,too-many-bra
         _emit_event(
             emitter,
             "response_summarized",
-            {"source": "codex", **summarize_text(output, limit=0)},
+            {
+                "source": "codex",
+                **summarize_text(output, limit=RESPONSE_PREVIEW_LIMIT),
+            },
             renderer=renderer,
             machine_output=machine_output,
         )
@@ -1542,7 +1549,10 @@ def execute_codex(  # pylint: disable=too-many-positional-arguments,too-many-bra
         _emit_event(
             emitter,
             "response_summarized",
-            {"source": "codex_timeout", **summarize_text(msg, limit=0)},
+            {
+                "source": "codex_timeout",
+                **summarize_text(msg, limit=RESPONSE_PREVIEW_LIMIT),
+            },
             renderer=renderer,
             machine_output=machine_output,
         )
@@ -1575,7 +1585,10 @@ def execute_codex(  # pylint: disable=too-many-positional-arguments,too-many-bra
         _emit_event(
             emitter,
             "response_summarized",
-            {"source": "codex_missing", **summarize_text(msg, limit=0)},
+            {
+                "source": "codex_missing",
+                **summarize_text(msg, limit=RESPONSE_PREVIEW_LIMIT),
+            },
             renderer=renderer,
             machine_output=machine_output,
         )
@@ -1608,7 +1621,10 @@ def execute_codex(  # pylint: disable=too-many-positional-arguments,too-many-bra
         _emit_event(
             emitter,
             "response_summarized",
-            {"source": "codex_error", **summarize_text(msg, limit=0)},
+            {
+                "source": "codex_error",
+                **summarize_text(msg, limit=RESPONSE_PREVIEW_LIMIT),
+            },
             renderer=renderer,
             machine_output=machine_output,
         )

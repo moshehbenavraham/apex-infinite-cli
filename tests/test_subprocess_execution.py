@@ -243,6 +243,9 @@ def test_execute_codex_dry_run_emits_events(monkeypatch, tmp_path):
     assert emitter.events[0][1]["prompt_length"] == len(
         "Run the apex-spec skill command /implement"
     )
+    assert emitter.events[1][1]["source"] == "codex_dry_run"
+    assert emitter.events[1][1]["preview"] == output
+    assert emitter.events[1][1]["preview_suppressed"] is False
 
 
 def test_execute_codex_returns_stdout_and_renders_summary(monkeypatch, tmp_path):
@@ -289,6 +292,27 @@ def test_execute_codex_success_emits_start_finish_and_summary(monkeypatch, tmp_p
     assert emitter.events[0][1]["binary"] == "codex"
     assert emitter.events[1][1]["return_code"] == 0
     assert emitter.events[2][1]["has_output"] is True
+    assert emitter.events[2][1]["source"] == "codex"
+    assert emitter.events[2][1]["preview"] == "agent output"
+    assert emitter.events[2][1]["preview_suppressed"] is False
+
+
+def test_execute_codex_success_summary_preview_is_bounded(monkeypatch, tmp_path):
+    long_output = "x" * (apex_infinite.RESPONSE_PREVIEW_LIMIT + 50)
+    set_process_result(monkeypatch, stdout=long_output)
+    emitter = RecordingEmitter()
+
+    apex_infinite.execute_codex(
+        str(tmp_path),
+        "prompt",
+        AGENT_CFG,
+        event_emitter=emitter,
+    )
+
+    preview = emitter.events[2][1]["preview"]
+    assert len(preview) == apex_infinite.RESPONSE_PREVIEW_LIMIT + 3
+    assert preview.endswith("...")
+    assert emitter.events[2][1]["preview_suppressed"] is False
 
 
 def test_execute_codex_renders_running_and_completed_process_state(
@@ -371,6 +395,10 @@ def test_execute_codex_non_zero_emits_error_and_preserves_text(monkeypatch, tmp_
     ]
     assert emitter.events[1][1]["error_type"] == "non_zero_exit"
     assert emitter.events[1][1]["return_code"] == 7
+    assert emitter.events[2][1]["source"] == "codex"
+    assert "[ERROR exit code 7]" in emitter.events[2][1]["preview"]
+    assert "failure stderr" in emitter.events[2][1]["preview"]
+    assert emitter.events[2][1]["preview_suppressed"] is False
 
 
 def test_execute_codex_timeout_text_is_stable(monkeypatch, tmp_path):
@@ -416,6 +444,9 @@ def test_execute_codex_timeout_emits_timeout_event(monkeypatch, tmp_path):
         "response_summarized",
     ]
     assert emitter.events[1][1]["timeout_seconds"] == apex_infinite.COMMAND_TIMEOUT
+    assert emitter.events[2][1]["source"] == "codex_timeout"
+    assert emitter.events[2][1]["preview"] == output
+    assert emitter.events[2][1]["preview_suppressed"] is False
 
 
 def test_execute_codex_missing_binary_text_is_stable(monkeypatch, tmp_path):
@@ -451,6 +482,9 @@ def test_execute_codex_missing_binary_emits_error_event(monkeypatch, tmp_path):
         "response_summarized",
     ]
     assert emitter.events[1][1]["error_type"] == "missing_binary"
+    assert emitter.events[2][1]["source"] == "codex_missing"
+    assert emitter.events[2][1]["preview"] == output
+    assert emitter.events[2][1]["preview_suppressed"] is False
 
 
 def test_execute_codex_generic_exception_text_is_stable(monkeypatch, tmp_path):
@@ -486,6 +520,9 @@ def test_execute_codex_generic_exception_emits_error_event(monkeypatch, tmp_path
         "response_summarized",
     ]
     assert emitter.events[1][1]["error_type"] == "RuntimeError"
+    assert emitter.events[2][1]["source"] == "codex_error"
+    assert emitter.events[2][1]["preview"] == output
+    assert emitter.events[2][1]["preview_suppressed"] is False
 
 
 def test_execute_codex_verbose_flag_reaches_response_renderer(monkeypatch, tmp_path):

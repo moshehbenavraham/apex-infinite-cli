@@ -247,6 +247,7 @@ SEMANTIC_LABELS: Mapping[str, str] = {
     "boot": "BOOT",
     "iteration": "ITERATION",
     "history": "HISTORY",
+    "status": "STATUS",
     "decision": "DECISION",
     "prompt": "PROMPT",
     "executing": "EXECUTING",
@@ -1087,20 +1088,21 @@ class ApexRenderer:  # pylint: disable=too-many-public-methods
 
     def _label_for_title(self, title: str, severity: str) -> str | None:
         normalized = title.lower()
-        label = None
+        severity_label = {
+            "error": SEMANTIC_LABELS["error"],
+            "success": SEMANTIC_LABELS["complete"],
+            "warning": SEMANTIC_LABELS["stop"],
+        }.get(severity)
+        if severity_label:
+            return severity_label
+        title_label = None
         if "history" in normalized:
-            label = SEMANTIC_LABELS["history"]
+            title_label = SEMANTIC_LABELS["history"]
         elif "decision" in normalized or "manager" in normalized:
-            label = SEMANTIC_LABELS["decision"]
+            title_label = SEMANTIC_LABELS["decision"]
         elif "prompt" in normalized:
-            label = SEMANTIC_LABELS["prompt"]
-        elif severity == "error":
-            label = SEMANTIC_LABELS["error"]
-        elif severity == "success":
-            label = SEMANTIC_LABELS["complete"]
-        elif severity == "warning":
-            label = SEMANTIC_LABELS["stop"]
-        return label
+            title_label = SEMANTIC_LABELS["prompt"]
+        return title_label or SEMANTIC_LABELS["status"]
 
     def _codex_severity(self, state: str) -> str:
         if state in {"timeout", "missing", "error", "non-zero"}:
