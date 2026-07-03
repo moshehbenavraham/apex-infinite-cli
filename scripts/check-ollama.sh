@@ -10,6 +10,7 @@ PYTHON_BIN="${PYTHON:-python3}"
 CONFIG_PATH="${APEX_INFINITE_CONFIG:-${CLI_DIR}/src/apex_infinite/config.yaml}"
 MODEL_OVERRIDE=""
 CHAT_CHECK=0
+CHECK_TIMEOUT_OVERRIDE=""
 
 usage() {
     cat <<'EOF'
@@ -22,6 +23,7 @@ Options:
   --api-key KEY       Override OLLAMA_API_KEY for this check
   --model MODEL       Override the configured Ollama model
   --chat              Also run a tiny chat completion
+  --timeout SECONDS   Provider check timeout for this run
   --python PYTHON     Python executable (default: $PYTHON or python3)
   -h, --help          Show this help
 EOF
@@ -53,6 +55,10 @@ while [[ $# -gt 0 ]]; do
             CHAT_CHECK=1
             shift
             ;;
+        --timeout)
+            CHECK_TIMEOUT_OVERRIDE="${2:?missing value for --timeout}"
+            shift 2
+            ;;
         --python)
             PYTHON_BIN="${2:?missing value for --python}"
             shift 2
@@ -68,6 +74,12 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [[ -n "$CHECK_TIMEOUT_OVERRIDE" ]]; then
+    export APEX_INFINITE_PROVIDER_CHECK_TIMEOUT="$CHECK_TIMEOUT_OVERRIDE"
+elif [[ "$CHAT_CHECK" == "1" && -z "${APEX_INFINITE_PROVIDER_CHECK_TIMEOUT:-}" ]]; then
+    export APEX_INFINITE_PROVIDER_CHECK_TIMEOUT="${OLLAMA_CHAT_CHECK_TIMEOUT:-90}"
+fi
 
 cmd=(
     env

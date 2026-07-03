@@ -18,7 +18,9 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_live_ollama_provider_lists_model_and_completes_chat():
-    config_path = CLI_DIR / "config.yaml"
+    config_path = apex_infinite.resolve_default_config_path()
+    assert config_path is not None
+
     config = apex_infinite.load_config(config_path, provider_override="ollama")
 
     result = apex_infinite.run_provider_preflight(config, check_completion=True)

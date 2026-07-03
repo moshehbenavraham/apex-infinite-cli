@@ -401,10 +401,11 @@ What to do:
 Checks:
 
 - confirm Ollama is running and serving the configured `OLLAMA_PORT`
-- run `scripts/deploy-ollama.sh` to start Docker Ollama and pull `OLLAMA_MODEL`
+- run `scripts/ollama-docker.sh` to start Docker Ollama and pull `OLLAMA_MODEL`
 - run `scripts/check-ollama.sh --chat` from `apex-infinite-cli/`
-- run `scripts/deploy-ollama.sh status` and confirm `OLLAMA_MODEL` is present
-- set `APEX_INFINITE_PROVIDER_CHECK_TIMEOUT=30` for slow local hardware
+- run `scripts/ollama-docker.sh status` and confirm `OLLAMA_MODEL` is present
+- set `APEX_INFINITE_PROVIDER_CHECK_TIMEOUT=90` or run
+  `scripts/check-ollama.sh --chat --timeout 90` for slow local hardware
 - use `--skip-provider-check` only when intentionally testing offline CLI wiring
 
 ## Historical Archive Notes

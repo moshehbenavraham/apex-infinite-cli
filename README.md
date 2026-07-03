@@ -143,22 +143,38 @@ The project includes a Docker Compose setup for local Ollama. It reads
 
 ```bash
 cp .env.example .env
-./scripts/deploy-ollama.sh
+./scripts/ollama-docker.sh
 ./scripts/check-ollama.sh --chat
 ```
 
-`scripts/deploy-ollama.sh` starts `ollama/ollama`, auto-enables NVIDIA Docker
+`scripts/ollama-docker.sh` starts `ollama/ollama`, auto-enables NVIDIA Docker
 GPU support when available, waits for the API, and pulls the configured
-`OLLAMA_MODEL`. Useful subcommands:
+`OLLAMA_MODEL` if it is not already installed. Add `--chat` to run a
+cold-start-friendly completion check after deploy; by default that check allows
+90 seconds because the first model load can take longer than a normal provider
+list call. Useful subcommands:
 
 ```bash
-./scripts/deploy-ollama.sh status
-./scripts/deploy-ollama.sh pull --model qwen2.5-coder:7b-instruct-q4_K_M
-./scripts/deploy-ollama.sh down
+./scripts/ollama-docker.sh status
+./scripts/ollama-docker.sh --chat
+./scripts/ollama-docker.sh pull --model qwen2.5-coder:7b-instruct-q4_K_M
+./scripts/ollama-docker.sh down
+```
+
+`scripts/deploy-ollama.sh` remains as a compatibility alias. The same lifecycle
+commands are also available as Make targets:
+
+```bash
+make ollama-up
+make ollama-down
+make ollama-status
+make ollama-logs
 ```
 
 Model data is stored in the named Docker volume from `OLLAMA_DOCKER_VOLUME`
-and is preserved by `down`.
+and is preserved by `down`. Set `OLLAMA_DOCKER_PROGRESS=plain` for audit-friendly
+Docker image pull output, and tune `OLLAMA_CHAT_CHECK_TIMEOUT` if a cold local
+model load needs more time.
 
 Before real runs, review the target `--path`, provider, model, Codex binary,
 and `codex.exec_flags`. Startup runs a provider preflight before the loop:
@@ -275,7 +291,7 @@ apex-infinite --history --verbose
 apex-infinite --path ~/projects/my-app/ --provider ollama --model "qwen2.5:72b"
 
 # Check provider connectivity and model availability
-./scripts/deploy-ollama.sh
+./scripts/ollama-docker.sh
 apex-infinite --provider ollama --check-provider
 apex-infinite --provider ollama --check-provider --check-provider-chat
 ./scripts/check-ollama.sh --chat
@@ -466,7 +482,7 @@ Click option wiring, renderer semantics, and SQLite history safety.
 - **Nesting**: The CLI launches `codex exec` subprocesses. Codex CLI does not require special environment variable handling for nested invocations.
 - **Slash tolerance**: The manager LLM sometimes outputs `/plansession` instead of `plansession`. The CLI strips leading slashes before routing.
 - **LLM retries**: Both LLM calls (summarizer and manager) retry 3 times with a 5-second wait between attempts, matching the original n8n workflow's `retryOnFail` + `waitBetweenTries: 5000`.
-- **Provider preflight**: Normal runs check provider connectivity and model availability before the loop starts. Set `APEX_INFINITE_PROVIDER_CHECK_TIMEOUT` to tune the timeout, use `scripts/deploy-ollama.sh` to start and populate local Ollama, and set `APEX_INFINITE_LIVE_OLLAMA=1` to include the opt-in live Ollama pytest.
+- **Provider preflight**: Normal runs check provider connectivity and model availability before the loop starts. Set `APEX_INFINITE_PROVIDER_CHECK_TIMEOUT` to tune the timeout, use `scripts/ollama-docker.sh` to start and populate local Ollama, and set `APEX_INFINITE_LIVE_OLLAMA=1` to include the opt-in live Ollama pytest.
 - **Reference workflow**: The original n8n workflow JSON is preserved in `n8n-workflow/` for reference.
 - **DB column naming**: The SQLite `cc_response` column name is preserved for backward compatibility with existing databases. Python variable names use `agent_response` but the DB schema was not migrated to avoid breaking existing history.
 
