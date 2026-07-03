@@ -157,6 +157,87 @@ same nested subprocess smoke to complete successfully.
 The event stream also has a contract bug: provider preflight emits provider
 event names that are not registered in the event schema.
 
+## Final Verification Addendum - 2026-07-03
+
+Final result: PASS for Phase 01 smoke-remediation verification.
+
+The original runtime findings in this report were remediated by Sessions 01
+through 05 and verified by Session 06. No provider substitution was used. Local
+Ollama was available at `http://localhost:11434/v1` with model
+`qwen2.5-coder:7b-instruct-q4_K_M`.
+
+### Final Environment
+
+- Repository: `/home/aiwithapex/projects/apex-infinite-cli`
+- Smoke Python: `/home/aiwithapex/projects/apex-infinite-cli/.venv/bin/python`
+- Python version: `Python 3.12.3`
+- Pip: `pip 26.1.2`
+- Editable package metadata: `apex-infinite-cli 2.0.8`
+- CLI version output: `apex-infinite, version 2.0.3`
+- Codex CLI: `codex-cli 0.142.5`
+- Codex config source for nested smoke: `CODEX_HOME=/home/aiwithapex/.codex`
+- Apex smoke homes:
+  - `/tmp/apex-infinite-cli-smoke-home`
+  - `/tmp/apex-infinite-cli-smoke-wrapper-home`
+  - `/tmp/apex-infinite-cli-smoke-real-home`
+- Event and build artifacts:
+  - `/tmp/apex-infinite-smoke-events.jsonl`
+  - `/tmp/apex-infinite-smoke-machine-output.jsonl`
+  - `/tmp/apex-infinite-smoke-real-codex-events.jsonl`
+  - `/tmp/apex-infinite-cli-smoke-dist`
+
+### Final Remediation Status
+
+| Original finding | Final status | Evidence |
+| --- | --- | --- |
+| Default Codex exec flag incompatible | Remediated | `codex exec --help` accepts `--dangerously-bypass-approvals-and-sandbox`; non-dry-run startup flag validation passed. |
+| Provider preflight event names unregistered | Remediated | File and machine-output streams emitted provider lifecycle events with no `event_stream_error`. |
+| `--history --path` did not normalize query paths | Remediated | Trailing-slash and no-slash scoped history lookups both returned 2 rows from the isolated smoke DB. |
+| Stale shell `python` risk | Remediated in docs | README, operator runbook, and troubleshooting guide now document explicit repository `.venv` smoke workflow. |
+| Plain status output exposed internal labels | Remediated | Provider preflight output used `STATUS Provider Preflight`. |
+| Quoted `codex.exec_flags` parsing fragile | Remediated | Test suite passed quoted-flag coverage; dry-run and real smoke rendered shlex-preserved Codex flags. |
+| `model_reasoning_effort` was inert | Remediated | Dry-run and real smoke rendered `-c 'model_reasoning_effort="xhigh"'`. |
+| `response_summarized.preview` was not useful | Remediated | Real Codex event preview was `APEX_INFINITE_SUBPROCESS_SMOKE_OK`. |
+
+### Final Smoke Matrix
+
+| Area | Command or action | Result | Evidence |
+| --- | --- | --- | --- |
+| Venv setup | `python3 -m venv .venv` and `.venv/bin/python -m pip install -e ".[dev,visual]"` | PASS | Installed dev and visual extras in repository venv. |
+| Runtime identity | `.venv/bin/python --version`, `.venv/bin/python -m pip --version`, `codex --version`, `.venv/bin/apex-infinite --version` | PASS | Python 3.12.3, pip 26.1.2, Codex 0.142.5, CLI reported 2.0.3. |
+| Provider model preflight | `.venv/bin/apex-infinite --provider ollama --check-provider` | PASS | Models endpoint passed with 1 model visible. |
+| Provider chat preflight | `.venv/bin/apex-infinite --provider ollama --check-provider --check-provider-chat` | PASS | Models plus chat completion passed with 1 model visible. |
+| Ollama helper | `./scripts/check-ollama.sh --chat` | PASS | Helper reported models plus chat completion with 1 model visible. |
+| Unit and integration tests | `APEX_INFINITE_LIVE_OLLAMA=1 .venv/bin/python -m pytest tests/ -v` | PASS | 299 passed in 11.83s, including live Ollama test. |
+| Formatting | `.venv/bin/python -m black --check src tests` | PASS | 25 files would be left unchanged. |
+| Type checking | `.venv/bin/python -m mypy` | PASS | No issues found in 11 source files. |
+| Linting | `.venv/bin/python -m pylint src tests` | PASS | Rated 10.00/10. |
+| Dependency audit | `.venv/bin/python -m pip_audit` | PASS | No known vulnerabilities found; local package skipped because it is not on PyPI. |
+| Package build | `.venv/bin/python -m build --outdir /tmp/apex-infinite-cli-smoke-dist` | PASS | Built `apex_infinite_cli-2.0.8.tar.gz` and `apex_infinite_cli-2.0.8-py3-none-any.whl`. |
+| Dry-run file event stream | `.venv/bin/apex-infinite --path ... --start plansession --dry-run --max-iterations 1 --event-stream /tmp/apex-infinite-smoke-events.jsonl` | PASS | 21 valid JSONL records; provider events present; no `event_stream_error`. |
+| Machine-output JSONL | `.venv/bin/apex-infinite --path ... --start plansession --dry-run --max-iterations 1 --event-stream - --machine-output` | PASS | 21 stdout JSONL records; stderr empty; no `event_stream_error`. |
+| History display | `.venv/bin/apex-infinite --history --path /home/aiwithapex/projects/apex-infinite-cli` and trailing-slash variant | PASS | Both scoped lookups returned 2 rows under normalized path. |
+| Visual fixture offscreen | `QT_QPA_PLATFORM=offscreen .venv/bin/apex-infinite-visual --dry-run --max-iterations 1 --auto-close-ms 900` | PASS | Exited 0. |
+| Visual real CLI launch offscreen | `QT_QPA_PLATFORM=offscreen .venv/bin/apex-infinite-visual --launch-cli --path ... --start-command plansession --dry-run --max-iterations 1 --auto-close-ms 1500` | PASS | Exited 0. |
+| Actual nested Codex subprocess | `HOME=/tmp/apex-infinite-cli-smoke-real-home CODEX_HOME=/home/aiwithapex/.codex .venv/bin/apex-infinite --path ... --start "<no-edit prompt>" --max-iterations 1 --event-stream /tmp/apex-infinite-smoke-real-codex-events.jsonl` | PASS | Codex returned `APEX_INFINITE_SUBPROCESS_SMOKE_OK`; 24 valid JSONL records; no `event_stream_error`; before/after `git status --short` diff was empty. |
+
+### Final Release Notes
+
+- Remaining Phase 01 release-blocking failures: none found.
+- Provider substitution: none. Local Ollama was used for all provider and Apex
+  manager preflight checks.
+- Worktree cleanliness: the actual nested Codex smoke did not change tracked or
+  untracked worktree status. The only current repository changes are intentional
+  documentation and spec-system artifacts from this Session 06 implementation.
+- Generated package artifacts were written under
+  `/tmp/apex-infinite-cli-smoke-dist` and were not added to the repository.
+- Machine-output stdout remained JSONL-only. The captured stderr file for that
+  run was empty.
+- Durable smoke events and isolated smoke history did not contain provider
+  secrets, Rich markup, ANSI escapes, frame glyphs, or visual-theme tokens.
+- Non-blocking follow-up before a public tagged release: package metadata/build
+  reports `2.0.8` while `apex-infinite --version` reports `2.0.3`.
+
 ## Environment
 
 - Repository: `/home/aiwithapex/projects/apex-infinite-cli`

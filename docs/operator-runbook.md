@@ -72,6 +72,108 @@ Use this before unattended runs. Normal runs execute the model-list preflight
 before the loop starts; `--check-provider-chat` adds a tiny chat completion.
 Use `--skip-provider-check` only for intentional offline wiring checks.
 
+### Local release smoke procedure
+
+Use this procedure before release verification or after a smoke-remediation
+session. It avoids stale activated virtualenvs and keeps generated evidence
+outside the repository.
+
+1. Start from the repository root and inspect the active shell Python:
+
+   ```bash
+   cd apex-infinite-cli
+   python -c 'import sys; print(sys.executable)'
+   python -m pip --version
+   ```
+
+2. If either path points outside this repository, deactivate that environment
+   or open a fresh shell. Create a repository venv explicitly:
+
+   ```bash
+   python3 -m venv .venv
+   .venv/bin/python -m pip install --upgrade pip
+   .venv/bin/python -m pip install -e ".[dev,visual]"
+   ```
+
+3. Record the runtime identity:
+
+   ```bash
+   .venv/bin/python --version
+   .venv/bin/python -c 'import sys; print(sys.executable)'
+   .venv/bin/python -m pip --version
+   codex --version
+   .venv/bin/apex-infinite --version
+   ```
+
+4. Prepare isolated artifacts:
+
+   ```bash
+   rm -rf /tmp/apex-infinite-cli-smoke-home \
+     /tmp/apex-infinite-cli-smoke-wrapper-home \
+     /tmp/apex-infinite-cli-smoke-real-home \
+     /tmp/apex-infinite-cli-smoke-dist
+   rm -f /tmp/apex-infinite-smoke-events.jsonl \
+     /tmp/apex-infinite-smoke-machine-output.jsonl \
+     /tmp/apex-infinite-smoke-real-codex-events.jsonl \
+     /tmp/apex-infinite-smoke-wrapper-events.jsonl
+   mkdir -p /tmp/apex-infinite-cli-smoke-home \
+     /tmp/apex-infinite-cli-smoke-wrapper-home \
+     /tmp/apex-infinite-cli-smoke-real-home \
+     /tmp/apex-infinite-cli-smoke-dist
+   ```
+
+5. Run quality checks through the venv Python:
+
+   ```bash
+   .venv/bin/python -m pytest tests/ -v
+   .venv/bin/python -m black --check src tests
+   .venv/bin/python -m mypy
+   .venv/bin/python -m pylint src tests
+   .venv/bin/python -m pip_audit
+   .venv/bin/python -m build --outdir /tmp/apex-infinite-cli-smoke-dist
+   ```
+
+6. Verify provider and runtime smoke paths with temporary history and event
+   files:
+
+   ```bash
+   ./scripts/check-ollama.sh --chat
+   HOME=/tmp/apex-infinite-cli-smoke-home \
+     .venv/bin/apex-infinite --provider ollama --check-provider \
+     --check-provider-chat
+   HOME=/tmp/apex-infinite-cli-smoke-home \
+     .venv/bin/apex-infinite --path "$PWD" --start plansession \
+     --dry-run --max-iterations 1 \
+     --event-stream /tmp/apex-infinite-smoke-events.jsonl
+   HOME=/tmp/apex-infinite-cli-smoke-home \
+     .venv/bin/apex-infinite --path "$PWD" --start plansession \
+     --dry-run --max-iterations 1 \
+     --event-stream - --machine-output \
+     > /tmp/apex-infinite-smoke-machine-output.jsonl
+   ```
+
+7. Run wrapper checks only from the visual extra environment:
+
+   ```bash
+   QT_QPA_PLATFORM=offscreen HOME=/tmp/apex-infinite-cli-smoke-wrapper-home \
+     .venv/bin/apex-infinite-visual --dry-run --max-iterations 1 \
+     --auto-close-ms 900
+   QT_QPA_PLATFORM=offscreen HOME=/tmp/apex-infinite-cli-smoke-wrapper-home \
+     .venv/bin/apex-infinite-visual --launch-cli --path "$PWD" \
+     --start-command plansession --dry-run --max-iterations 1 \
+     --auto-close-ms 1500
+   ```
+
+8. Run actual nested Codex smoke only with a no-edit prompt, a bounded
+   one-iteration run, and `git status --short` before and after. Record the
+   event path and confirm the tracked worktree did not gain unintended source
+   changes.
+
+If local Ollama is unavailable, use a configured equivalent provider only after
+recording the provider name, model, base URL category, and reason for
+substitution in the smoke report. Do not record provider secrets, full config
+maps, or API keys.
+
 ### Dry run
 
 ```bash

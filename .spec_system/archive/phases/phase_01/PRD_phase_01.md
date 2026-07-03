@@ -1,10 +1,10 @@
 # PRD Phase 01: Smoke Remediation And Release Hardening
 
-**Status**: In Progress
+**Status**: Complete
 **Sessions**: 6 (initial estimate)
 **Estimated Duration**: 3-6 days
 
-**Progress**: 5/6 sessions (83%)
+**Progress**: 6/6 sessions (100%)
 
 ---
 
@@ -13,7 +13,7 @@
 Phase 01 turns the 2026-07-03 platform smoke-run findings into a release-hardening track. The phase fixes the default Codex invocation failure, restores provider preflight event-stream contracts, normalizes history lookup paths, polishes operator-visible output, aligns agent configuration semantics with actual subprocess behavior, and reruns release verification with explicit local environment guidance.
 
 The full source smoke report is preserved at
-`.spec_system/PRD/phase_01/platform_smoke_run_report_2026_07_03.md`.
+`.spec_system/archive/phases/phase_01/platform_smoke_run_report_2026_07_03.md`.
 
 ---
 
@@ -26,7 +26,7 @@ The full source smoke report is preserved at
 | 03 | History Path Normalization | Complete | ~12-25 | 2026-07-03 |
 | 04 | Output Observability Polish | Complete | ~12-25 | 2026-07-03 |
 | 05 | Agent Config Semantics | Complete | ~12-25 | 2026-07-03 |
-| 06 | Documentation And Release Verification | Not Started | ~12-25 | - |
+| 06 | Documentation And Release Verification | Complete | ~12-25 | 2026-07-03 |
 
 ---
 
@@ -37,12 +37,13 @@ The full source smoke report is preserved at
 - 2026-07-03 - Session 03: History Path Normalization
 - 2026-07-03 - Session 04: Output Observability Polish
 - 2026-07-03 - Session 05: Agent Config Semantics
+- 2026-07-03 - Session 06: Documentation And Release Verification
 
 ---
 
 ## Upcoming Sessions
 
-- Session 06: Documentation And Release Verification
+- None
 
 ---
 
@@ -61,7 +62,7 @@ The full source smoke report is preserved at
 
 - Phase 00 completed.
 - The smoke-run report exists at
-  `.spec_system/PRD/phase_01/platform_smoke_run_report_2026_07_03.md`.
+  `.spec_system/archive/phases/phase_01/platform_smoke_run_report_2026_07_03.md`.
 - Existing Phase 00 compatibility constraints remain in force: prompt routing, history schema, raw event payloads, and optional wrapper boundaries must not regress.
 
 ---
@@ -129,13 +130,13 @@ The full source smoke report is preserved at
 ## Success Criteria
 
 Phase complete when:
-- [ ] All 6 sessions completed
-- [ ] Default or documented Codex subprocess invocation passes a non-mutating real smoke
-- [ ] Provider preflight emits valid lifecycle events without event-stream errors
-- [ ] History lookup works for equivalent trailing-slash and no-trailing-slash project paths
-- [ ] Plain output no longer leaks internal labels such as `ACCENT`
-- [ ] Agent config docs and behavior match actual command construction
-- [ ] Final quality and smoke verification evidence is recorded
+- [x] All 6 sessions completed
+- [x] Default or documented Codex subprocess invocation passes a non-mutating real smoke
+- [x] Provider preflight emits valid lifecycle events without event-stream errors
+- [x] History lookup works for equivalent trailing-slash and no-trailing-slash project paths
+- [x] Plain output no longer leaks internal labels such as `ACCENT`
+- [x] Agent config docs and behavior match actual command construction
+- [x] Final quality and smoke verification evidence is recorded
 
 ---
 

@@ -32,38 +32,43 @@ a companion surface over the CLI event stream, not a fork of workflow behavior.
 - `--check-provider` and `--check-provider-chat` exist as provider-only
   preflight checks. A broader `doctor` command does not exist.
 - A platform smoke report is archived at
-  `.spec_system/PRD/phase_01/platform_smoke_run_report_2026_07_03.md`; it found
+  `.spec_system/archive/phases/phase_01/platform_smoke_run_report_2026_07_03.md`; it found
   source install, tests, local Ollama preflight, dry-run loops, and wrapper
   source mode mostly healthy, but identified release-blocking runtime issues
-  listed below.
+  that Phase 01 remediated in the current source. Session 06 reruns the final
+  verification matrix and appends release evidence to that report.
 - Binary packaging, first-run setup, XDG config, desktop integration,
   clean-machine verification, and release artifacts are not complete.
 
-## Known Productization Blockers
+## Phase 01 Smoke Findings Status
 
-Resolve these before treating either the terminal CLI or visual wrapper as a
-normal installed product:
+The original 2026-07-03 smoke report remains the historical source for the
+release-blocking findings. Current source status:
 
-- The packaged default `codex.exec_flags` value
-  `--dangerously-auto-approve` failed against the Codex CLI tested in the smoke
-  report. Replace it with a supported policy or detect incompatible Codex flags
-  before the main loop starts.
-- Provider preflight emits `provider_check_started`,
-  `provider_check_failed`, and `provider_check_finished`, but those event names
-  are not registered in the event schema. This causes otherwise successful
-  event-stream runs to emit `event_stream_error` rows.
-- `--history --path` queries the raw supplied path before applying the same
-  normalization used when writing history rows.
-- `codex.exec_flags` is split with basic whitespace splitting, which is fragile
-  for quoted Codex options. Use `shlex.split` or a validated YAML list.
-- `model_reasoning_effort` is documented and read from config, but it is not
-  passed to Codex. Either implement the mapping to current Codex CLI syntax or
-  remove it from operator-facing config/docs.
-- Plain status output can expose internal labels such as `ACCENT`; status blocks
-  should use stable user-facing labels.
-- `response_summarized.preview` currently has no useful preview because response
-  summaries use a zero-length preview limit. Decide whether previews are
-  intentionally redacted or should expose a bounded non-secret snippet.
+- Codex invocation compatibility: remediated. The packaged default uses
+  `--dangerously-bypass-approvals-and-sandbox`, startup checks configured flags
+  against local `codex exec --help`, and docs describe the broad-autonomy
+  policy.
+- Provider preflight event-stream contract: remediated. Provider preflight
+  event names are registered and covered for file and machine-output streams.
+- History path normalization: remediated. `--history --path` normalizes the
+  project path before querying the SQLite history key.
+- Agent config semantics: remediated. `codex.exec_flags` is parsed with
+  `shlex`, and `model_reasoning_effort` is passed to Codex as
+  `-c model_reasoning_effort="<value>"`.
+- Plain-output labels and response previews: remediated. Generic status blocks
+  use stable user-facing labels, and `response_summarized.preview` contains a
+  bounded preview while preserving secret and display-artifact guards.
+- Local smoke environment warning: remediated in docs. The README, operator
+  runbook, and troubleshooting guide now recommend an explicit repository
+  virtualenv for release smoke runs.
+
+Remaining productization blockers are the broader install and release lanes in
+this plan: terminal installation, first-run setup, XDG config resolution,
+diagnostics, desktop integration, clean-machine verification, AppImage review,
+license notices, checksums, and release artifacts. Final Phase 01 smoke evidence
+is recorded in
+`.spec_system/archive/phases/phase_01/platform_smoke_run_report_2026_07_03.md`.
 
 ## Product Goals
 
@@ -295,12 +300,12 @@ Work:
   dry run, provider check, start command, max iterations, interrupt, history,
   resume.
 - Add a troubleshooting section for installed users.
-- Add a troubleshooting note for stale activated virtualenvs where `python`
-  resolves to another project's venv.
+- Maintain troubleshooting guidance for stale activated virtualenvs where
+  `python` resolves to another project's venv.
 - Add a short "what data is stored where" note covering config and SQLite
   history.
-- Link the platform smoke report and keep its blockers synchronized with this
-  plan until resolved.
+- Link the platform smoke report and keep current remediation status
+  synchronized with this plan.
 
 Acceptance:
 
@@ -521,8 +526,8 @@ from the base terminal CLI.
 
 ## Recommended Build Order
 
-1. Fix release-blocking smoke findings: Codex flag compatibility, provider
-   event registration, history path normalization, and exec flag parsing.
+1. Preserve Phase 01 smoke-remediation evidence and keep the release smoke
+   matrix green.
 2. Terminal install and config conventions.
 3. First-run setup and diagnostic command or flag.
 4. Terminal launcher ergonomics and user docs.

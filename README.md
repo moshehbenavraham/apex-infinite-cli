@@ -466,16 +466,34 @@ for the clean-room no-copy rules.
 
 ## Testing
 
+For release smoke or local verification, use an explicit repository
+virtualenv instead of relying on the shell `python`:
+
 ```bash
 cd apex-infinite-cli
-python -m pip install -e ".[dev]"
-pytest tests/ -v
-pip-audit
-python -m mypy
+python3 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -e ".[dev,visual]"
+.venv/bin/python -c 'import sys; print(sys.executable)'
+```
+
+Run the core quality suite from that interpreter:
+
+```bash
+cd apex-infinite-cli
+.venv/bin/python -m pytest tests/ -v
+.venv/bin/python -m black --check src tests
+.venv/bin/python -m mypy
+.venv/bin/python -m pylint src tests
+.venv/bin/python -m pip_audit
+.venv/bin/python -m build --outdir /tmp/apex-infinite-cli-smoke-dist
 ```
 
 The test suite covers prompt/routing compatibility, UI setting resolution,
 Click option wiring, renderer semantics, and SQLite history safety.
+See the [Operator runbook](docs/operator-runbook.md#local-release-smoke-procedure)
+for the full release smoke matrix, temporary artifact paths, provider
+substitution rules, wrapper checks, and nested Codex smoke guidance.
 
 ## Deep-Dive Docs
 

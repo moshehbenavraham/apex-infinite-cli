@@ -15,7 +15,7 @@
     "1": {
       "name": "Smoke Remediation And Release Hardening",
       "description": "Fix smoke-run release blockers around Codex invocation, provider event streams, history lookup normalization, output observability, agent configuration semantics, and final verification.",
-      "status": "in_progress",
+      "status": "complete",
       "session_count": 6
     }
   },
@@ -32,26 +32,12 @@
     "phase01-session02-provider-event-stream-contract",
     "phase01-session03-history-path-normalization",
     "phase01-session04-output-observability-polish",
-    "phase01-session05-agent-config-semantics"
+    "phase01-session05-agent-config-semantics",
+    "phase01-session06-documentation-and-release-verification"
   ],
   "next_session_history": [
     {
       "date": "2026-07-03",
-      "session": "phase00-session07-linux-visual-wrapper-productization",
-      "status": "validated"
-    },
-    {
-      "date": "2026-07-03",
-      "session": "phase00-session07-linux-visual-wrapper-productization",
-      "status": "completed"
-    },
-    {
-      "date": "2026-07-03",
-      "session": "phase00-session08-release-verification",
-      "status": "planned"
-    },
-    {
-      "date": "2026-07-03",
       "session": "phase00-session08-release-verification",
       "status": "validated"
     },
@@ -133,6 +119,21 @@
     {
       "date": "2026-07-03",
       "session": "phase01-session05-agent-config-semantics",
+      "status": "completed"
+    },
+    {
+      "date": "2026-07-03",
+      "session": "phase01-session06-documentation-and-release-verification",
+      "status": "planned"
+    },
+    {
+      "date": "2026-07-03",
+      "session": "phase01-session06-documentation-and-release-verification",
+      "status": "validated"
+    },
+    {
+      "date": "2026-07-03",
+      "session": "phase01-session06-documentation-and-release-verification",
       "status": "completed"
     }
   ]

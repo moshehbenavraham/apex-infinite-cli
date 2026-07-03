@@ -119,7 +119,7 @@ This system delivers the product via phases. Each phase is implemented via multi
 | Phase | Name | Sessions | Status |
 |-------|------|----------|--------|
 | 00 | Apex Infinite CLI Upgrade | 8 | Complete |
-| 01 | Smoke Remediation And Release Hardening | 6 | In Progress |
+| 01 | Smoke Remediation And Release Hardening | 6 | Complete |
 
 ## Phase 00: Apex Infinite CLI Upgrade
 
@@ -152,7 +152,7 @@ Completed session stubs are archived under `.spec_system/archive/phases/phase_00
 ### Source
 
 Phase 01 is generated from the archived smoke report at
-`.spec_system/PRD/phase_01/platform_smoke_run_report_2026_07_03.md`, which
+`.spec_system/archive/phases/phase_01/platform_smoke_run_report_2026_07_03.md`, which
 records the 2026-07-03 platform smoke results and the follow-up session split.
 
 ### Objectives
@@ -166,7 +166,7 @@ records the 2026-07-03 platform smoke results and the follow-up session split.
 
 ### Sessions
 
-Active session stubs are under `.spec_system/PRD/phase_01/`.
+Completed session stubs are archived under `.spec_system/archive/phases/phase_01/`.
 
 | Session | Name | Source Theme |
 |---------|------|--------------|

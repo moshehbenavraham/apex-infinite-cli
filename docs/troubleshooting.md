@@ -13,6 +13,55 @@ Start here before deeper debugging:
    recorded decisions.
 5. Confirm `config.yaml` and `.env` are the files you think they are.
 
+## Local Python Environment Issues
+
+### Shell `python` points at another project's virtualenv
+
+Symptoms:
+
+- `python -m pip install -e .` fails even though `python3` works.
+- `python -m pip --version` references a path outside this repository.
+- `python -c 'import sys; print(sys.executable)'` prints a virtualenv from
+  another checkout, for example `/home/.../other-project/.venv/bin/python`.
+
+Cause:
+
+- A virtualenv from another project is still activated in the shell, or the
+  shell `PATH` finds that virtualenv before this repository's Python.
+
+What to do:
+
+1. Inspect the active interpreter:
+
+   ```bash
+   python -c 'import sys; print(sys.executable)'
+   python -m pip --version
+   ```
+
+2. If the path is outside `apex-infinite-cli/`, deactivate the stale
+   environment or start a fresh shell.
+
+3. Create and use an explicit repository virtualenv:
+
+   ```bash
+   cd apex-infinite-cli
+   python3 -m venv .venv
+   .venv/bin/python -m pip install --upgrade pip
+   .venv/bin/python -m pip install -e ".[dev,visual]"
+   ```
+
+4. Run smoke and quality commands through `.venv/bin/python` or console scripts
+   from `.venv/bin/`:
+
+   ```bash
+   .venv/bin/python -m pytest tests/ -v
+   .venv/bin/apex-infinite --version
+   ```
+
+Do not rely on an activated shell environment during release smoke runs. Use
+the explicit repository venv path so the final evidence records the Python
+executable that actually ran the checks.
+
 ## Common Failures
 
 | Symptom | Likely cause | What to do |

@@ -16,6 +16,10 @@ Format follows Keep a Changelog.
   coverage, black, pylint, and mypy configuration.
 - Kept `requirements*.txt` as compatibility shims that install the package and
   optional extras from `pyproject.toml`.
+- Documented the Phase 01 smoke-remediation release procedure with explicit
+  repository virtualenv setup, isolated `/tmp` smoke artifacts, provider
+  substitution rules, and final verification evidence in the archived platform
+  smoke report.
 
 ## [2.0.0] - 2026-03-09
 
