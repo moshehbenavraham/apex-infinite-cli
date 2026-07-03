@@ -1,0 +1,2 @@
+# Compatibility shim. The canonical runtime dependencies live in pyproject.toml.
+-e .
