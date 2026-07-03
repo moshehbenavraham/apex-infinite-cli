@@ -1,5 +1,6 @@
 """History ledger rendering tests."""
 
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -9,6 +10,38 @@ import apex_infinite.cli as apex_infinite
 from apex_infinite.ui import ApexRenderer, UiCliOverrides, resolve_ui_settings
 
 SUPPORTED_WIDTHS = (80, 100, 120)
+ANSI_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
+FORBIDDEN_HISTORY_MARKERS = [
+    "Agent Response",
+    "Manager Decision",
+    "Codex Execution",
+    "History Write",
+    "LOGGED",
+    "BOOT",
+    "ITERATION",
+    "DRY RUN",
+    "ACCENT",
+    "SUCCESS",
+    "[bold]",
+    "[/bold]",
+]
+FRAME_GLYPHS = [
+    chr(0x2500),
+    chr(0x2502),
+    chr(0x256D),
+    chr(0x256E),
+    chr(0x2570),
+    chr(0x2572),
+]
+LEGACY_HISTORY_COLUMNS = {
+    "id",
+    "path",
+    "cc_response",
+    "ai_decision_output",
+    "ai_decision_reason",
+    "help_or_done_msg",
+    "created_at",
+}
 
 
 def make_history_renderer(
@@ -49,6 +82,13 @@ def sample_history_row(**overrides):
     }
     row.update(overrides)
     return row
+
+
+def prepare_temp_history_db(monkeypatch, tmp_path):
+    """Point history helpers at a temporary SQLite database."""
+    monkeypatch.setattr(apex_infinite, "DB_DIR", tmp_path / "db")
+    monkeypatch.setattr(apex_infinite, "DB_PATH", tmp_path / "db" / "history.db")
+    apex_infinite.db_init()
 
 
 def compact_text(text):
@@ -192,11 +232,52 @@ def test_history_verbose_expands_detail_without_mutating_rows():
     assert row == before
 
 
+def test_fetch_history_normalizes_query_without_trailing_slash(monkeypatch, tmp_path):
+    prepare_temp_history_db(monkeypatch, tmp_path)
+    project_path = tmp_path / "project"
+    project_path.mkdir()
+
+    apex_infinite.db_log(
+        f"{project_path}/",
+        "agent response",
+        "implement",
+        "normalized trailing slash",
+    )
+
+    rows = apex_infinite.db_fetch_history(str(project_path), limit=5)
+
+    assert len(rows) == 1
+    assert rows[0]["path"] == f"{project_path}/"
+    assert rows[0]["cc_response"] == "agent response"
+    assert rows[0]["ai_decision_output"] == "implement"
+
+
+def test_fetch_history_normalizes_query_with_trailing_slash(monkeypatch, tmp_path):
+    prepare_temp_history_db(monkeypatch, tmp_path)
+    project_path = tmp_path / "project"
+    project_path.mkdir()
+    stored_path = apex_infinite.normalize_project_path_key(str(project_path))
+
+    apex_infinite.db_log(
+        stored_path,
+        "agent response",
+        "validate",
+        "normalized from no trailing slash",
+    )
+
+    rows = apex_infinite.db_fetch_history(f"{project_path}/", limit=5)
+
+    assert len(rows) == 1
+    assert rows[0]["path"] == f"{project_path}/"
+    assert rows[0]["cc_response"] == "agent response"
+    assert rows[0]["ai_decision_output"] == "validate"
+
+
 def test_history_display_does_not_persist_ledger_derivations(monkeypatch, tmp_path):
-    monkeypatch.setattr(apex_infinite, "DB_DIR", tmp_path / "db")
-    monkeypatch.setattr(apex_infinite, "DB_PATH", tmp_path / "db" / "history.db")
-    apex_infinite.db_init()
-    project_path = f"{tmp_path}/project/"
+    prepare_temp_history_db(monkeypatch, tmp_path)
+    project_dir = tmp_path / "project"
+    project_dir.mkdir()
+    project_path = f"{project_dir}/"
     raw_response = " ".join(["raw-response"] * 40)
     raw_reason = " ".join(["raw-reason"] * 20)
 
@@ -209,11 +290,13 @@ def test_history_display_does_not_persist_ledger_derivations(monkeypatch, tmp_pa
     )
     renderer, output_console = make_history_renderer(width=80)
 
-    apex_infinite.db_show_history(project_path, renderer=renderer, verbose=False)
+    apex_infinite.db_show_history(str(project_dir), renderer=renderer, verbose=False)
 
     rendered = output_console.export_text()
-    rows = apex_infinite.db_fetch_history(project_path, limit=5)
+    rows = apex_infinite.db_fetch_history(str(project_dir), limit=5)
     assert len(rows) == 1
+    assert set(rows[0]) == LEGACY_HISTORY_COLUMNS
+    assert rows[0]["path"] == project_path
     assert rows[0]["cc_response"] == raw_response
     assert rows[0]["ai_decision_reason"] == raw_reason
     assert rows[0]["ai_decision_output"] == "implement"
@@ -227,4 +310,6 @@ def test_history_display_does_not_persist_ledger_derivations(monkeypatch, tmp_pa
         assert "chars total" not in value
         assert "status=" not in value
         assert "command=" not in value
-        assert "\x1b[" not in value
+        assert not ANSI_PATTERN.search(value)
+        assert all(marker not in value for marker in FORBIDDEN_HISTORY_MARKERS)
+        assert all(glyph not in value for glyph in FRAME_GLYPHS)

@@ -1071,6 +1071,14 @@ def build_db_log_snapshot(path, manager_output, stored_state):
     )
 
 
+def normalize_project_path_key(path):
+    """Return the normalized history key for an existing project directory."""
+    expanded_path = os.path.expanduser(str(path))
+    if not os.path.isdir(expanded_path):
+        raise CliStartupError(f"Directory not found: {expanded_path}")
+    return expanded_path.rstrip("/") + "/"
+
+
 # ---------------------------------------------------------------------------
 # Database layer
 # ---------------------------------------------------------------------------
@@ -1102,6 +1110,7 @@ def db_init():
 
 def db_fetch_history(path, limit=15):
     """Fetch last N history records for a project path."""
+    path = normalize_project_path_key(path)
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     rows = conn.execute(
@@ -1127,6 +1136,9 @@ def db_log(path, agent_response, ai_output, ai_reason, help_or_done_msg=None):
 
 def db_show_history(path=None, renderer=None, verbose=False):
     """Display history records as a Rich table."""
+    if path:
+        path = normalize_project_path_key(path)
+
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
 
@@ -2371,7 +2383,19 @@ def _run_main(  # pylint: disable=too-many-arguments,too-many-positional-argumen
 
     # History mode
     if history:
-        db_show_history(project_path, renderer=renderer, verbose=verbose)
+        history_path = None
+        if project_path:
+            try:
+                history_path = normalize_project_path_key(project_path)
+            except CliStartupError as exc:
+                _exit_with_startup_error(
+                    str(exc),
+                    event_emitter=event_emitter,
+                    machine_output=machine_output,
+                    renderer=renderer,
+                    title="Project Path",
+                )
+        db_show_history(history_path, renderer=renderer, verbose=verbose)
         return
 
     # Interactive mode if no path given
@@ -2421,19 +2445,17 @@ def _run_main(  # pylint: disable=too-many-arguments,too-many-positional-argumen
             if ceo_input:
                 ceo = ceo_input
 
-    # Expand and validate path
-    project_path = os.path.expanduser(project_path)
-    if not os.path.isdir(project_path):
+    # Expand, validate, and normalize the project history key.
+    try:
+        project_path = normalize_project_path_key(project_path)
+    except CliStartupError as exc:
         _exit_with_startup_error(
-            f"Directory not found: {project_path}",
+            str(exc),
             event_emitter=event_emitter,
             machine_output=machine_output,
             renderer=renderer,
             title="Project Path",
         )
-
-    # Normalize path (remove trailing slash for consistent DB keys)
-    project_path = project_path.rstrip("/") + "/"
     _emit_event(
         event_emitter,
         "project_resolved",

@@ -254,7 +254,9 @@ def test_sqlite_history_stores_raw_values_without_renderer_labels(
     assert "Agent Response" in rendered_text
     assert "LOGGED History Write" in rendered_text
 
-    project_path = f"{tmp_path}/project/"
+    project_dir = tmp_path / "project"
+    project_dir.mkdir()
+    project_path = f"{project_dir}/"
     apex_infinite.db_log(
         project_path,
         "raw agent output",

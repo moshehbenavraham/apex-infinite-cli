@@ -210,14 +210,17 @@ Fallback behavior:
 ```bash
 cd apex-infinite-cli
 apex-infinite --history
-apex-infinite --history --path ~/projects/my-app/
+apex-infinite --history --path ~/projects/my-app
 apex-infinite --history --verbose
 ```
 
 Use this to inspect the last 50 logged records globally or for a single
-normalized project path. Default history is a compact ledger with timestamp,
-status, project key, command, reason, and response summary. Add `--verbose` to
-expand reason, response, and stored-state detail.
+project path. The scoped lookup expands `~`, verifies the directory exists, and
+uses the same trailing-slash history key as normal run logging, so
+`~/projects/my-app` and `~/projects/my-app/` find the same rows. Default
+history is a compact ledger with timestamp, status, project key, command,
+reason, and response summary. Add `--verbose` to expand reason, response, and
+stored-state detail.
 
 ## What Happens Per Iteration
 
@@ -272,7 +275,9 @@ For a new project:
 
 For an existing project:
 
-1. Reuse the exact same path string you used before.
+1. Reuse the same absolute project path; trailing slash differences are okay,
+   but symlinked or otherwise different absolute paths are separate history
+   identities.
 2. Review the recent history table before resuming.
 3. Resume with `--start` only if you want to override manager autonomy.
 

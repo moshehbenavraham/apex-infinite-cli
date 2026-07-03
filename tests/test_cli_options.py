@@ -128,6 +128,37 @@ def jsonl_rows(text):
     return [json.loads(line) for line in text.splitlines() if line.strip()]
 
 
+@pytest.mark.parametrize("suffix", ["", "/"])
+def test_normalize_project_path_key_existing_directory(tmp_path, suffix):
+    project_path = tmp_path / "project"
+    project_path.mkdir()
+
+    assert (
+        apex_infinite.normalize_project_path_key(f"{project_path}{suffix}")
+        == f"{project_path}/"
+    )
+
+
+def test_normalize_project_path_key_expands_home(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    project_path = tmp_path / "expanded-project"
+    project_path.mkdir()
+
+    assert (
+        apex_infinite.normalize_project_path_key("~/expanded-project")
+        == f"{project_path}/"
+    )
+
+
+def test_normalize_project_path_key_rejects_missing_directory(tmp_path):
+    missing_path = tmp_path / "missing"
+
+    with pytest.raises(apex_infinite.CliStartupError) as exc_info:
+        apex_infinite.normalize_project_path_key(str(missing_path))
+
+    assert str(exc_info.value) == f"Directory not found: {missing_path}"
+
+
 def test_load_config_uses_ollama_env_defaults(monkeypatch, tmp_path):
     clear_ollama_env(monkeypatch)
     config_path = write_config(tmp_path, OLLAMA_ENV_CONFIG_TEXT)
@@ -823,8 +854,41 @@ def test_history_mode_uses_renderer_and_does_not_start_loop(monkeypatch, tmp_pat
 
     assert result.exit_code == 0
     assert captured == {}
-    assert history_call["path"] == str(project_path)
+    assert history_call["path"] == f"{project_path}/"
     assert history_call["verbose"] is True
+    assert history_call["renderer"].settings.plain is True
+
+
+def test_history_mode_without_path_uses_global_history(monkeypatch, tmp_path):
+    config_path = write_config(tmp_path)
+    history_call = {}
+
+    def fake_loop(**_kwargs):
+        raise AssertionError("history mode should not start the loop")
+
+    def fake_history(path=None, renderer=None, verbose=False):
+        history_call["path"] = path
+        history_call["renderer"] = renderer
+        history_call["verbose"] = verbose
+
+    monkeypatch.setattr(apex_infinite, "DB_DIR", tmp_path / "db")
+    monkeypatch.setattr(apex_infinite, "DB_PATH", tmp_path / "db" / "history.db")
+    monkeypatch.setattr(apex_infinite, "infinite_loop", fake_loop)
+    monkeypatch.setattr(apex_infinite, "db_show_history", fake_history)
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--history",
+            "--plain",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert history_call["path"] is None
+    assert history_call["verbose"] is False
     assert history_call["renderer"].settings.plain is True
 
 

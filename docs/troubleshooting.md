@@ -51,17 +51,22 @@ What to do:
 
 - keep using the same absolute path string for the same project
 - avoid mixing symlinked and non-symlinked paths
+- do not worry about a missing or extra trailing slash; scoped history lookups
+  normalize that difference
 
 ### `--history --path` shows no rows
 
 Cause:
 
-- the stored path key does not match the exact normalized string you passed
+- the path is not the same absolute directory identity as the stored rows
+- the path does not exist, so the CLI refuses to query it
 
 What to do:
 
 - try `apex-infinite --history` without `--path`
 - inspect the recorded path values in the history table
+- retry with the stored absolute path; adding or removing only the trailing
+  slash will not change the scoped lookup result
 
 ## Manager Behavior Issues
 
@@ -451,7 +456,7 @@ Use these commands when the system is behaving unexpectedly:
 ```bash
 cd apex-infinite-cli
 apex-infinite --history
-apex-infinite --path ~/projects/my-app/ --history
+apex-infinite --path ~/projects/my-app --history
 apex-infinite --check-provider --provider ollama
 scripts/check-ollama.sh --chat
 apex-infinite --path ~/projects/my-app/ --start plansession --dry-run

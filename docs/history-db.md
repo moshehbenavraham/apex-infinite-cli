@@ -44,18 +44,18 @@ column name to avoid migrating existing history files.
 
 ## Path Normalization
 
-History is grouped by the exact `path` value stored in the database.
+History is grouped by the normalized `path` value stored in the database.
 
-Before logging, the CLI:
+Before logging normal runs and before scoped history reads, the CLI:
 
 1. Expands `~`
 2. Verifies the directory exists
 3. Strips any trailing slash
 4. Re-appends a single trailing slash
 
-That means `/tmp/project` and `/tmp/project/` collapse to the same history key,
-but different symlinked or alternate absolute paths will still be treated as
-different projects.
+That means `/tmp/project` and `/tmp/project/` collapse to the same history key
+for both writes and `--history --path` lookups. Different symlinked or
+alternate absolute paths will still be treated as different projects.
 
 ## Write Behavior
 
@@ -73,6 +73,9 @@ The CLI uses the database in two ways:
 
 - Decision loop: reads the most recent 15 rows for the current project
 - `--history`: shows up to 50 rows, either globally or for one project path
+
+Scoped `--history --path /path/to/project` uses the same normalized trailing
+slash key as normal run logging. Unscoped `--history` does not filter by path.
 
 History display is a render-time ledger. Each row derives a compact status,
 project key, command, timestamp, reason, and response summary from the stored
@@ -168,6 +171,10 @@ sqlite3 ~/.apex-infinite/history.db \
   "SELECT id, ai_decision_output, ai_decision_reason, help_or_done_msg, created_at \
    FROM history WHERE path = '/home/user/projects/my-app/' ORDER BY id DESC LIMIT 20;"
 ```
+
+Manual `sqlite3` queries must use the stored trailing-slash key. The CLI
+normalizes `apex-infinite --history --path /home/user/projects/my-app` and
+`/home/user/projects/my-app/` to that same key for you.
 
 Count records by project:
 

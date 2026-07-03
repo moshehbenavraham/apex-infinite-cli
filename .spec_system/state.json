@@ -29,26 +29,12 @@
     "phase00-session07-linux-visual-wrapper-productization",
     "phase00-session08-release-verification",
     "phase01-session01-codex-invocation-compatibility",
-    "phase01-session02-provider-event-stream-contract"
+    "phase01-session02-provider-event-stream-contract",
+    "phase01-session03-history-path-normalization"
   ],
   "next_session_history": [
     {
       "date": "2026-07-03",
-      "session": "phase00-session04-event-stream-boundary",
-      "status": "validated"
-    },
-    {
-      "date": "2026-07-03",
-      "session": "phase00-session04-event-stream-boundary",
-      "status": "completed"
-    },
-    {
-      "date": "2026-07-03",
-      "session": "phase00-session05-docs-samples-and-runbooks",
-      "status": "planned"
-    },
-    {
-      "date": "2026-07-03",
       "session": "phase00-session05-docs-samples-and-runbooks",
       "status": "validated"
     },
@@ -130,6 +116,21 @@
     {
       "date": "2026-07-03",
       "session": "phase01-session02-provider-event-stream-contract",
+      "status": "completed"
+    },
+    {
+      "date": "2026-07-03",
+      "session": "phase01-session03-history-path-normalization",
+      "status": "planned"
+    },
+    {
+      "date": "2026-07-03",
+      "session": "phase01-session03-history-path-normalization",
+      "status": "validated"
+    },
+    {
+      "date": "2026-07-03",
+      "session": "phase01-session03-history-path-normalization",
       "status": "completed"
     }
   ]
