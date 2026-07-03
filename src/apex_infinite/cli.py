@@ -26,6 +26,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from apex_infinite import __version__
 from apex_infinite.events import (
     EventStreamError,
     NoOpEventEmitter,
@@ -2391,7 +2392,7 @@ def infinite_loop(  # pylint: disable=too-many-positional-arguments,too-many-arg
     is_flag=True,
     help="Disable human output and reserve stdout for event JSONL.",
 )
-@click.version_option(version="2.0.3", prog_name="apex-infinite")
+@click.version_option(version=__version__, prog_name="apex-infinite")
 def main(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches,too-many-statements
     project_path,
     start,

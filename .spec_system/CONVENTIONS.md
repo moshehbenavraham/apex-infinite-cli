@@ -41,7 +41,8 @@ honor.
   `--machine-output`, and `--version`.
 - Current config sections are `provider`, `codex`, `ui`, and `providers`.
 - Current runtime dependencies are Click, Rich, OpenAI Python SDK,
-  python-dotenv, PyYAML, SQLite from the Python standard library, and Codex CLI.
+  python-dotenv, PyYAML, structlog, SQLite from the Python standard library,
+  and Codex CLI.
 - Current local history is SQLite at `~/.apex-infinite/history.db`.
 - Current tests live in `tests/`.
 - New UI, config, rendering, subprocess, history, event, or wrapper work must
@@ -331,6 +332,7 @@ honor.
 | Python linter | pylint | `pyproject.toml` |
 | Python type safety | mypy | `pyproject.toml`, CLI dev extra |
 | Python testing | pytest, pytest-cov, pytest-mock | `pyproject.toml`, CLI dev extra |
+| Observability | structlog + last-error JSON capture | `src/apex_infinite/logging_config.py`, `logs/.gitignore` |
 | Script linter | shellcheck | Optional local tool for `.spec_system/scripts/` and `scripts/` |
 | Database | SQLite | `~/.apex-infinite/history.db` |
 
@@ -351,7 +353,7 @@ honor.
 
 | Bundle | Status | Workflow |
 |--------|--------|----------|
-| Code Quality | local-only | `python -m black --check src tests` and `python -m pylint src/apex_infinite src/apex_infinite_visual` |
+| Code Quality | configured | `.github/workflows/quality.yml` |
 | Build & Test | local-only | `python -m pytest tests/ -v` |
 | Security | local-only | Secret scan and `python -m pip_audit` when available |
 | Integration | local-only | CLI and optional wrapper smoke commands |
