@@ -73,6 +73,11 @@ cd apex-infinite-cli
 python -m pip install -e .
 ```
 
+For operators, `pipx install .` from the repo root creates an isolated venv
+and puts the `apex-infinite` command on your shell path. Wheel, sdist,
+local-venv, upgrade, and uninstall flows are documented in
+[Terminal install guide](docs/terminal-install.md).
+
 For development, testing, and dependency audits:
 
 ```bash
@@ -114,9 +119,27 @@ apex-infinite-cli/
 
 ## Configuration
 
-The packaged default config lives at `src/apex_infinite/config.yaml`. For local
-overrides, create `./config.yaml` in the current working directory or pass
-`--config /path/to/config.yaml`.
+First-run setup writes a shared config and is the recommended starting
+point:
+
+```bash
+apex-infinite --setup                      # interactive prompts
+apex-infinite --setup-non-interactive \
+  --provider openai --model gpt-4o         # scripted setup
+```
+
+Setup writes `${XDG_CONFIG_HOME:-~/.config}/apex-infinite/config.yaml`
+atomically with a timestamped backup of any existing file, 0600
+permissions, and environment-variable references for API keys (never key
+values). It also records optional `defaults.projects_dir` and
+`defaults.project` used when `--path` is omitted.
+
+Config resolution order (first match wins): `--config` flag,
+`APEX_INFINITE_CONFIG`, the XDG shared config, `./config.yaml` in the
+working directory, the source checkout root (development), then the
+packaged defaults at `src/apex_infinite/config.yaml`. The resolved path
+and source category appear in the startup panel and the `config_resolved`
+event. A `.env` beside the selected config file overrides a cwd `.env`.
 
 Edit the config to choose your LLM provider and configure the Codex CLI agent:
 
@@ -320,11 +343,22 @@ apex-infinite --history --verbose
 # Override provider/model
 apex-infinite --path ~/projects/my-app/ --provider ollama --model "qwen2.5:72b"
 
+# First-run setup and readiness diagnostics
+apex-infinite --setup
+apex-infinite --doctor
+apex-infinite --doctor --doctor-visual --path ~/projects/my-app/
+
 # Check provider connectivity and model availability
 ./scripts/ollama-docker.sh
 apex-infinite --provider ollama --check-provider
 apex-infinite --provider ollama --check-provider --check-provider-chat
 ./scripts/check-ollama.sh --chat
+
+# Resume the configured default project (defaults.project from --setup)
+apex-infinite
+
+# Purge stored local history
+apex-infinite --purge-history --path ~/projects/my-app/
 
 # Limit iterations
 apex-infinite --path ~/projects/my-app/ --start plansession --max-iterations 5
@@ -348,8 +382,19 @@ apex-infinite --path ~/projects/my-app/ --event-stream - --machine-output
 --ceo TEXT                Initial CEO instructions
 --provider TEXT           LLM provider override: ollama|grok|openai
 --model TEXT              Model override
---config TEXT             Config file path (default: ./config.yaml, then packaged config)
+--config TEXT             Config file path (default: shared resolution chain)
 --history                 Show interaction history
+--purge-history           Delete stored local history (all, or one project with --path)
+--yes                     Skip confirmation prompts for destructive maintenance flags
+--setup                   Interactive first-run setup; writes the XDG shared config
+--setup-non-interactive   Write the shared config from flags without prompting
+--codex-binary TEXT       Setup only: Codex binary name or path
+--codex-exec-flags TEXT   Setup only: Codex exec flags written to config
+--reasoning-effort TEXT   Setup only: minimal|low|medium|high|xhigh
+--projects-dir TEXT       Setup only: default projects directory
+--default-project TEXT    Setup only: default target project
+--doctor                  Run readiness diagnostics, then exit (non-zero on blockers)
+--doctor-visual           Include visual-wrapper dependency checks in --doctor
 --max-iterations INTEGER  Safety limit (default: 50)
 --dry-run                 Show what would execute without running codex
 --verbose                 Show full agent output
@@ -394,10 +439,21 @@ separate history-only flag or changing the SQLite schema.
 
 The manager and summarizer can send recent history, latest agent output,
 operator instructions, summaries, and project paths to the configured LLM
-provider. Do not include provider keys, secrets, personal data, or customer
-data in operator instructions or target-project outputs. The local history
-database currently has no CLI purge, retention, or redaction command; remove or
-protect `~/.apex-infinite/history.db` manually when needed.
+provider. Treat everything in a prompt as transferred to that provider under
+the provider's own data policy. Do not include provider keys, secrets,
+personal data, or customer data in operator instructions or target-project
+outputs.
+
+A one-time privacy notice covering local history storage and provider-bound
+prompt traffic is shown on the first human-mode run (tracked by a marker in
+`${XDG_STATE_HOME:-~/.local/state}/apex-infinite/`). History is retained
+indefinitely until purged. Delete stored history at any time:
+
+```bash
+apex-infinite --purge-history            # all projects (confirmation prompt)
+apex-infinite --purge-history --path P   # one project only
+apex-infinite --purge-history --yes      # no confirmation (scripts)
+```
 
 See [history-ledger.txt](docs/transcripts/history-ledger.txt)
 for compact and verbose history examples.
@@ -506,10 +562,12 @@ preflight sweeps it, manager decisions pulse, iterations leave persistence
 trails, operator stop drains the glow, and errors apply a distinct fault
 signature. Reduced-effects and plain fallbacks stay fully readable.
 
-Optional clean-room shader modules live in
-`src/apex_infinite_visual/shaders/` and compile with
-`scripts/build-shaders.sh`; without compiled artifacts the wrapper
-automatically uses the QML-only effect layer. Desktop metadata, an original
+Shader mode is deferred for this release (ADR 0001 #2): QML-only source
+mode is the shipped visual path. The clean-room shader sources in
+`src/apex_infinite_visual/shaders/` stay in-tree for a future release and
+compile with `scripts/build-shaders.sh`, but compiled `.qsb` artifacts stay
+ignored and out of package data; the wrapper always uses the QML-only
+effect layer in shipped form. Desktop metadata, an original
 icon, and an AppImage build script live under
 `src/apex_infinite_visual/assets/` and `scripts/build-appimage.sh`
 (see `packaging/RELEASE-CHECKLIST.md`).
@@ -530,6 +588,13 @@ apex-infinite-visual \
   --start-command implement \
   --max-iterations 1
 ```
+
+Real-CLI wrapper runs write a durable copy of the full JSONL event stream
+to `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/logs/run-<utc>.jsonl`
+by default. Pass `--reduced-logging` to keep no per-run log, or
+`--run-log-dir DIR` to relocate it. Logs contain only registered event
+payloads (no secrets, ANSI, or markup); delete files from the logs
+directory to purge them.
 
 PyQt, qmltermwidget, QTermWidget, copied terminal emulators, copied QML, copied
 shaders, copied images, copied icons, copied fonts, copied resource manifests,

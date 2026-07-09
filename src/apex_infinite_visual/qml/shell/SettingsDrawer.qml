@@ -304,6 +304,84 @@ Drawer {
                 onClicked: bridge.saveProfile(newProfileName.text.trim())
             }
 
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                ApexButton {
+                    bridge: drawer.bridge
+                    text: "Duplicate"
+                    enabled: profileBox.currentText.length > 0
+                        && newProfileName.text.trim().length > 0
+                    onClicked: bridge.duplicateProfile(
+                        profileBox.currentText, newProfileName.text.trim())
+                }
+
+                ApexButton {
+                    bridge: drawer.bridge
+                    text: "Rename"
+                    enabled: profileBox.currentText.length > 0
+                        && newProfileName.text.trim().length > 0
+                    onClicked: bridge.renameProfile(
+                        profileBox.currentText, newProfileName.text.trim())
+                }
+
+                ApexButton {
+                    bridge: drawer.bridge
+                    text: "Reset built-in"
+                    enabled: profileBox.currentText.length > 0
+                    onClicked: bridge.resetProfile(profileBox.currentText)
+                }
+            }
+
+            Text {
+                text: "Duplicate and Rename use the name field above. Reset "
+                    + "restores a built-in profile to its shipped values."
+                color: bridge.mutedColor
+                font.family: bridge.fontFamily
+                font.pixelSize: Math.round(9 * bridge.fontScale)
+                wrapMode: Text.Wrap
+                Layout.fillWidth: true
+            }
+
+            TextField {
+                id: profileFilePath
+                placeholderText: "Profile JSON path (import/export)"
+                placeholderTextColor: bridge.mutedColor
+                color: bridge.textColor
+                font.family: bridge.fontFamily
+                background: Rectangle {
+                    color: bridge.cellColor
+                    border.color: profileFilePath.activeFocus
+                        ? bridge.accentColor : bridge.borderColor
+                    border.width: 1
+                    radius: 3
+                }
+                Layout.fillWidth: true
+                Accessible.name: "Profile JSON path"
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                ApexButton {
+                    bridge: drawer.bridge
+                    text: "Import"
+                    enabled: profileFilePath.text.trim().length > 0
+                    onClicked: bridge.importProfile(profileFilePath.text.trim())
+                }
+
+                ApexButton {
+                    bridge: drawer.bridge
+                    text: "Export"
+                    enabled: profileBox.currentText.length > 0
+                        && profileFilePath.text.trim().length > 0
+                    onClicked: bridge.exportProfile(
+                        profileBox.currentText, profileFilePath.text.trim())
+                }
+            }
+
             Text {
                 visible: bridge.profileError.length > 0
                 text: bridge.profileError

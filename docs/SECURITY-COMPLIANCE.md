@@ -7,22 +7,23 @@
 
 ## Current Security Posture
 
-### Overall: AT RISK
+### Overall: ACCEPTABLE WITH DOCUMENTED RISK
 
-Phase 01 smoke remediation passed with no new session security findings, no
-known vulnerable dependencies from local `pip-audit`, and no provider secrets
-or display artifacts found in smoke events. The posture remains AT RISK because
-local history retention, broad autonomous execution policy, provider-bound data
-transfer disclosure, and recurring dependency governance still need follow-up
-work.
+The 2026-07-09 productization pass closed the four open findings: local
+history now has a purge path and a first-run privacy notice, the broad Codex
+bypass default is a documented accepted risk with mandatory autonomy summary
+and dry-run-first onboarding (ADR 0001 #8), provider-bound prompt traffic is
+disclosed in README and the first-run notice, and a recurring CI `pip-audit`
+lane scans base, dev, and visual dependencies weekly and on dependency
+changes.
 
 | Metric | Value |
 |--------|-------|
-| Open Findings | 4 |
+| Open Findings | 0 |
 | Critical/High | 0 |
-| Medium/Low | 4 |
+| Medium/Low | 0 |
 | Phases Audited | 2 |
-| Last Clean Phase | -- |
+| Last Clean Phase | P01 (2026-07-09 update) |
 
 ---
 
@@ -36,49 +37,22 @@ No open critical or high findings.
 
 ### Medium / Low
 
-- **[P00-S01] Local history has no retention or redaction controls**
-  - Severity: Medium
-  - File: `src/apex_infinite/cli.py`
-  - Description: Local SQLite history stores raw agent output, manager decisions, reasons, project paths, timestamps, and operator instructions without purge, retention, or redaction behavior.
-  - Remediation: Add a purge/retention path and redaction behavior, or document the accepted local-data risk explicitly before broader release.
-  - Status: Open
-  - Opened: P00 (2026-07-03)
-
-- **[P00-S02] Autonomous execution flags need explicit operator safety policy**
-  - Severity: Medium
-  - File: `src/apex_infinite/config.yaml`, `src/apex_infinite/cli.py`, `README.md`
-  - Description: Phase 01 validates configured Codex flags and documents effective command review, but the shipped real-run default still grants broad autonomous bypass behavior for target-project changes.
-  - Remediation: Add an explicit opt-in/narrower permission model or document an accepted-risk release policy before broader distribution.
-  - Status: Open, partially mitigated in P01 by startup validation and operator documentation
-  - Opened: P00 (2026-07-03)
-
-- **[P00-S03] Provider-bound data transfer disclosure is incomplete**
-  - Severity: Medium
-  - File: `README.md`
-  - Description: Recent history, latest agent output, summaries, and operator instructions can be sent to the configured LLM provider.
-  - Remediation: Document provider-bound prompt traffic and warn operators not to include secrets or personal data in prompts or target-project outputs.
-  - Status: Open
-  - Opened: P00 (2026-07-03)
-
-- **[P00-S04] Dependency audit is local-only**
-  - Severity: Low
-  - File: `pyproject.toml`
-  - Description: Session 08 passed local `pip-audit`, but package dependencies use lower-bound ranges and there is no lockfile or recurring CI/scheduled vulnerability gate for this CLI scope.
-  - Remediation: Add dependency locking or scheduled/CI vulnerability scanning for base, dev, and visual extra dependencies.
-  - Status: Open
-  - Opened: P00 (2026-07-03)
+No open medium or low findings.
 
 ---
 
 ## GDPR Compliance Status
 
-### Overall: NON-COMPLIANT / LOCAL TOOL
+### Overall: LOCAL TOOL / DISCLOSED
 
 The project is not an end-user data service, but it can process operator text,
 target-project paths, agent responses, and provider-bound prompts. Treat local
-history and provider requests as potentially sensitive operational data. Until
-first-run notice, purge/redaction, and provider-transfer documentation are
-implemented, the local-tool privacy posture is non-compliant.
+history and provider requests as potentially sensitive operational data. As of
+2026-07-09 the tool shows a one-time first-run privacy notice, ships a CLI
+purge path (`--purge-history`, optionally scoped with `--path`), and documents
+provider-bound prompt transfer in README and the notice. Raw history rows are
+retained until purged; redaction of individual fields remains out of scope for
+a local operator tool and is covered by the purge path.
 
 ### Personal Data Inventory
 
@@ -96,11 +70,11 @@ implemented, the local-tool privacy posture is non-compliant.
 | Requirement | Status | Notes |
 |-------------|--------|-------|
 | Data collection has documented purpose | PASS | History exists to resume and summarize workflow state. |
-| Consent obtained before data storage | FAIL | Operator starts the CLI, but there is no explicit first-run privacy notice. |
-| Data minimization verified | FAIL | Recent rows are summarized, but raw history is retained indefinitely. |
-| Deletion/erasure path exists | FAIL | Manual database deletion works; no CLI purge command exists. |
-| No PII in application logs | FAIL | No intentional PII collection, but raw prompts and outputs are not scrubbed. |
-| Third-party transfers documented | FAIL | Provider-bound prompt traffic is known; provider-specific legal posture is not recorded. |
+| Consent obtained before data storage | PASS | One-time first-run privacy notice shown before history storage and provider traffic (2026-07-09). |
+| Data minimization verified | PARTIAL | Recent rows are summarized; raw history is retained until the operator purges it. |
+| Deletion/erasure path exists | PASS | `apex-infinite --purge-history` deletes all or per-project rows (2026-07-09). |
+| No PII in application logs | PARTIAL | No intentional PII collection; event payloads reject secret-like values, but raw prompts/outputs in history are unscrubbed by design. |
+| Third-party transfers documented | PASS | README Data section and the first-run notice document provider-bound prompt traffic; provider-specific legal posture is the operator's provider choice. |
 
 ---
 
@@ -142,6 +116,10 @@ Recently closed items. Compressed after 2 phases.
 
 | ID | Finding | Severity | Resolved | Phase | Resolution |
 |----|---------|----------|----------|-------|------------|
+| P00-S01 | Local history has no retention or redaction controls | Medium | 2026-07-09 | P01 | Added `--purge-history` (all or per-project, confirmation-gated) plus a first-run privacy notice; retention documented in README. |
+| P00-S02 | Autonomous execution flags need explicit operator safety policy | Medium | 2026-07-09 | P01 | Accepted-risk release policy recorded in ADR 0001 #8 with mandatory autonomy summary, dry-run-first onboarding, and setup-time warning. |
+| P00-S03 | Provider-bound data transfer disclosure is incomplete | Medium | 2026-07-09 | P01 | README Data section and the first-run privacy notice document provider-bound prompt traffic and secret/PII warnings. |
+| P00-S04 | Dependency audit is local-only | Low | 2026-07-09 | P01 | Added `.github/workflows/security-scan.yml`: weekly scheduled and dependency-change-triggered `pip-audit` across base, dev, and visual lanes. |
 | P00-S05 | Event-stream payload safety and stdout isolation | Medium | 2026-07-03 | P00 | Guarded `--event-stream -` with `--machine-output`; release smokes verified JSONL schema and unsafe-token exclusion. |
 | P00-S06 | Visual-wrapper clean-room uncertainty | Medium | 2026-07-03 | P00 | Clean-room scans found no copied reference source/assets; binary publication remains gated for artifact-specific review. |
 
@@ -158,11 +136,9 @@ Recently closed items. Compressed after 2 phases.
 
 ## Recommendations
 
-1. Add retention, purge, and redaction behavior for local history or explicitly document the accepted local-data risk.
-2. Decide the release policy for broad Codex bypass behavior: explicit opt-in/narrower permissions, or accepted-risk documentation before broader distribution.
-3. Document provider-bound data transfer expectations and warn operators not to place secrets or personal data in prompts or target-project outputs.
-4. Add dependency locking or recurring vulnerability scanning in CI.
-5. Keep the base CLI free of graphical dependencies and preserve the clean-room boundary for future visual-wrapper artifacts.
+1. Keep the base CLI free of graphical dependencies and preserve the clean-room boundary for future visual-wrapper artifacts.
+2. Review the weekly `pip-audit` CI results and act on new advisories promptly; consider a lockfile if reproducibility requirements grow.
+3. Revisit field-level history redaction if the tool is ever distributed beyond single-operator local use.
 
 ---
 

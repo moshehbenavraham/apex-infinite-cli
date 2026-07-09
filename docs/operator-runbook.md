@@ -17,9 +17,16 @@ It assumes the CLI, config, and Codex skill are already installed.
 
 Before the first run:
 
+0. On a fresh machine, run `apex-infinite --setup` to write the shared
+   config, then `apex-infinite --doctor` to verify Python, config, Codex,
+   provider, project, and history readiness in one pass. Doctor exits
+   non-zero on blockers and prints a fix command per failing row.
 1. Confirm the target `--path` is the project you want Codex to modify.
-2. Confirm `src/apex_infinite/config.yaml` or your `--config` file points at
-   the intended provider and model.
+2. Confirm the resolved config points at the intended provider and model.
+   Resolution order: `--config`, `APEX_INFINITE_CONFIG`, the XDG shared
+   config written by `--setup`, `./config.yaml`, the source checkout root,
+   then packaged defaults. The startup panel shows the resolved path and
+   source category.
 3. Confirm `codex.binary` resolves to the intended Codex CLI executable.
 4. Confirm `codex.exec_flags` matches the autonomy level you want. The
    packaged default is `--dangerously-bypass-approvals-and-sandbox`, which
@@ -412,6 +419,27 @@ For an existing project:
 - Preferred: respond `quit` when prompted after `help` or an operator interrupt.
 - Acceptable: terminate the process if you do not need another history record.
 - After exit, use `--history --path ...` to confirm the last recorded state.
+
+## Local Data, Logs, And Retention
+
+- **History**: `~/.apex-infinite/history.db` keeps raw workflow history
+  indefinitely. Purge with `apex-infinite --purge-history` (add `--path`
+  for one project, `--yes` for scripts). A one-time privacy notice covers
+  this and provider-bound prompt traffic on the first human-mode run; its
+  marker lives in `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/`.
+- **Wrapper run logs**: real-CLI visual runs write the full JSONL event
+  stream to `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/logs/`
+  (`run-<utc>.jsonl`) by default. These are the export/diagnosis artifact
+  for a run: structured, timestamped, secret-free registered events. Use
+  `--reduced-logging` to disable, `--run-log-dir` to relocate, and delete
+  files from the directory to purge. There is no automatic rotation;
+  clean the directory as part of routine maintenance.
+- **Event export**: the visual event core can also export the currently
+  filtered rows as JSON from the signal panel.
+- **Provider traffic**: prompts can carry recent history, latest agent
+  output, summaries, operator instructions, and project paths to the
+  configured provider. Never place secrets or personal data in prompts or
+  target-project output.
 
 ## Reference Archives
 

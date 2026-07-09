@@ -107,6 +107,7 @@ class StartupSnapshot:
     dry_run: bool
     start_command: str | None = None
     ceo_present: bool = False
+    config_source: str = ""
 
 
 @dataclass(frozen=True)
@@ -664,7 +665,14 @@ class ApexRenderer:  # pylint: disable=too-many-public-methods
             ("Project", snapshot.project_path),
             ("Provider", snapshot.provider_name),
             ("Model", snapshot.model_name),
-            ("Config", snapshot.config_path),
+            (
+                "Config",
+                (
+                    f"{snapshot.config_path} source={snapshot.config_source}"
+                    if snapshot.config_source
+                    else snapshot.config_path
+                ),
+            ),
             ("Max iterations", snapshot.max_iterations),
             (
                 "Theme",

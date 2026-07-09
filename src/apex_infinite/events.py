@@ -18,6 +18,8 @@ EVENT_NAMES = frozenset(
         "startup_begin",
         "config_loaded",
         "config_resolved",
+        "privacy_notice_shown",
+        "history_purged",
         "ui_resolved",
         "project_resolved",
         "spec_system_detected",

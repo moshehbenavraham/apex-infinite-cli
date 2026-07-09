@@ -159,6 +159,14 @@ Rectangle {
 
             ApexButton {
                 bridge: strip.bridge
+                text: "Resume"
+                enabled: bridge.resumeAvailable && !bridge.running
+                Accessible.name: "Resume last run"
+                onClicked: bridge.resumeRun()
+            }
+
+            ApexButton {
+                bridge: strip.bridge
                 text: "Stop"
                 danger: true
                 enabled: bridge.running

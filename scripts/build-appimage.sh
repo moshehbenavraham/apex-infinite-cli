@@ -39,6 +39,12 @@ python3 -m venv "$APPDIR/usr/venv"
 "$APPDIR/usr/venv/bin/pip" install --quiet \
     "$(ls "$BUILD_ROOT"/wheels/apex_infinite_cli-*.whl)[visual]"
 
+# Nuitka is a build-time tool from the visual extra; the shipped bundle
+# runs from source wheels (see packaging/RELEASE-CHECKLIST.md decision
+# record) and must not carry it.
+echo "==> Removing build-only tools from the bundle"
+"$APPDIR/usr/venv/bin/pip" uninstall --quiet -y Nuitka
+
 echo "==> Writing dependency inventory"
 "$APPDIR/usr/venv/bin/pip" freeze > "$DIST_DIR/dependency-inventory.txt"
 
@@ -49,7 +55,10 @@ cp "$ASSET_DIR/apex-infinite-visual.svg" "$APPDIR/apex-infinite-visual.svg"
 mkdir -p "$APPDIR/usr/share/metainfo" \
     "$APPDIR/usr/share/applications" \
     "$APPDIR/usr/share/icons/hicolor/scalable/apps"
-cp "$ASSET_DIR/apex-infinite-visual.appdata.xml" "$APPDIR/usr/share/metainfo/"
+# AppStream requires the installed metainfo filename to match the
+# component id (org.apexinfinite.Hyperterminal).
+cp "$ASSET_DIR/apex-infinite-visual.appdata.xml" \
+    "$APPDIR/usr/share/metainfo/org.apexinfinite.Hyperterminal.appdata.xml"
 cp "$ASSET_DIR/apex-infinite-visual.desktop" "$APPDIR/usr/share/applications/"
 cp "$ASSET_DIR/apex-infinite-visual.svg" \
     "$APPDIR/usr/share/icons/hicolor/scalable/apps/"

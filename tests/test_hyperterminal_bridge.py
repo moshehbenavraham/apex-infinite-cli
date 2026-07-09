@@ -364,3 +364,222 @@ def test_session_profile_persisted_on_shutdown(tmp_path):
     reopened = make_bridge(tmp_path, restore_profile=True)
     assert reopened.themeName == "blueprint-dos"
     assert reopened.activeProfile == "last-session"
+
+
+def test_profile_duplicate_and_rename(tmp_path):
+    bridge = make_bridge(tmp_path)
+    bridge.saveProfile("ops")
+
+    bridge.duplicateProfile("ops", "ops-copy")
+    assert bridge.profileError == ""
+    assert "ops-copy" in bridge.profileNames
+
+    bridge.loadProfile("ops-copy")
+    bridge.renameProfile("ops-copy", "ops-final")
+    assert bridge.profileError == ""
+    assert "ops-final" in bridge.profileNames
+    assert "ops-copy" not in bridge.profileNames
+    assert bridge.activeProfile == "ops-final"
+
+    bridge.renameProfile("crt-green", "hacked")
+    assert "custom" in bridge.profileError
+
+
+def test_profile_reset_builtin(tmp_path):
+    bridge = make_bridge(tmp_path)
+    bridge.loadProfile("crt-green")
+    builtin_intensity = bridge.effectIntensity
+    bridge.setEffectIntensity(95)
+    assert bridge.effectIntensity == 95
+
+    # Reset restores the shipped built-in values on the active surface.
+    bridge.resetProfile("crt-green")
+    assert bridge.profileError == ""
+    assert bridge.effectIntensity == builtin_intensity
+
+    bridge.resetProfile("not-a-builtin")
+    assert "built-in" in bridge.profileError
+
+
+def test_profile_export_import_round_trip(tmp_path):
+    bridge = make_bridge(tmp_path)
+    bridge.saveProfile("portable")
+    export_path = tmp_path / "exported" / "portable.json"
+
+    bridge.exportProfile("portable", str(export_path))
+    assert bridge.profileError == ""
+    assert export_path.is_file()
+
+    bridge.deleteProfile("portable")
+    assert "portable" not in bridge.profileNames
+
+    bridge.importProfile(str(export_path))
+    assert bridge.profileError == ""
+    assert "portable" in bridge.profileNames
+
+
+def test_profile_import_invalid_json_shows_error_without_breaking(tmp_path):
+    bridge = make_bridge(tmp_path)
+    bad_path = tmp_path / "bad.json"
+    bad_path.write_text("{not json", encoding="ascii")
+
+    bridge.importProfile(str(bad_path))
+
+    assert "import failed" in bridge.profileError
+    # Store still works after the failed import.
+    bridge.saveProfile("still-works")
+    assert bridge.profileError == ""
+    assert "still-works" in bridge.profileNames
+
+
+def test_profile_import_rejects_secret_keys(tmp_path):
+    bridge = make_bridge(tmp_path)
+    bridge.saveProfile("leaky")
+    export_path = tmp_path / "leaky.json"
+    bridge.exportProfile("leaky", str(export_path))
+    payload = json.loads(export_path.read_text(encoding="ascii"))
+    payload["api_key"] = "sk-should-not-import"
+    payload["name"] = "leaky-import"
+    export_path.write_text(json.dumps(payload), encoding="ascii")
+
+    bridge.importProfile(str(export_path))
+
+    assert bridge.profileError != ""
+    assert "leaky-import" not in bridge.profileNames
+
+
+def test_resume_restores_last_run_controls(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+    first = make_bridge(tmp_path, restore_profile=True)
+    first.setStartCommand("plansession")
+    first.setMaxIterations(7)
+    run_fixture(first)
+
+    second = make_bridge(
+        tmp_path,
+        restore_profile=True,
+        start_command="implement",
+        max_iterations=2,
+    )
+    assert second.resumeAvailable is True
+
+    second.resumeRun()
+    assert second.startCommand == "plansession"
+    assert second.maxIterations == 7
+    while second._fixture_timer.isActive():  # pylint: disable=protected-access
+        second._emit_next_fixture()  # pylint: disable=protected-access
+    assert second.resumeAvailable is True  # still resumable after the run
+
+
+def test_resume_unavailable_without_stored_state(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    bridge = make_bridge(tmp_path, restore_profile=True)
+
+    assert bridge.resumeAvailable is False
+    bridge.resumeRun()  # no-op, must not raise or start a run
+    assert bridge.running is False
+
+
+def test_first_run_defaults_to_dry_run(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+    monkeypatch.delenv("APEX_INFINITE_CONFIG", raising=False)
+    bridge = make_bridge(tmp_path, dry_run=False)
+
+    assert bridge.firstRunNeeded is True
+    assert bridge.dryRun is True
+
+
+def test_write_shared_config_from_first_run_panel(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+    monkeypatch.delenv("APEX_INFINITE_CONFIG", raising=False)
+    bridge = make_bridge(tmp_path)
+    assert bridge.firstRunNeeded is True
+
+    bridge.writeSharedConfig("openai", "gpt-4o-mini", "codex", "", "", "")
+
+    assert bridge.setupError == ""
+    written = Path(bridge.setupWrittenPath)
+    assert written.is_file()
+    assert written == tmp_path / "config" / "apex-infinite" / "config.yaml"
+    assert bridge.firstRunNeeded is False
+    events = [row["event"] for row in bridge.eventRows]
+    assert "config_resolved" in events
+
+
+def test_write_shared_config_uses_selected_config_path(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+    monkeypatch.delenv("APEX_INFINITE_CONFIG", raising=False)
+    selected = tmp_path / "selected" / "config.yaml"
+    bridge = make_bridge(tmp_path, config_path=str(selected))
+    assert bridge.firstRunNeeded is True
+
+    bridge.writeSharedConfig("openai", "gpt-4o-mini", "codex", "", "", "")
+
+    assert bridge.setupError == ""
+    assert Path(bridge.setupWrittenPath) == selected
+    assert selected.is_file()
+    assert not (tmp_path / "config" / "apex-infinite" / "config.yaml").exists()
+    assert bridge.firstRunNeeded is False
+    assert bridge.configSource == str(selected)
+
+
+def test_write_shared_config_uses_env_selected_config_path(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+    selected = tmp_path / "env-selected" / "config.yaml"
+    monkeypatch.setenv("APEX_INFINITE_CONFIG", str(selected))
+    bridge = make_bridge(tmp_path)
+    assert bridge.firstRunNeeded is True
+
+    bridge.writeSharedConfig("openai", "gpt-4o-mini", "codex", "", "", "")
+
+    assert bridge.setupError == ""
+    assert Path(bridge.setupWrittenPath) == selected
+    assert selected.is_file()
+    assert not (tmp_path / "config" / "apex-infinite" / "config.yaml").exists()
+    assert bridge.firstRunNeeded is False
+    assert bridge.configSource == str(selected)
+
+
+def test_write_shared_config_validation_error(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+    monkeypatch.delenv("APEX_INFINITE_CONFIG", raising=False)
+    bridge = make_bridge(tmp_path)
+
+    bridge.writeSharedConfig("not-a-provider", "", "codex", "", "", "")
+
+    assert "Unknown provider" in bridge.setupError
+    assert bridge.setupWrittenPath == ""
+    assert not (tmp_path / "config" / "apex-infinite" / "config.yaml").exists()
+
+
+def test_run_log_written_by_default_for_cli_runs(tmp_path):
+    log_dir = tmp_path / "run-logs"
+    bridge = make_bridge(tmp_path, launch_cli=True, run_log_dir=str(log_dir))
+
+    bridge._open_run_log()  # pylint: disable=protected-access
+    assert bridge.runLogPath
+    bridge._ingest_synthetic_event(  # pylint: disable=protected-access
+        "run_stopped", {"reason": "test", "iteration": 0}
+    )
+    bridge._close_run_log()  # pylint: disable=protected-access
+
+    log_files = list(log_dir.glob("run-*.jsonl"))
+    assert len(log_files) == 1
+    lines = log_files[0].read_text(encoding="ascii").splitlines()
+    assert any('"run_stopped"' in line for line in lines)
+
+
+def test_run_log_skipped_with_reduced_logging(tmp_path):
+    log_dir = tmp_path / "run-logs"
+    bridge = make_bridge(
+        tmp_path,
+        launch_cli=True,
+        reduced_logging=True,
+        run_log_dir=str(log_dir),
+    )
+
+    bridge._open_run_log()  # pylint: disable=protected-access
+
+    assert bridge.runLogPath == ""
+    assert not log_dir.exists()

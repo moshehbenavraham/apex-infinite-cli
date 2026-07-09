@@ -13,7 +13,7 @@ Actions=Doctor;DryRun;
 
 [Desktop Action Doctor]
 Name=Run Doctor Diagnostics
-Exec=apex-infinite-visual --dry-run --start-command doctor
+Exec=apex-infinite-visual --run-doctor
 
 [Desktop Action DryRun]
 Name=Safe Dry Run

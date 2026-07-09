@@ -17,6 +17,7 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import NoReturn
 
 import click
 import yaml
@@ -27,11 +28,44 @@ from rich.panel import Panel
 from rich.table import Table
 
 from apex_infinite import __version__
+from apex_infinite.config_resolution import resolve_config
+from apex_infinite.doctor import (
+    DOCTOR_FAIL,
+    DOCTOR_PASS,
+    DOCTOR_WARN,
+    DoctorCheck,
+    DoctorReport,
+    check_codex_binary,
+    check_config_resolution,
+    check_event_stream_path,
+    check_history_db,
+    check_optional_module,
+    check_project_path,
+    check_python_version,
+    check_spec_system,
+    doctor_event_rows,
+)
 from apex_infinite.events import (
     EventStreamError,
     NoOpEventEmitter,
     open_event_stream,
     summarize_text,
+)
+from apex_infinite.privacy import (
+    PRIVACY_NOTICE_ROWS,
+    mark_privacy_notice_shown,
+    privacy_notice_needed,
+)
+from apex_infinite.setup_config import (
+    AUTONOMY_WARNING,
+    DEFAULT_REASONING_EFFORT,
+    PROVIDER_TEMPLATES,
+    REASONING_EFFORTS,
+    SETUP_PROVIDERS,
+    SetupValues,
+    resolve_setup_config_target,
+    validate_setup_values,
+    write_shared_config,
 )
 from apex_infinite.ui import (
     ApexRenderer,
@@ -167,7 +201,7 @@ def _exit_with_startup_error(
     machine_output=False,
     renderer=None,
     title="Startup",
-):
+) -> NoReturn:
     """Report a startup failure without contaminating machine-output stdout."""
     _emit_event(
         event_emitter,
@@ -653,13 +687,24 @@ def load_config(config_path, provider_override=None, model_override=None):
     if not path.exists():
         raise CliStartupError(f"Config file not found: {config_path}")
 
-    with open(path, encoding="utf-8") as f:
-        config = yaml.safe_load(f)
+    try:
+        with open(path, encoding="utf-8") as f:
+            config = yaml.safe_load(f)
+    except yaml.YAMLError as exc:
+        raise CliStartupError(f"Malformed config file {config_path}: {exc}") from exc
+    if not isinstance(config, dict):
+        raise CliStartupError(
+            f"Malformed config file {config_path}: expected a YAML mapping"
+        )
 
     if provider_override:
         config["provider"] = provider_override
 
-    provider_name = config["provider"]
+    provider_name = config.get("provider")
+    if not provider_name:
+        raise CliStartupError(f"Config file {config_path} is missing 'provider'")
+    if not isinstance(config.get("providers"), dict):
+        raise CliStartupError(f"Config file {config_path} is missing 'providers'")
     if provider_name not in config["providers"]:
         raise CliStartupError(f"Unknown provider: {provider_name}")
 
@@ -681,18 +726,9 @@ def load_config(config_path, provider_override=None, model_override=None):
 
 
 def resolve_default_config_path():
-    """Find the default config for source-tree and installed package runs."""
-    source_root = Path(__file__).resolve().parents[2]
-    candidates = [
-        Path.cwd() / "config.yaml",
-        Path(__file__).resolve().parent / "config.yaml",
-    ]
-    if (source_root / "pyproject.toml").exists():
-        candidates.insert(1, source_root / "config.yaml")
-    for candidate in candidates:
-        if candidate.exists():
-            return str(candidate)
-    return None
+    """Find the default config through the shared resolution chain."""
+    resolved = resolve_config(None)
+    return resolved.path if resolved else None
 
 
 def _provider_env_defaults(provider_name):
@@ -939,6 +975,365 @@ def _run_provider_preflight_or_exit(
             "Provider Preflight",
         )
     return result
+
+
+def _codex_version_probe(binary):
+    """Probe the Codex CLI version for doctor output."""
+    result = subprocess.run(
+        [binary, "--version"],
+        capture_output=True,
+        text=True,
+        timeout=CODEX_HELP_TIMEOUT,
+        check=True,
+    )
+    return result.stdout or result.stderr
+
+
+def _doctor_provider_checks(config, check_chat, skip_provider):
+    """Build provider readiness rows for the terminal doctor."""
+    checks = []
+    provider_name = config["provider"]
+    provider = config["providers"][provider_name]
+    try:
+        base_url = _required_provider_string(provider, "base_url", provider_name)
+        _required_provider_string(provider, "api_key", provider_name)
+        model_name = _required_provider_string(provider, "model", provider_name)
+        checks.append(
+            DoctorCheck(
+                "provider_config",
+                "Provider config",
+                DOCTOR_PASS,
+                f"{provider_name}: base URL {base_url}, model {model_name}, "
+                "API key is set.",
+            )
+        )
+    except CliStartupError as exc:
+        checks.append(
+            DoctorCheck(
+                "provider_config",
+                "Provider config",
+                DOCTOR_FAIL,
+                str(exc),
+                fix_hint="Set the provider fields in config.yaml or export the "
+                "referenced environment variable.",
+            )
+        )
+        return checks
+    if skip_provider:
+        checks.append(
+            DoctorCheck(
+                "provider_connectivity",
+                "Provider connectivity",
+                DOCTOR_WARN,
+                "Connectivity check skipped (--skip-provider-check).",
+            )
+        )
+        return checks
+    try:
+        result = run_provider_preflight(config, check_completion=check_chat)
+    except CliStartupError as exc:
+        checks.append(
+            DoctorCheck(
+                "provider_connectivity",
+                "Provider connectivity",
+                DOCTOR_FAIL,
+                str(exc),
+                fix_hint="Run: apex-infinite --check-provider",
+            )
+        )
+        return checks
+    detail = f"{result.model_count} models visible; configured model available."
+    if result.completion_checked:
+        detail += " Tiny chat completion succeeded."
+    checks.append(
+        DoctorCheck(
+            "provider_connectivity", "Provider connectivity", DOCTOR_PASS, detail
+        )
+    )
+    return checks
+
+
+def _build_terminal_doctor_report(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
+    config_path,
+    project_path,
+    event_stream,
+    provider=None,
+    model=None,
+    check_chat=False,
+    skip_provider=False,
+    include_visual=False,
+):
+    """Assemble the terminal doctor report from shared and CLI-only checks."""
+    checks = [check_python_version(), check_config_resolution(config_path)]
+
+    resolved = resolve_config(config_path)
+    config = None
+    if resolved is not None and resolved.exists:
+        try:
+            config = load_config(
+                resolved.path, provider_override=provider, model_override=model
+            )
+            checks.append(
+                DoctorCheck(
+                    "config_parse",
+                    "Config file",
+                    DOCTOR_PASS,
+                    "Config parsed and provider fields expanded.",
+                )
+            )
+        except CliStartupError as exc:
+            checks.append(
+                DoctorCheck(
+                    "config_parse",
+                    "Config file",
+                    DOCTOR_FAIL,
+                    str(exc),
+                    fix_hint="Fix the config file or run: apex-infinite --setup",
+                )
+            )
+
+    agent_cfg = get_agent_config(config or {})
+    codex_check = check_codex_binary(
+        agent_cfg["binary"], version_probe=_codex_version_probe
+    )
+    checks.append(codex_check)
+    if config is not None and codex_check.status != DOCTOR_FAIL:
+        try:
+            validate_codex_exec_flags(agent_cfg)
+            checks.append(
+                DoctorCheck(
+                    "codex_flags",
+                    "Codex exec flags",
+                    DOCTOR_PASS,
+                    f"Configured flags are supported: {agent_cfg['exec_flags']}",
+                )
+            )
+        except CliStartupError as exc:
+            checks.append(
+                DoctorCheck(
+                    "codex_flags",
+                    "Codex exec flags",
+                    DOCTOR_FAIL,
+                    str(exc),
+                    fix_hint="Update codex.exec_flags in config.yaml to flags "
+                    "listed by: codex exec --help",
+                )
+            )
+
+    if config is not None:
+        checks.extend(_doctor_provider_checks(config, check_chat, skip_provider))
+
+    checks.append(check_project_path(project_path or ""))
+    checks.append(check_spec_system(project_path or ""))
+    checks.append(check_history_db(DB_DIR))
+    checks.append(check_event_stream_path(event_stream))
+    if include_visual:
+        checks.append(
+            check_optional_module(
+                "PySide6",
+                "PySide6 runtime (visual extra)",
+                fix_hint="Install the visual extra: "
+                "pip install 'apex-infinite[visual]'",
+            )
+        )
+    return DoctorReport(checks=tuple(checks)), config
+
+
+def _run_terminal_doctor(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
+    config_path,
+    project_path,
+    event_stream,
+    event_emitter,
+    machine_output,
+    renderer_overrides,
+    provider=None,
+    model=None,
+    check_chat=False,
+    skip_provider=False,
+    include_visual=False,
+):
+    """Run the terminal doctor, render rows, emit events, and exit."""
+    report, config = _build_terminal_doctor_report(
+        config_path,
+        project_path,
+        event_stream,
+        provider=provider,
+        model=model,
+        check_chat=check_chat,
+        skip_provider=skip_provider,
+        include_visual=include_visual,
+    )
+
+    try:
+        ui_settings = resolve_ui_settings(
+            config or {}, renderer_overrides, env=os.environ, console=console
+        )
+    except UiConfigError:
+        ui_settings = resolve_ui_settings(
+            {}, renderer_overrides, env=os.environ, console=console
+        )
+    renderer = (
+        NoHumanOutputRenderer(ui_settings)
+        if machine_output
+        else ApexRenderer(ui_settings, console)
+    )
+
+    _emit_event(
+        event_emitter,
+        "doctor_started",
+        {"source": "terminal"},
+        machine_output=machine_output,
+    )
+    for row in doctor_event_rows(report):
+        _emit_event(event_emitter, "doctor_check", row, machine_output=machine_output)
+    _emit_event(
+        event_emitter,
+        "doctor_finished",
+        {
+            "status": report.status,
+            "launch_ready": report.launch_ready,
+            **report.counts(),
+        },
+        machine_output=machine_output,
+    )
+
+    rows = []
+    for check in report.checks:
+        detail = check.detail
+        if check.fix_hint:
+            detail = f"{detail} Fix: {check.fix_hint}"
+        rows.append((f"{check.status.upper()} {check.label}", detail))
+    severity = "accent"
+    if report.status == DOCTOR_WARN:
+        severity = "warning"
+    elif report.status == DOCTOR_FAIL:
+        severity = "error"
+    renderer.print_block("Doctor", rows, severity=severity)
+    counts = report.counts()
+    summary = (
+        f"{counts[DOCTOR_PASS]} pass, {counts[DOCTOR_WARN]} warn, "
+        f"{counts[DOCTOR_FAIL]} fail."
+    )
+    if report.launch_ready:
+        renderer.print_status(f"Doctor finished: {summary}", "Doctor")
+        return
+    renderer.print_error(f"Doctor found blockers: {summary}", "Doctor")
+    sys.exit(1)
+
+
+def _run_purge_history(project_path, assume_yes, event_emitter, machine_output):
+    """Delete local history with confirmation and a registered event."""
+    scope = project_path or ""
+    if not assume_yes and not machine_output:
+        target = f"history for {scope}" if scope else "ALL stored history"
+        if not click.confirm(f"Delete {target} from {DB_PATH}?", default=False):
+            click.echo("Purge aborted; nothing was deleted.")
+            sys.exit(1)
+    deleted = db_purge_history(scope or None)
+    _emit_event(
+        event_emitter,
+        "history_purged",
+        {"project_path": scope, "deleted_rows": deleted},
+        machine_output=machine_output,
+    )
+    if not machine_output:
+        click.echo(f"Deleted {deleted} history row(s) from {DB_PATH}.")
+
+
+def _prompt_setup_values(values):
+    """Collect setup values interactively, seeded by any provided flags."""
+    click.echo("Apex Infinite first-run setup. Press Enter to accept defaults.")
+    provider = click.prompt(
+        "Provider",
+        type=click.Choice(list(SETUP_PROVIDERS)),
+        default=values.provider,
+    )
+    template = PROVIDER_TEMPLATES[provider]
+    model = click.prompt("Model", default=values.model or template["model"]).strip()
+    codex_binary = click.prompt("Codex binary", default=values.codex_binary).strip()
+    click.echo(f"WARNING: {AUTONOMY_WARNING}")
+    exec_flags = click.prompt("Codex exec flags", default=values.exec_flags)
+    effort = click.prompt(
+        "Model reasoning effort",
+        type=click.Choice(list(REASONING_EFFORTS)),
+        default=values.model_reasoning_effort,
+    )
+    fallback_projects_dir = Path.home() / "projects"
+    projects_dir_default = values.projects_dir or (
+        str(fallback_projects_dir) if fallback_projects_dir.is_dir() else ""
+    )
+    projects_dir = click.prompt(
+        "Default projects directory (blank to skip)",
+        default=projects_dir_default,
+        show_default=bool(projects_dir_default),
+    ).strip()
+    default_project = click.prompt(
+        "Default target project (blank to skip)",
+        default=values.default_project,
+        show_default=bool(values.default_project),
+    ).strip()
+    return SetupValues(
+        provider=provider,
+        model=model,
+        codex_binary=codex_binary,
+        exec_flags=exec_flags,
+        model_reasoning_effort=effort,
+        projects_dir=projects_dir,
+        default_project=default_project,
+    )
+
+
+def _run_setup(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    interactive,
+    config_path,
+    provider,
+    model,
+    codex_binary,
+    codex_exec_flags,
+    reasoning_effort,
+    projects_dir,
+    default_project,
+):
+    """Run first-run setup and write the shared CLI config."""
+    target = resolve_setup_config_target(config_path).path
+    values = SetupValues(
+        provider=provider or "ollama",
+        model=model or "",
+        codex_binary=codex_binary or "codex",
+        exec_flags=(
+            codex_exec_flags
+            if codex_exec_flags is not None
+            else DEFAULT_CODEX_EXEC_FLAGS
+        ),
+        model_reasoning_effort=reasoning_effort or DEFAULT_REASONING_EFFORT,
+        projects_dir=projects_dir or "",
+        default_project=default_project or "",
+    )
+
+    if interactive:
+        values = _prompt_setup_values(values)
+
+    errors = validate_setup_values(values)
+    if errors:
+        raise click.ClickException("Setup validation failed: " + " ".join(errors))
+
+    if interactive:
+        click.echo(f"Config target: {target}")
+        if target.exists():
+            click.echo("An existing config will be backed up before writing.")
+        if not click.confirm("Write shared CLI config?", default=True):
+            click.echo("Setup aborted; nothing was written.")
+            sys.exit(1)
+    else:
+        click.echo(f"WARNING: {AUTONOMY_WARNING}")
+
+    result = write_shared_config(values, path=target)
+    click.echo(f"Wrote shared CLI config: {result.path}")
+    if result.backup_path is not None:
+        click.echo(f"Previous config preserved: {result.backup_path}")
+    for warning in result.warnings:
+        click.echo(f"WARNING: {warning}")
+    click.echo("Next steps: apex-infinite --doctor, then apex-infinite --dry-run.")
 
 
 def get_agent_config(config):
@@ -1299,6 +1694,27 @@ def db_init():
     """)
     conn.commit()
     conn.close()
+
+
+def db_purge_history(path=None):
+    """Delete stored history rows, optionally scoped to one project path."""
+    if not DB_PATH.exists():
+        return 0
+    conn = sqlite3.connect(str(DB_PATH))
+    try:
+        if path:
+            # Accept keys for projects whose directory no longer exists.
+            try:
+                key = normalize_project_path_key(path)
+            except CliStartupError:
+                key = os.path.expanduser(str(path)).rstrip("/") + "/"
+            cursor = conn.execute("DELETE FROM history WHERE path = ?", (key,))
+        else:
+            cursor = conn.execute("DELETE FROM history")
+        conn.commit()
+        return cursor.rowcount
+    finally:
+        conn.close()
 
 
 def db_fetch_history(path, limit=15):
@@ -2386,6 +2802,17 @@ def infinite_loop(  # pylint: disable=too-many-positional-arguments,too-many-arg
 )
 @click.option("--history", is_flag=True, help="Show interaction history")
 @click.option(
+    "--purge-history",
+    is_flag=True,
+    help="Delete stored local history (all projects, or one with --path).",
+)
+@click.option(
+    "--yes",
+    "assume_yes",
+    is_flag=True,
+    help="Skip confirmation prompts for destructive maintenance flags.",
+)
+@click.option(
     "--max-iterations",
     default=DEFAULT_MAX_ITERATIONS,
     type=int,
@@ -2401,6 +2828,51 @@ def infinite_loop(  # pylint: disable=too-many-positional-arguments,too-many-arg
 @click.option("--plain", is_flag=True, help="Disable color and effects")
 @click.option("--ascii", "ascii_only", is_flag=True, help="Use ASCII-safe glyphs")
 @click.option("--compact", is_flag=True, help="Reduce vertical spacing")
+@click.option(
+    "--setup",
+    is_flag=True,
+    help="Run interactive first-run setup and write the shared CLI config.",
+)
+@click.option(
+    "--setup-non-interactive",
+    is_flag=True,
+    help="Write the shared CLI config from flags without prompting.",
+)
+@click.option(
+    "--codex-binary",
+    default=None,
+    help="Setup only: Codex binary path or name (default: codex).",
+)
+@click.option(
+    "--codex-exec-flags",
+    default=None,
+    help="Setup only: Codex exec flags written to config.",
+)
+@click.option(
+    "--reasoning-effort",
+    default=None,
+    help=f"Setup only: model reasoning effort ({'|'.join(REASONING_EFFORTS)}).",
+)
+@click.option(
+    "--projects-dir",
+    default=None,
+    help="Setup only: default projects directory written to config.",
+)
+@click.option(
+    "--default-project",
+    default=None,
+    help="Setup only: default target project written to config.",
+)
+@click.option(
+    "--doctor",
+    is_flag=True,
+    help="Run terminal readiness diagnostics, then exit (non-zero on blockers).",
+)
+@click.option(
+    "--doctor-visual",
+    is_flag=True,
+    help="Include visual-wrapper dependency checks in --doctor output.",
+)
 @click.option(
     "--check-provider",
     is_flag=True,
@@ -2435,13 +2907,24 @@ def main(  # pylint: disable=too-many-arguments,too-many-positional-arguments,to
     model,
     config_path,
     history,
+    purge_history,
+    assume_yes,
     max_iterations,
     dry_run,
     verbose,
+    setup,
+    setup_non_interactive,
+    codex_binary,
+    codex_exec_flags,
+    reasoning_effort,
+    projects_dir,
+    default_project,
     theme,
     plain,
     ascii_only,
     compact,
+    doctor,
+    doctor_visual,
     check_provider,
     check_provider_chat,
     skip_provider_check,
@@ -2460,6 +2943,62 @@ def main(  # pylint: disable=too-many-arguments,too-many-positional-arguments,to
         raise click.UsageError(
             "--check-provider cannot be combined with --skip-provider-check"
         )
+    if doctor_visual and not doctor:
+        raise click.UsageError("--doctor-visual requires --doctor")
+    if doctor and check_provider:
+        raise click.UsageError("--doctor cannot be combined with --check-provider")
+    if doctor and history:
+        raise click.UsageError("--doctor cannot be combined with --history")
+    if purge_history:
+        for flag_name, blocked in (
+            ("--history", history),
+            ("--doctor", doctor),
+            ("--check-provider", check_provider),
+            ("--setup", setup or setup_non_interactive),
+        ):
+            if blocked:
+                raise click.UsageError(
+                    f"--purge-history cannot be combined with {flag_name}"
+                )
+        if machine_output and not assume_yes:
+            raise click.UsageError(
+                "--purge-history with --machine-output requires --yes"
+            )
+
+    setup_requested = setup or setup_non_interactive
+    setup_only_values = {
+        "--codex-binary": codex_binary,
+        "--codex-exec-flags": codex_exec_flags,
+        "--reasoning-effort": reasoning_effort,
+        "--projects-dir": projects_dir,
+        "--default-project": default_project,
+    }
+    if not setup_requested:
+        for flag_name, value in setup_only_values.items():
+            if value is not None:
+                raise click.UsageError(f"{flag_name} requires --setup")
+    if setup_requested:
+        for flag_name, blocked in (
+            ("--doctor", doctor),
+            ("--history", history),
+            ("--check-provider", check_provider),
+            ("--machine-output", machine_output),
+            ("--event-stream", bool(event_stream)),
+        ):
+            if blocked:
+                raise click.UsageError(f"--setup cannot be combined with {flag_name}")
+        _run_setup(
+            interactive=not setup_non_interactive,
+            config_path=config_path,
+            provider=provider,
+            model=model,
+            codex_binary=codex_binary,
+            codex_exec_flags=codex_exec_flags,
+            reasoning_effort=reasoning_effort,
+            projects_dir=projects_dir,
+            default_project=default_project,
+        )
+        return
 
     try:
         event_stream_context = open_event_stream(
@@ -2486,6 +3025,33 @@ def main(  # pylint: disable=too-many-arguments,too-many-positional-arguments,to
         )
 
         try:
+            if purge_history:
+                _MACHINE_OUTPUT_ACTIVE = machine_output
+                _run_purge_history(
+                    project_path, assume_yes, event_emitter, machine_output
+                )
+                return
+            if doctor:
+                _MACHINE_OUTPUT_ACTIVE = machine_output
+                _run_terminal_doctor(
+                    config_path,
+                    project_path,
+                    event_stream,
+                    event_emitter,
+                    machine_output,
+                    UiCliOverrides(
+                        theme=theme,
+                        plain=plain,
+                        ascii_only=ascii_only,
+                        compact=compact,
+                    ),
+                    provider=provider,
+                    model=model,
+                    check_chat=check_provider_chat,
+                    skip_provider=skip_provider_check,
+                    include_visual=doctor_visual,
+                )
+                return
             _run_main(
                 project_path,
                 start,
@@ -2542,15 +3108,22 @@ def _run_main(  # pylint: disable=too-many-arguments,too-many-positional-argumen
     # Init database
     db_init()
 
-    if config_path is None:
-        config_path = resolve_default_config_path()
-        if config_path is None:
-            _exit_with_startup_error(
-                "No config.yaml found. Use --config to specify path.",
-                event_emitter=event_emitter,
-                machine_output=machine_output,
-                title="Config",
-            )
+    resolved_config = resolve_config(config_path)
+    if resolved_config is None:
+        _exit_with_startup_error(
+            "No config.yaml found. Use --config to specify path.",
+            event_emitter=event_emitter,
+            machine_output=machine_output,
+            title="Config",
+        )
+    config_path = resolved_config.path
+    config_source = resolved_config.source
+    _emit_event(
+        event_emitter,
+        "config_resolved",
+        {"config_path": config_path, "source": config_source},
+        machine_output=machine_output,
+    )
 
     try:
         config = load_config(
@@ -2616,6 +3189,22 @@ def _run_main(  # pylint: disable=too-many-arguments,too-many-positional-argumen
     )
     _ACTIVE_RENDERER = renderer
 
+    # First-run privacy notice before history storage and provider traffic.
+    if not machine_output and privacy_notice_needed():
+        renderer.print_block(
+            "Privacy Notice", list(PRIVACY_NOTICE_ROWS), severity="warning"
+        )
+        _emit_event(
+            event_emitter,
+            "privacy_notice_shown",
+            {"first_run": True},
+            machine_output=machine_output,
+        )
+        try:
+            mark_privacy_notice_shown()
+        except OSError:
+            pass
+
     if check_provider:
         _run_provider_preflight_or_exit(
             config,
@@ -2643,12 +3232,24 @@ def _run_main(  # pylint: disable=too-many-arguments,too-many-positional-argumen
         db_show_history(history_path, renderer=renderer, verbose=verbose)
         return
 
+    # Default project from shared config (written by --setup).
+    config_defaults = config.get("defaults") or {}
+    if not project_path and config_defaults.get("project"):
+        project_path = str(config_defaults["project"])
+        renderer.print_status(
+            f"Using default project from config: {project_path}", "Project"
+        )
+
     # Interactive mode if no path given
     if not project_path:
         renderer.print_intro()
 
-        # List ~/projects/ directories
-        projects_dir = Path.home() / "projects"
+        # List configured (or ~/projects/) directories
+        projects_dir = Path(
+            os.path.expanduser(
+                str(config_defaults.get("projects_dir") or (Path.home() / "projects"))
+            )
+        )
         if projects_dir.exists():
             dirs = sorted(
                 [
@@ -2765,6 +3366,7 @@ def _run_main(  # pylint: disable=too-many-arguments,too-many-positional-argumen
             dry_run=dry_run,
             start_command=start,
             ceo_present=bool(ceo),
+            config_source=config_source,
         )
     )
     _emit_event(
@@ -2775,6 +3377,7 @@ def _run_main(  # pylint: disable=too-many-arguments,too-many-positional-argumen
             "provider_name": provider_name,
             "model_name": model_name,
             "config_path": config_path,
+            "config_source": config_source,
             "theme_name": ui_settings.theme_name,
             "max_iterations": max_iterations,
             "dry_run": dry_run,

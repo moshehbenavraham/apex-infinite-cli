@@ -2,6 +2,18 @@
 
 Run every gate before shipping a visual release artifact.
 
+## Publishing And Rollback Policy (ADR 0001 #9)
+
+Publishing and rollback remain external/manual. There is no automated
+publish pipeline:
+
+- Publishing a wheel/sdist to an index or attaching an AppImage to a
+  release is a manual operator action after every gate below passes.
+- Version identity comes from `pyproject.toml`; never republish a changed
+  artifact under the same version.
+- Rollback = publish the previous version (or yank/delete the bad artifact
+  where the channel allows it) and record the reason in `CHANGELOG.md`.
+
 ## Packaging Decision Record
 
 `pyside6-deploy` (Nuitka-based) was evaluated first for the visual AppImage

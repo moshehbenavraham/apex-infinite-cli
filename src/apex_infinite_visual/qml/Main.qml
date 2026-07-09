@@ -30,6 +30,7 @@ ApplicationWindow {
         signal doctorChanged()
         signal profilesChanged()
         signal pulsesChanged()
+        signal setupChanged()
 
         property string statusText: "Offline"
         property string stageText: "Waiting"
@@ -76,6 +77,12 @@ ApplicationWindow {
         property string doctorStatus: ""
         property bool doctorLaunchReady: true
         property bool firstRunNeeded: false
+        property bool resumeAvailable: false
+        property var setupProviders: []
+        property string setupError: ""
+        property string setupWrittenPath: ""
+        property string autonomyWarning: ""
+        property string runLogPath: ""
         property var profileNames: []
         property string activeProfile: ""
         property string profileError: ""
@@ -149,8 +156,12 @@ ApplicationWindow {
         function loadProfile(_name) {}
         function deleteProfile(_name) {}
         function duplicateProfile(_source, _target) {}
+        function renameProfile(_source, _target) {}
+        function resetProfile(_name) {}
         function exportProfile(_name, _path) {}
         function importProfile(_path) {}
+        function resumeRun() {}
+        function writeSharedConfig(_p, _m, _c, _d, _t, _f) {}
     }
 
     AppShell {

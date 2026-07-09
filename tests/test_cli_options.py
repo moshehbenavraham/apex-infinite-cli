@@ -110,6 +110,14 @@ def prepare_cli(monkeypatch, tmp_path, config_text=CONFIG_TEXT):
     def fake_validate_codex_flags(agent_cfg):
         captured.setdefault("codex_flag_checks", []).append(dict(agent_cfg))
 
+    # Keep XDG lookups and the privacy-notice marker hermetic.
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg-config"))
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "xdg-state"))
+    monkeypatch.delenv("APEX_INFINITE_CONFIG", raising=False)
+    marker = tmp_path / "xdg-state" / "apex-infinite" / "privacy-notice-shown"
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("shown\n", encoding="ascii")
+
     monkeypatch.setattr(apex_infinite, "DB_DIR", tmp_path / "db")
     monkeypatch.setattr(apex_infinite, "DB_PATH", tmp_path / "db" / "history.db")
     monkeypatch.setattr(apex_infinite, "infinite_loop", fake_loop)
@@ -288,8 +296,9 @@ def test_event_stream_path_writes_startup_events_and_reaches_loop(
     assert captured["preflight_calls"] == [False]
     rows = jsonl_rows(event_path.read_text(encoding="ascii"))
     event_names = [row["event"] for row in rows]
-    assert event_names[:4] == [
+    assert event_names[:5] == [
         "startup_begin",
+        "config_resolved",
         "config_loaded",
         "ui_resolved",
         "project_resolved",
@@ -350,8 +359,9 @@ def test_machine_output_stdout_is_jsonl_only(monkeypatch, tmp_path):
     event_names = [row["event"] for row in rows]
     assert rows
     assert all("event" in row and "payload" in row for row in rows)
-    assert event_names[:3] == [
+    assert event_names[:4] == [
         "startup_begin",
+        "config_resolved",
         "config_loaded",
         "ui_resolved",
     ]
@@ -391,7 +401,11 @@ def test_machine_output_startup_error_is_jsonl_only(monkeypatch, tmp_path):
 
     assert result.exit_code == 1
     rows = jsonl_rows(result.output)
-    assert [row["event"] for row in rows] == ["startup_begin", "error"]
+    assert [row["event"] for row in rows] == [
+        "startup_begin",
+        "config_resolved",
+        "error",
+    ]
     assert rows[-1]["payload"]["stage"] == "config"
     assert rows[-1]["payload"]["message"] == f"Config file not found: {missing_config}"
 
@@ -582,6 +596,7 @@ def test_check_provider_event_stream_writes_valid_provider_events(
     event_names = [row["event"] for row in rows]
     assert event_names == [
         "startup_begin",
+        "config_resolved",
         "config_loaded",
         "ui_resolved",
         "provider_check_started",

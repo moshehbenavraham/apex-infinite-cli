@@ -180,5 +180,5 @@ def test_doctor_event_rows_are_display_safe(tmp_path):
 
     assert len(rows) == len(report.checks)
     for row in rows:
-        assert set(row) == {"check_id", "label", "status", "detail"}
+        assert set(row) == {"check_id", "label", "status", "detail", "fix_hint"}
         assert row["status"] in {DOCTOR_PASS, DOCTOR_WARN, DOCTOR_FAIL}

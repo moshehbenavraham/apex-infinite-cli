@@ -340,12 +340,17 @@ Planned session stubs are defined by `phasebuild`.
 
 ## Open Decisions
 
-1. Decide whether command-strip resume is required for release. If not, remove
-   resume from release-facing acceptance language.
-2. Decide whether shader mode is in scope for the source-mode visual release.
-   If not, keep compiled `.qsb` artifacts ignored and document shader mode as
-   deferred.
-3. Decide whether the QML profile drawer must expose every backend profile
-   operation before release.
-4. Decide whether the terminal CLI polish pass is complete beyond the current
-   autonomy-summary and event-boundary work.
+All four decisions were closed on 2026-07-09 in
+`docs/adr/0001-release-scope-decisions.md`:
+
+1. Command-strip resume is in scope in its minimal honest form: a
+   first-class Resume action that re-launches the last persisted controls
+   through the event-driven launcher. (ADR 0001 #1)
+2. Shader mode is deferred; QML-only source mode is the shipped visual
+   path and compiled `.qsb` artifacts stay ignored. (ADR 0001 #2)
+3. The QML profile drawer exposes every backend profile operation:
+   load, save, delete, duplicate, rename, reset, import, export.
+   (ADR 0001 #3)
+4. The terminal CLI polish pass is complete; remaining terminal work was
+   setup, doctor, and shared config resolution, delivered 2026-07-09.
+   (ADR 0001 #4)

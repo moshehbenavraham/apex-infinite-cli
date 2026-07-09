@@ -9,9 +9,20 @@ import os
 import queue
 import sys
 import threading
+import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TextIO
 
+from apex_infinite.config_resolution import first_run_needed
+from apex_infinite.setup_config import (
+    AUTONOMY_WARNING,
+    SETUP_PROVIDERS,
+    SetupValues,
+    resolve_setup_config_target,
+    validate_setup_values,
+    write_shared_config,
+)
 from apex_infinite_visual.doctor import DoctorContext, doctor_event_rows, run_doctor
 from apex_infinite_visual.launcher import (
     ApexCliLaunchError,
@@ -24,6 +35,7 @@ from apex_infinite_visual.profile_store import (
     ProfileStoreError,
     load_window_state,
     save_window_state,
+    xdg_state_dir,
 )
 from apex_infinite_visual.render_caps import (
     RenderCapabilities,
@@ -81,6 +93,9 @@ class VisualWrapperOptions:  # pylint: disable=too-many-instance-attributes
     profile: str | None = None
     restore_profile: bool = False
     profile_store_path: str | None = None
+    reduced_logging: bool = False
+    run_log_dir: str | None = None
+    run_doctor: bool = False
 
 
 def import_qt_modules():  # pylint: disable=import-outside-toplevel
@@ -140,8 +155,11 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
         doctorChanged = signal()
         profilesChanged = signal()
         pulsesChanged = signal()
+        setupChanged = signal()
 
-        def __init__(self, options: VisualWrapperOptions):
+        def __init__(  # pylint: disable=too-many-statements
+            self, options: VisualWrapperOptions
+        ):
             super().__init__()
             self._options = options
             self._store = VisualStateStore(max_rows=400)
@@ -155,6 +173,14 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             self._start_command = options.start_command
             self._max_iterations = options.max_iterations
             self._dry_run = options.dry_run
+            self._setup_error = ""
+            self._setup_written_path = ""
+            self._run_log_path = ""
+            self._run_log_handle: TextIO | None = None
+            self._last_run: dict[str, object] = _load_last_run(options)
+            if first_run_needed(options.config_path or None):
+                # First launches default to the safe dry-run mode.
+                self._dry_run = True
             self._settings = _settings_from_options(options)
             self._profile_store: ProfileStore | None = None
             self._profile_error = ""
@@ -398,9 +424,25 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             return self._doctor_ready
 
         def _get_first_run_needed(self) -> bool:
-            if self._options.config_path:
-                return not Path(os.path.expanduser(self._options.config_path)).is_file()
-            return not (Path.cwd() / "config.yaml").is_file()
+            return first_run_needed(self._options.config_path or None)
+
+        def _get_setup_providers(self) -> list[str]:
+            return list(SETUP_PROVIDERS)
+
+        def _get_setup_error(self) -> str:
+            return self._setup_error
+
+        def _get_setup_written_path(self) -> str:
+            return self._setup_written_path
+
+        def _get_autonomy_warning(self) -> str:
+            return AUTONOMY_WARNING
+
+        def _get_resume_available(self) -> bool:
+            return bool(self._last_run) and not self._running
+
+        def _get_run_log_path(self) -> str:
+            return self._run_log_path
 
         # Profiles -------------------------------------------------------------
 
@@ -632,6 +674,20 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
         firstRunNeeded = property_factory(
             bool, _get_first_run_needed, notify=doctorChanged
         )
+        setupProviders = property_factory(
+            "QStringList", _get_setup_providers, notify=setupChanged
+        )
+        setupError = property_factory(str, _get_setup_error, notify=setupChanged)
+        setupWrittenPath = property_factory(
+            str, _get_setup_written_path, notify=setupChanged
+        )
+        autonomyWarning = property_factory(
+            str, _get_autonomy_warning, notify=setupChanged
+        )
+        resumeAvailable = property_factory(
+            bool, _get_resume_available, notify=controlsChanged
+        )
+        runLogPath = property_factory(str, _get_run_log_path, notify=statusChanged)
         profileNames = property_factory(
             "QStringList", _get_profile_names, notify=profilesChanged
         )
@@ -734,11 +790,34 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 return
             self._running = True
             self._stop_requested = False
+            self._persist_last_run()
+            self._open_run_log()
             self.statusChanged.emit()
+            self.controlsChanged.emit()
             if self._options.launch_cli:
                 self._start_process_worker()
                 return
             self._start_fixture_flow()
+
+        @slot()
+        def resumeRun(self) -> None:
+            """Restore the last persisted run controls and start again."""
+            if self._running or not self._last_run:
+                return
+            stored = self._last_run
+            self._project_path = str(
+                stored.get("project_path", self._project_path) or self._project_path
+            )
+            self._start_command = str(stored.get("start_command", ""))
+            raw_iterations = stored.get("max_iterations", self._max_iterations)
+            if isinstance(raw_iterations, (int, float, str)):
+                try:
+                    self._max_iterations = max(1, int(raw_iterations))
+                except (TypeError, ValueError):
+                    pass
+            self._dry_run = bool(stored.get("dry_run", self._dry_run))
+            self.controlsChanged.emit()
+            self.startRun()
 
         @slot()
         def stopRun(self) -> None:
@@ -754,7 +833,9 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             self._ingest_synthetic_event(
                 "run_stopped", {"reason": "operator_stop", "iteration": 0}
             )
+            self._close_run_log()
             self.statusChanged.emit()
+            self.controlsChanged.emit()
 
         @slot()
         def shutdown(self) -> None:
@@ -766,7 +847,52 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             if self._process:
                 self._process.terminate()
             self._running = False
+            self._close_run_log()
             self._persist_session_profile()
+
+        @slot(str, str, str, str, str, str)
+        def writeSharedConfig(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+            self,
+            provider: str,
+            model: str,
+            codex_binary: str,
+            projects_dir: str,
+            default_project: str,
+            exec_flags: str,
+        ) -> None:
+            """Write the shared CLI config after explicit operator confirmation.
+
+            The QML first-run panel only calls this from its confirmed write
+            action; the wrapper never writes shared config on its own.
+            """
+            values = SetupValues(
+                provider=provider.strip() or "ollama",
+                model=model.strip(),
+                codex_binary=codex_binary.strip() or "codex",
+                exec_flags=exec_flags.strip() or SetupValues().exec_flags,
+                projects_dir=projects_dir.strip(),
+                default_project=default_project.strip(),
+            )
+            errors = validate_setup_values(values)
+            if errors:
+                self._setup_error = " ".join(errors)
+                self.setupChanged.emit()
+                return
+            target = resolve_setup_config_target(self._options.config_path or None)
+            try:
+                result = write_shared_config(values, path=target.path)
+            except OSError as exc:
+                self._setup_error = f"Config write failed: {exc.__class__.__name__}"
+                self.setupChanged.emit()
+                return
+            self._setup_error = ""
+            self._setup_written_path = str(result.path)
+            self._ingest_synthetic_event(
+                "config_resolved",
+                {"config_path": str(result.path), "source": target.source},
+            )
+            self.setupChanged.emit()
+            self.doctorChanged.emit()
 
         @slot()
         def runDoctor(self) -> None:
@@ -796,12 +922,7 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
         @slot(int, int)
         def storeWindowGeometry(self, width: int, height: int) -> None:
             """Persist runtime window geometry under XDG state."""
-            if not self._options.restore_profile:
-                return
-            try:
-                save_window_state({"width": int(width), "height": int(height)})
-            except ProfileStoreError:
-                pass
+            self._update_window_state(width=int(width), height=int(height))
 
         @slot(str)
         def setProjectPath(self, value: str) -> None:
@@ -1042,6 +1163,40 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             self.profilesChanged.emit()
 
         @slot(str, str)
+        def renameProfile(self, source: str, target: str) -> None:
+            """Rename a custom profile."""
+            store = self._ensure_profile_store()
+            if store is None:
+                return
+            try:
+                store.rename(source, target)
+                if self._active_profile == source:
+                    self._active_profile = target
+                self._profile_error = ""
+            except ProfileStoreError as exc:
+                self._profile_error = str(exc)
+            self.profilesChanged.emit()
+
+        @slot(str)
+        def resetProfile(self, name: str) -> None:
+            """Reset a built-in profile to its shipped definition."""
+            store = self._ensure_profile_store()
+            if store is None:
+                return
+            try:
+                profile = store.reset_builtin(name)
+                self._profile_error = ""
+                if self._active_profile == name:
+                    self._settings = profile.to_settings()
+                    self._apply_capabilities()
+                    self._sync_effects_from_settings()
+                    self._apply_profile_effects(dict(profile.effects))
+                    self.effectsChanged.emit()
+            except ProfileStoreError as exc:
+                self._profile_error = str(exc)
+            self.profilesChanged.emit()
+
+        @slot(str, str)
         def exportProfile(self, name: str, path: str) -> None:
             """Export one profile as JSON."""
             store = self._ensure_profile_store()
@@ -1147,6 +1302,7 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 self._fixture_timer.stop()
                 self._running = False
                 self.statusChanged.emit()
+                self.controlsChanged.emit()
                 return
             self._store.ingest_line(self._fixture_rows[self._fixture_index])
             self._fixture_index += 1
@@ -1242,6 +1398,7 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 changed = True
                 if kind == "line":
                     self._store.ingest_line(value)
+                    self._write_run_log(value)
                 elif kind == "stderr":
                     self._ingest_synthetic_event(
                         "error",
@@ -1282,6 +1439,8 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                     )
                 elif kind == "done":
                     self._running = False
+                    self._close_run_log()
+                    self.controlsChanged.emit()
             if changed:
                 self._refresh_snapshot()
 
@@ -1294,7 +1453,9 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 "timestamp": "2026-07-03T00:00:00Z",
                 "payload": payload,
             }
-            self._store.ingest_line(json.dumps(row, ensure_ascii=True))
+            line = json.dumps(row, ensure_ascii=True)
+            self._store.ingest_line(line)
+            self._write_run_log(line)
             self._refresh_snapshot()
 
         def _reset_store(self) -> None:
@@ -1365,6 +1526,64 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 "curvature": self._curvature_enabled,
             }
 
+        def _update_window_state(self, **entries: object) -> None:
+            """Merge entries into the wrapper-owned runtime state file."""
+            if not self._options.restore_profile:
+                return
+            try:
+                state = load_window_state()
+                state.update(entries)
+                save_window_state(state)
+            except (ProfileStoreError, OSError, ValueError):
+                pass
+
+        def _persist_last_run(self) -> None:
+            """Store the committed run controls for the Resume action."""
+            self._last_run = {
+                "project_path": self._project_path,
+                "start_command": self._start_command,
+                "max_iterations": self._max_iterations,
+                "dry_run": self._dry_run,
+            }
+            self._update_window_state(last_run=dict(self._last_run))
+
+        def _open_run_log(self) -> None:
+            """Open the durable per-run JSONL log (full logging by default)."""
+            if self._options.reduced_logging or not self._options.launch_cli:
+                return
+            self._close_run_log()
+            log_dir = (
+                Path(self._options.run_log_dir)
+                if self._options.run_log_dir
+                else xdg_state_dir() / "logs"
+            )
+            stamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
+            path = log_dir / f"run-{stamp}.jsonl"
+            try:
+                log_dir.mkdir(parents=True, exist_ok=True)
+                # pylint: disable-next=consider-using-with
+                self._run_log_handle = path.open("a", encoding="ascii", buffering=1)
+                self._run_log_path = str(path)
+            except OSError:
+                self._run_log_handle = None
+                self._run_log_path = ""
+
+        def _close_run_log(self) -> None:
+            if self._run_log_handle is not None:
+                try:
+                    self._run_log_handle.close()
+                except OSError:
+                    pass
+                self._run_log_handle = None
+
+        def _write_run_log(self, line: str) -> None:
+            if self._run_log_handle is None:
+                return
+            try:
+                self._run_log_handle.write(line.rstrip("\n") + "\n")
+            except (OSError, UnicodeEncodeError):
+                self._close_run_log()
+
         def _persist_session_profile(self) -> None:
             if not self._options.restore_profile:
                 return
@@ -1381,6 +1600,19 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 pass
 
     return WrapperBridge
+
+
+def _load_last_run(options: VisualWrapperOptions) -> dict[str, object]:
+    """Load persisted resume controls from the wrapper runtime state."""
+    if not options.restore_profile:
+        return {}
+    try:
+        stored = load_window_state().get("last_run")
+    except (ProfileStoreError, OSError, ValueError):
+        return {}
+    if isinstance(stored, dict):
+        return dict(stored)
+    return {}
 
 
 def _detect_caps_safely() -> RenderCapabilities | None:
@@ -1575,6 +1807,21 @@ def parse_args(argv: list[str] | None = None) -> VisualWrapperOptions:
     )
     parser.add_argument("--process-timeout-seconds", type=int, default=None)
     parser.add_argument("--reduced-effects", action="store_true")
+    parser.add_argument(
+        "--run-doctor",
+        action="store_true",
+        help="Run launch-readiness diagnostics automatically at startup",
+    )
+    parser.add_argument(
+        "--reduced-logging",
+        action="store_true",
+        help="Do not write the durable per-run JSONL log for real CLI runs",
+    )
+    parser.add_argument(
+        "--run-log-dir",
+        default=None,
+        help="Override the per-run log directory (default: XDG state logs)",
+    )
     parser.add_argument("--auto-close-ms", type=int, default=None)
     args = parser.parse_args(argv)
     if args.max_iterations < 1:
@@ -1623,6 +1870,9 @@ def parse_args(argv: list[str] | None = None) -> VisualWrapperOptions:
         profile=args.profile,
         restore_profile=not args.no_restore_profile,
         profile_store_path=args.profile_store_path,
+        reduced_logging=args.reduced_logging,
+        run_log_dir=args.run_log_dir,
+        run_doctor=args.run_doctor,
     )
 
 
@@ -1648,6 +1898,8 @@ def run_app(options: VisualWrapperOptions) -> int:
     if not engine.rootObjects():
         raise VisualWrapperUnavailable("QML surface could not be loaded")
     app.aboutToQuit.connect(bridge.shutdown)
+    if options.run_doctor:
+        qt["QTimer"].singleShot(0, bridge.runDoctor)
     if options.dry_run:
         qt["QTimer"].singleShot(0, bridge.startRun)
     auto_close_ms = options.auto_close_ms

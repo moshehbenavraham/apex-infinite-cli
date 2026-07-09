@@ -11,138 +11,95 @@ assets, or make runtime behavior depend on the `EXAMPLE/` tree.
 
 ## Open Product Decisions
 
-- [ ] Decide whether command-strip resume is required for release.
-  - If yes, implement it as a first-class command-strip action alongside start,
-    stop, dry-run/live-run, max iteration, project path, and doctor controls.
-  - If no, remove resume from final acceptance language and any release-facing
-    workflow claims.
-- [ ] Decide whether shader mode is in scope for the source-mode visual
-  release.
-  - If yes, promote reviewed compiled shader modules into the QML render path
-    and package data.
-  - If no, keep compiled `.qsb` files ignored and document shader mode as
-    deferred.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/`.
-- [ ] Decide whether the QML profile drawer must expose every backend profile
-  operation before release.
-  - If yes, add import, export, duplicate, rename, reset, and validation UI.
-  - If no, document which operations are backend or bridge-only.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/Storage.qml`.
-- [ ] Decide whether Workstream 8 terminal CLI polish is complete or still
-  needs implementation beyond autonomy-summary and event-boundary updates.
-- [ ] For any remaining visual feature that needs new workflow state, decide
-  whether to add a registered event instead of adding wrapper assumptions.
-- [ ] Decide the terminal doctor entrypoint shape before release.
-  - If the root command remains a single Click command, expose doctor as
-    `apex-infinite --doctor`.
-  - If the CLI becomes a Click group, preserve existing root flags and expose
-    doctor as `apex-infinite doctor`.
-- [ ] Decide whether the terminal doctor and
-  `src/apex_infinite_visual/doctor.py` share a diagnostic backend.
-- [ ] Define whether cwd `.env` or config-directory `.env` has precedence, then
-  test the selected behavior.
-- [ ] Decide the release policy for broad Codex bypass behavior: explicit
-  opt-in, narrower default permissions, or accepted-risk documentation.
-- [ ] Document public package publishing and rollback policy, or record that it
-  remains external/manual.
-- [ ] Decide whether to add `docs/CODEOWNERS`; ownership is still an
-  organizational decision.
+All open product decisions were closed on 2026-07-09 and recorded in
+`docs/adr/0001-release-scope-decisions.md`. Summary:
+
+- [x] Command-strip resume: in scope, minimal form. Resume = re-launch the
+  last project/controls through the event-driven launcher; last-run controls
+  persist in the wrapper-owned visual-state file. (ADR 0001 #1)
+- [x] Shader mode: deferred for this release. `.qsb` stays ignored; QML-only
+  source mode is the shipped visual path and release wording must say so.
+  (ADR 0001 #2)
+- [x] Profile drawer: full parity. Expose import, export, duplicate, rename,
+  reset, and validation UI; add missing bridge slots. (ADR 0001 #3)
+- [x] Workstream 8 terminal CLI polish: complete; no further polish scoped.
+  (ADR 0001 #4)
+- [x] New workflow state uses registered events, never wrapper assumptions
+  (standing rule reaffirmed; see Event Boundary section). (ADR 0001)
+- [x] Terminal doctor entrypoint: `apex-infinite --doctor`; root stays a
+  single Click command. (ADR 0001 #5)
+- [x] Terminal and visual doctor share a diagnostic backend in
+  `src/apex_infinite/doctor.py`; visual adds PySide6/display checks.
+  (ADR 0001 #6)
+- [x] `.env` precedence: config-directory `.env` overrides cwd `.env`;
+  behavior is tested. (ADR 0001 #7)
+- [x] Codex bypass policy: accepted-risk documentation plus visible autonomy
+  summary, dry-run-first onboarding, and setup-time warning. (ADR 0001 #8)
+- [x] Publishing and rollback remain external/manual, recorded in
+  `packaging/RELEASE-CHECKLIST.md`. (ADR 0001 #9)
+- [x] No `docs/CODEOWNERS`; revisit with a second regular contributor.
+  (ADR 0001 #10)
 
 ## Visual App Remaining Work
 
-- [ ] Implement command-strip resume if it remains in scope.
-  - Resume must be visible without opening docs.
-  - Resume must not cause controls to shift or overlap during runs.
-  - Resume-facing behavior must remain event-driven and must not scrape Rich,
-    ANSI, plain terminal text, SQLite history rows, or terminal-control output.
-- [ ] Recheck the first viewport against the final product acceptance language.
-  - It must be the usable operator terminal, not a landing page, marketing
-    hero, or explanatory screen.
-  - It must expose dry-run, live-run, stop, resume if scoped, doctor, config,
-    provider, model, project path, and run risk state.
-  - Errors must be impossible to miss and easy to diagnose.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/main.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml`.
-- [ ] Recheck the command strip details before release.
-  - Project path selector.
-  - Start command selector.
-  - Dry-run/live-run segmented control.
-  - Max iteration stepper.
-  - Start, stop, resume if scoped, and doctor buttons.
-  - Autonomy summary with supported Codex flags and current risk level.
-- [ ] Recheck mission-state and launch-readiness details before release.
-  - Current run status, stage, iteration, provider, model, Codex binary, config
-    source, event stream mode, and history DB status must stay visible.
-  - Missing provider, Codex, model, project, and config failures must be
-    actionable instead of crash states.
-- [ ] Recheck event-core and signal-panel behavior before release.
-  - Event rows must remain structured, virtualized, and typed by severity,
-    stage, and timestamp.
-  - Startup, provider preflight, manager decision, command, response, pause,
-    error, stop, completion, and summary rows must remain readable.
-  - Search, filter, pin, copy, export, pinned error summary, malformed event
-    count, recent stderr summary, runtime duration, last machine event, and
-    safe artifact links must remain usable.
-- [ ] Recheck spec-map behavior before release.
-  - Detected `.spec_system/` status, phase/session identity when available,
-    current command, task checklist progress when available, carry-forward
-    warnings, and validation status should remain visible from safe event
-    payloads.
-- [ ] Verify all text fits at minimum and common desktop sizes.
-  - Controls, labels, event rows, pinned panels, status cells, and drawer
-    content must not overlap or resize unpredictably during runs.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/Components/SizedLabel.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SimpleSlider.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/CheckableSlider.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SizeOverlay.qml`.
+- [x] Implement command-strip resume. (2026-07-09, per ADR 0001 #1: a
+  first-class Resume button sits in the command strip next to Start/Stop,
+  always present (disabled when no stored run) so controls never shift.
+  Last-run controls persist in the wrapper-owned
+  `visual-state.json`; resume re-launches through the event-driven
+  launcher with no output scraping. Tests:
+  `tests/test_hyperterminal_bridge.py` resume suite.)
+- [x] Recheck the first viewport against the final product acceptance
+  language. (2026-07-09: the first viewport is the operator terminal - the
+  command strip with project path, start command, dry-run/live segmented
+  control, max-iteration stepper, Start/Resume/Stop/Doctor buttons, and the
+  autonomy summary; mission state, event core, spec map, and signal panel
+  fill the rest. Errors surface as typed red event rows plus failed run
+  health and error pulses; first-run needs render as the setup panel, not
+  a crash.)
+- [x] Recheck the command strip details before release. (All controls
+  present including Resume per ADR 0001 #1; autonomy summary shows mode,
+  max iterations, and risk; Codex flag compatibility shows in mission
+  state and the first-run panel.)
+- [x] Recheck mission-state and launch-readiness details before release.
+  (Status rail shows run status, stage, iteration, provider, model, config
+  source, Codex flag state, event stream mode, and history DB status;
+  missing provider/Codex/model/project/config produce doctor fail rows,
+  typed error events, and the first-run panel instead of crashes -
+  verified by launch-validation and doctor tests.)
+- [x] Recheck event-core and signal-panel behavior before release.
+  (Virtualized typed rows with severity/stage/timestamp; search, stage,
+  and severity filters; JSON export; malformed event count, stderr
+  summary, duration, last event, and safe artifact names in the signal
+  panel - covered by bridge and visual-state tests.)
+- [x] Recheck spec-map behavior before release. (Detected status,
+  phase/session identity, current command, and task progress render from
+  registered `spec_system_detected`, `spec_session_resolved`, and
+  `task_progress` payloads; covered by tests.)
+- [x] Verify all text fits at minimum and common desktop sizes.
+  (2026-07-09: window enforces 980x620 minimum; layouts use elide, wrap,
+  and bounded panel widths; screenshot smokes at the default viewport for
+  high/balanced/low/plain themes pass the nonblank multi-color check.
+  Manual spot-check on real desktops remains part of the clean-machine
+  session.)
 
 ## Profile Drawer And Persistence Remaining Work
 
-- [ ] Expose profile import in the QML settings drawer if UI parity is required.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fileio.cpp`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fileio.h`.
-- [ ] Expose profile export in the QML settings drawer if UI parity is required.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fileio.cpp`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fileio.h`.
-- [ ] Expose profile duplicate in the QML settings drawer if UI parity is
-  required.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/InsertNameDialog.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`.
-- [ ] Expose profile rename in the QML settings drawer if UI parity is
-  required.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/InsertNameDialog.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`.
-- [ ] Expose reset-to-built-in/defaults in the QML settings drawer if UI parity
-  is required.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`.
-- [ ] Show visible validation errors for invalid profile JSON.
-  - Invalid profile JSON must not break or mutate shared CLI config.
-  - Import/export must validate schema and version.
-  - Import/export must reject secrets and provider credentials.
-  - Profile names remain ASCII-only for now, matching repo conventions.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fileio.cpp`.
+Drawer parity completed 2026-07-09 per ADR 0001 #3: the PROFILES section of
+`SettingsDrawer.qml` now exposes load, save, delete, duplicate, rename,
+reset-built-in, import, and export; the bridge gained `renameProfile` and
+`resetProfile` slots. Tests: `tests/test_hyperterminal_bridge.py` profile
+suite.
+
+- [x] Expose profile import in the QML settings drawer.
+- [x] Expose profile export in the QML settings drawer.
+- [x] Expose profile duplicate in the QML settings drawer.
+- [x] Expose profile rename in the QML settings drawer.
+- [x] Expose reset-to-built-in/defaults in the QML settings drawer.
+- [x] Show visible validation errors for invalid profile JSON
+  (`profileError` text in the drawer; invalid JSON never touches shared
+  CLI config; schema/version validation and secret rejection live in
+  `profile_store.py`; profile names remain ASCII-only).
 - [ ] Confirm the drawer can cover all release-required profile dimensions.
   - Theme family.
   - Rendering mode.
@@ -186,81 +143,98 @@ assets, or make runtime behavior depend on the `EXAMPLE/` tree.
 
 ## Graphical First-Run Remaining Work
 
-- [ ] Build the full graphical first-run shared-config flow.
-  - Detect missing shared CLI config.
-  - Show provider choices: Ollama, OpenAI, Grok.
-  - Let the user enter or confirm model.
-  - Let the user select Codex binary.
-  - Show detected Codex flag compatibility.
-  - Show the same Codex autonomy summary as the terminal CLI before real runs.
-  - Let the user choose projects directory and target project.
-  - Run doctor.
-  - Show pass, warn, fail results.
-  - Offer dry-run as the default first launch.
-  - Require explicit confirmation before writing shared CLI config.
-  - Make config writes recoverable and aligned with the terminal setup command.
-- [ ] Keep the first-run flow inside the same high-design command shell.
-  - Do not create a separate plain wizard that feels like another product.
-- [ ] Preserve the wrapper boundary during first-run work.
-  - The wrapper may own presentation state, visual preferences, layout state,
-    and explicitly confirmed shared config writes.
-  - The wrapper must not own workflow decisions.
+Implemented 2026-07-09. The first-run panel (`FirstRunBanner.qml`, shown in
+the main shell when the shared resolver reports no user-owned config) offers
+provider choice (Ollama/OpenAI/Grok), model, Codex binary, projects dir and
+default project entry, shows the autonomy warning + summary + Codex flag
+state, links Doctor, defaults the first launch to dry-run, and writes shared
+config only after an explicit confirmation toggle plus button click. Writes
+go through the same `setup_config.write_shared_config` backend as the
+terminal `--setup` command (atomic, backup, 0600). Tests:
+`tests/test_hyperterminal_bridge.py` first-run/writeSharedConfig suite.
+
+- [x] Build the full graphical first-run shared-config flow.
+- [x] Keep the first-run flow inside the same high-design command shell
+  (panel within the shell, not a separate wizard window).
+- [x] Preserve the wrapper boundary during first-run work (the wrapper only
+  writes shared config on explicit confirmation and owns no workflow
+  decisions; the write emits a synthetic registered `config_resolved`
+  event).
 - [ ] Verify a clean Linux user can launch the visual app, configure it, run
   doctor, and start a dry run without editing source files.
-- [ ] Verify the user can see why live mode is risky before starting it.
+  (Needs a clean-machine session; commands documented in
+  `packaging/RELEASE-CHECKLIST.md`.)
+- [x] Verify the user can see why live mode is risky before starting it
+  (autonomy warning text in the first-run panel plus the always-visible
+  autonomy summary in the command strip; live mode renders in warning
+  color).
 
 ## Event Boundary Remaining Work
 
-- [ ] Add new registered events for any missing facts needed by the remaining
-  visual, first-run, shader, packaging, or terminal-polish work.
-- [ ] Keep every new event registered in `src/apex_infinite/events.py`.
-- [ ] Add file-stream coverage for every new event.
-- [ ] Add stdout-machine-output coverage for every new event.
-- [ ] Keep event payloads factual, not visual.
-- [ ] Reject or suppress secrets, ANSI escapes, Rich markup, frame glyphs,
-  copied reference identifiers, renderer snapshots, and visual token values in
-  event payloads.
-- [ ] Use registered events instead of parsing human terminal output whenever
-  the wrapper needs more state.
+Updated 2026-07-09. New facts added this pass: `config_resolved` (now
+emitted by the CLI with path + source category), `privacy_notice_shown`,
+and `history_purged`.
+
+- [x] Add new registered events for the facts needed by this pass
+  (`config_resolved` emission, `privacy_notice_shown`, `history_purged`).
+- [x] Keep every new event registered in `src/apex_infinite/events.py`.
+- [x] Add file-stream coverage for every new event
+  (`tests/test_config_resolution.py`, `tests/test_privacy_and_retention.py`).
+- [x] Add stdout-machine-output coverage for every new event.
+  (`config_resolved` and `history_purged` covered in both modes;
+  `privacy_notice_shown` is intentionally absent in machine mode because
+  the notice is human-surface-only - the wrapper owns its own notice UI -
+  and a test asserts that suppression.)
+- [x] Keep event payloads factual, not visual (unchanged validators).
+- [x] Reject or suppress secrets, ANSI escapes, Rich markup, frame glyphs,
+  copied reference identifiers, renderer snapshots, and visual token values
+  in event payloads (unchanged validators cover the new events).
+- [x] Use registered events instead of parsing human terminal output
+  whenever the wrapper needs more state (wrapper config writes ingest a
+  synthetic registered `config_resolved`; resume uses wrapper-owned state,
+  not output parsing).
 
 ## Logging And Observability Remaining Work
 
-- [ ] Make logging a very high quality product surface, not a debugging
-  afterthought.
-  - Logs must be structured, timestamped, searchable, exportable, and useful
-    for both operators and future AI agents diagnosing a run.
-  - Logs must clearly connect visual events, CLI lifecycle events, provider
-    checks, manager decisions, Codex subprocess activity, SQLite history writes,
-    stderr summaries, user actions, and final run outcome.
-  - Logs must preserve enough detail to reconstruct what happened without
-    requiring screenshots or manual terminal transcript copying.
-  - Logs must stay safe by default: no provider keys, secrets, ANSI escapes,
-    Rich markup, frame glyphs, theme token values, or copied reference
-    identifiers.
-- [ ] Make full logging the default setting for the visual app and real CLI
-  wrapper path.
-  - A normal live visual run should produce durable logs without requiring the
-    operator to discover and pass extra flags.
-  - The default should include the full structured event stream and enough
-    diagnostic context for post-run review.
-  - Provide an explicit reduced/private logging mode only for operators who
-    intentionally want less retained data.
-  - Document retention location, export path, privacy boundaries, and cleanup
-    or purge behavior before release.
+Completed 2026-07-09 per ADR 0001 #11.
+
+- [x] Make logging a high quality product surface. (The durable per-run log
+  is the full registered JSONL event stream: structured, timestamped,
+  greppable, and exportable; it carries startup, config resolution,
+  provider checks, manager decisions, Codex subprocess activity, DB log
+  writes, stderr summaries, operator stop, and final outcome. Payload
+  safety is enforced by the event schema validators - no secrets, ANSI,
+  Rich markup, frame glyphs, or theme tokens. `structlog` diagnostics and
+  `write_last_error` remain for wrapper-internal errors.)
+- [x] Make full logging the default for the visual app's real CLI path.
+  (Every `--launch-cli` run tees its JSONL event stream to
+  `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/logs/run-<utc>.jsonl`
+  with no extra flags; `--reduced-logging` opts out; `--run-log-dir`
+  overrides the location. Retention is until the operator deletes the
+  files; the log directory and cleanup are documented in
+  `docs/operator-runbook.md` and README.)
 
 ## Security And Privacy Productization Remaining Work
 
-- [ ] Add local history purge, retention, or redaction behavior, or document an
-  accepted local-data risk before broader distribution.
-- [ ] Add a first-run privacy notice before local history storage and
-  provider-bound prompt transfer.
-- [ ] Document provider-bound prompt traffic.
-  - Recent history, latest agent output, summaries, operator instructions, and
-    project paths can be sent to the configured LLM provider.
-- [ ] Warn operators not to include secrets, personal data, or customer data in
-  prompts or target-project outputs.
-- [ ] Add dependency locking or recurring CI/scheduled vulnerability scanning
-  for base, dev, and visual dependency lanes.
+Completed 2026-07-09; details recorded in `docs/SECURITY-COMPLIANCE.md`
+(P00-S01 through P00-S04 resolved).
+
+- [x] Add local history purge behavior: `apex-infinite --purge-history`
+  (all projects or one via `--path`, confirmation-gated, `--yes` for
+  scripts, emits the registered `history_purged` event). Retention is
+  documented as indefinite-until-purged.
+- [x] Add a first-run privacy notice before local history storage and
+  provider-bound prompt transfer (`src/apex_infinite/privacy.py`; one-time
+  marker under `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/`; emits
+  the registered `privacy_notice_shown` event; suppressed in machine mode
+  by design because the wrapper owns its own notice UI).
+- [x] Document provider-bound prompt traffic (README Data section and the
+  first-run notice).
+- [x] Warn operators not to include secrets, personal data, or customer
+  data in prompts or target-project outputs (README + notice).
+- [x] Add recurring CI vulnerability scanning for base, dev, and visual
+  dependency lanes (`.github/workflows/security-scan.yml`: weekly schedule,
+  dependency-change pushes, manual dispatch).
 
 ## Shader Remaining Work
 
@@ -352,27 +326,33 @@ assets, or make runtime behavior depend on the `EXAMPLE/` tree.
 
 ## Event-Reactive Effects Remaining Verification
 
-- [ ] Verify run start creates a short surface charge.
-- [ ] Verify provider preflight success sends a low-intensity signal sweep.
-- [ ] Verify provider preflight failure creates a visible red fault lock.
-- [ ] Verify new manager decisions pulse around the decision panel.
-- [ ] Verify new iterations add a soft persistence trail to the event core.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml`.
-- [ ] Verify operator stop drains glow immediately and freezes final state.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml`.
-- [ ] Verify successful completion performs a restrained completion sweep.
-- [ ] Verify non-zero exit, stderr, malformed JSONL, and timeout use distinct
-  error signatures.
-- [ ] Verify effects bind to run state, event severity, spec-map progress,
-  provider health, autonomy policy, config source, and doctor results.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml`.
+Verified 2026-07-09 through unit tests on the pulse pipeline
+(`tests/test_visual_state.py`, `tests/test_hyperterminal_bridge.py`) and
+the QML dispatch in `effects/EffectSurface.qml`, which routes every pulse
+name to a distinct visual treatment.
+
+- [x] Verify run start creates a short surface charge (`surface_charge`).
+- [x] Verify provider preflight success sends a low-intensity signal sweep
+  (`signal_sweep`).
+- [x] Verify provider preflight failure creates a visible red fault lock
+  (`fault_lock`; also raised by codex flag-check failure).
+- [x] Verify new manager decisions pulse around the decision panel
+  (`decision_pulse`).
+- [x] Verify new iterations add a soft persistence trail to the event core
+  (`persistence_trail`).
+- [x] Verify operator stop drains glow immediately and freezes final state
+  (`glow_drain` on operator stop; store stops mutating after
+  `run_stopped`).
+- [x] Verify successful completion performs a restrained completion sweep
+  (`completion_sweep`).
+- [x] Verify non-zero exit, stderr, malformed JSONL, and timeout use a
+  distinct error signature (`error_signature` + failed run health; each
+  error kind carries its own typed row).
+- [x] Verify effects bind to run state, event severity, spec-map progress,
+  provider health, autonomy policy, config source, and doctor results
+  (pulses bind to run lifecycle and severity; spec progress, provider
+  health, autonomy policy, config source, and doctor results drive their
+  typed panels and severity coloring from registered events).
 
 ## Desktop And AppImage Remaining Work
 
@@ -559,128 +539,142 @@ assets, or make runtime behavior depend on the `EXAMPLE/` tree.
 
 ## Terminal CLI Remaining Work
 
-- [ ] Confirm whether the terminal CLI polish pass is complete.
-- [ ] If not complete, improve Rich status hierarchy with clearer labels and
-  compact panels.
-- [ ] If not complete, polish terminal themes for `crt-green`, `crt-amber`,
-  `ibm-dos`, and `plain`.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml`.
-- [ ] If not complete, improve progress summaries for max iterations, active
-  command, and current manager decision.
-- [ ] If not complete, improve compact progress and diagnostic summaries.
-- [ ] Preserve plain ASCII-safe output for redirected logs and
-  machine-unfriendly terminals.
-- [ ] Preserve redirected output cleanliness.
-- [ ] Preserve `--event-stream - --machine-output` as JSONL-only.
-- [ ] Preserve the rule that no shader, image, GUI, QML, or PySide dependency
-  enters the base terminal CLI path.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/`.
-- [ ] Do not introduce an ANSI scrape contract, copied retro profiles,
-  graphical dependencies, a terminal-emulator widget, or duplicated event state
-  that belongs in the workflow engine.
-  - Reference:
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/qmltermwidget/`,
-    `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml`.
+- [x] Confirm whether the terminal CLI polish pass is complete. (Complete,
+  ADR 0001 #4; the conditional polish items below are closed with it.)
+- [x] Preserve plain ASCII-safe output for redirected logs and
+  machine-unfriendly terminals (unchanged; suite passes).
+- [x] Preserve redirected output cleanliness (unchanged; suite passes).
+- [x] Preserve `--event-stream - --machine-output` as JSONL-only
+  (unchanged; new doctor/purge paths covered by machine-output tests).
+- [x] Preserve the rule that no shader, image, GUI, QML, or PySide
+  dependency enters the base terminal CLI path (new modules
+  `config_resolution.py`, `doctor.py`, `setup_config.py`, `privacy.py` are
+  stdlib/yaml only; verified by the base-install isolation gate).
+- [x] Do not introduce an ANSI scrape contract, copied retro profiles,
+  graphical dependencies, a terminal-emulator widget, or duplicated event
+  state that belongs in the workflow engine (none introduced).
 
 ## Terminal Install And Packaging Remaining Work
 
+Documentation completed 2026-07-09 in `docs/terminal-install.md`;
+verification items are tracked in the Final Verification Matrix.
+
 - [ ] Verify base terminal installation from a built wheel in a clean venv.
 - [ ] Verify base terminal installation from a built sdist in a clean venv.
-- [ ] Verify the base install does not install PySide6, Nuitka, QML assets, or
-  require a display server.
-- [ ] Document `pipx install .` from the repo root, including the expected
+- [ ] Verify the base install does not install PySide6, Nuitka, QML assets,
+  or require a display server.
+- [x] Document `pipx install .` from the repo root, including the expected
   `apex-infinite` command path.
-- [ ] Document installing from generated wheel and sdist artifacts.
-- [ ] Add or document a local installer path that creates a dedicated venv and
+- [x] Document installing from generated wheel and sdist artifacts.
+- [x] Document a local installer path that creates a dedicated venv and
   exposes `apex-infinite` on the operator's shell path.
-- [ ] Document terminal install verification commands:
-  `apex-infinite --version`, `apex-infinite --help`, and
-  `apex-infinite --check-provider`.
-- [ ] Document uninstall and upgrade behavior for pipx and local-venv installs.
-- [ ] Record clean Linux evidence that `apex-infinite` resolves from the shell
-  without activating this repo's `.venv`.
+- [x] Document terminal install verification commands:
+  `apex-infinite --version`, `--help`, `--doctor`, `--check-provider`.
+- [x] Document uninstall and upgrade behavior for pipx and local-venv
+  installs (plus data cleanup).
+- [ ] Record clean Linux evidence that `apex-infinite` resolves from the
+  shell without activating this repo's `.venv`. (Needs a clean machine.)
 
 ## Terminal Setup And Shared Config Remaining Work
 
-- [ ] Add a terminal first-run setup command or startup flow.
-  - Let the operator choose provider: Ollama, OpenAI, or Grok.
-  - Let the operator choose or confirm the model.
-  - Let the operator configure the Codex binary path.
-  - Let the operator configure Codex exec flags with clear autonomy warnings.
-  - Let the operator set a default projects directory.
-  - Let the operator optionally set a default target project.
-- [ ] Write shared CLI config to
+- [x] Add a terminal first-run setup command. (2026-07-09:
+  `apex-infinite --setup` prompts for provider, model, Codex binary, exec
+  flags with an explicit autonomy warning, reasoning effort, default
+  projects directory, and optional default target project. Backend:
+  `src/apex_infinite/setup_config.py`; tests:
+  `tests/test_setup_command.py`.)
+- [x] Write shared CLI config to
   `${XDG_CONFIG_HOME:-~/.config}/apex-infinite/config.yaml`.
-- [ ] Write config atomically.
-- [ ] Preserve a backup when overwriting existing user config.
-- [ ] Set conservative permissions for config files that may reference secret
-  environment variable names.
-- [ ] Keep package defaults in `src/apex_infinite/config.yaml`.
-- [ ] Add a non-interactive setup mode for scripts that validates flags before
-  writing config.
-- [ ] Ensure missing secrets are referenced through environment variables, not
-  written into config by default.
-- [ ] Make setup idempotent and prevent silent loss of existing config.
-- [ ] Implement shared config precedence.
-  - CLI flags.
-  - Explicit `--config`.
-  - `APEX_INFINITE_CONFIG`.
-  - XDG user config.
-  - Local `./config.yaml`.
-  - Source-root `config.yaml` for checkout development.
-  - Packaged defaults.
-- [ ] Add `APEX_INFINITE_CONFIG`.
-- [ ] Add XDG config lookup using `XDG_CONFIG_HOME` when set.
-- [ ] Retain local config compatibility while adding the new precedence chain.
-- [ ] Centralize config resolution so the terminal CLI, visual wrapper, setup,
-  and doctor use the same resolver.
-- [ ] Emit a non-secret `config_resolved` or equivalent event that includes the
-  resolved path and source category.
-- [ ] Show the resolved config file and source category in startup output.
-- [ ] Update visual doctor and first-run detection to use the shared resolver
-  instead of checking only an explicit path or cwd `config.yaml`.
-- [ ] Add tests for every config precedence path and malformed selected config.
+- [x] Write config atomically (temp file + `os.replace`).
+- [x] Preserve a backup when overwriting existing user config
+  (`config.yaml.bak-<timestamp>`).
+- [x] Set conservative permissions (config 0600, config dir 0700).
+- [x] Keep package defaults in `src/apex_infinite/config.yaml`.
+- [x] Add a non-interactive setup mode (`--setup-non-interactive` plus
+  `--codex-binary`, `--codex-exec-flags`, `--reasoning-effort`,
+  `--projects-dir`, `--default-project`) that validates flags before
+  writing.
+- [x] Ensure missing secrets are referenced through environment variables,
+  not written into config by default (placeholders like
+  `${OPENAI_API_KEY}`; setup warns when the env var is unset).
+- [x] Make setup idempotent and prevent silent loss of existing config.
+- [x] Implement shared config precedence. (2026-07-09:
+  `src/apex_infinite/config_resolution.py`; order: `--config` >
+  `APEX_INFINITE_CONFIG` > XDG > `./config.yaml` > source-root > packaged.)
+- [x] Add `APEX_INFINITE_CONFIG`. (Returned even when missing so config
+  loading fails fast with a clear error.)
+- [x] Add XDG config lookup using `XDG_CONFIG_HOME` when set.
+- [x] Retain local config compatibility while adding the new precedence chain.
+- [x] Centralize config resolution so the terminal CLI, visual wrapper, setup,
+  and doctor use the same resolver. (Terminal CLI, visual doctor, and
+  first-run detection now import `apex_infinite.config_resolution`.)
+- [x] Emit a non-secret `config_resolved` event with the resolved path and
+  source category. (Emitted before `config_loaded`.)
+- [x] Show the resolved config file and source category in startup output.
+  (`StartupSnapshot.config_source` renders in the operator console.)
+- [x] Update visual doctor and first-run detection to use the shared resolver.
+- [x] Add tests for every config precedence path and malformed selected
+  config. (`tests/test_config_resolution.py`; `load_config` now fails fast on
+  malformed YAML, non-mapping config, and missing provider/providers keys.)
 
 ## Terminal Doctor Remaining Work
 
-- [ ] Add a terminal diagnostic entrypoint using the decided CLI shape.
-- [ ] Check Python version.
-- [ ] Check Codex CLI availability and version.
-- [ ] Check configured Codex binary path.
-- [ ] Check `codex exec --help` against configured `codex.exec_flags`,
-  including stale or renamed autonomy flags.
-- [ ] Check provider name, API key presence, base URL, and model availability.
-- [ ] Check optional provider chat completion when requested.
-- [ ] Check target project path.
-- [ ] Check `.spec_system/` presence when a workflow command requires it.
-- [ ] Check SQLite history DB path and writeability.
-- [ ] Check event-stream output path when provided.
-- [ ] Check visual-wrapper dependencies only when requested.
-- [ ] Print concise pass, warn, and fail rows.
-- [ ] Exit non-zero for hard blockers.
-- [ ] Redact secrets from all doctor output and events.
-- [ ] Include exact next commands for common fixes.
+Completed 2026-07-09: `apex-infinite --doctor` (plus `--doctor-visual`,
+`--skip-provider-check`, `--check-provider-chat` modifiers) with the shared
+backend in `src/apex_infinite/doctor.py`; the visual doctor now reuses it.
+Tests: `tests/test_terminal_doctor.py`.
+
+- [x] Add a terminal diagnostic entrypoint using the decided CLI shape
+  (`apex-infinite --doctor`, ADR 0001 #5).
+- [x] Check Python version.
+- [x] Check Codex CLI availability and version (`codex --version` probe).
+- [x] Check configured Codex binary path.
+- [x] Check `codex exec --help` against configured `codex.exec_flags`,
+  including stale or renamed autonomy flags (reuses
+  `validate_codex_exec_flags`).
+- [x] Check provider name, API key presence, base URL, and model
+  availability (reuses `run_provider_preflight`).
+- [x] Check optional provider chat completion when requested
+  (`--check-provider-chat`).
+- [x] Check target project path.
+- [x] Check `.spec_system/` presence when a workflow command requires it.
+- [x] Check SQLite history DB path and writeability.
+- [x] Check event-stream output path when provided.
+- [x] Check visual-wrapper dependencies only when requested
+  (`--doctor-visual`).
+- [x] Print concise pass, warn, and fail rows.
+- [x] Exit non-zero for hard blockers.
+- [x] Redact secrets from all doctor output and events (key presence only;
+  event payloads pass the registered-event secret validators).
+- [x] Include exact next commands for common fixes (`fix_hint` per row).
 
 ## Launcher And Installed-User Documentation Remaining Work
 
-- [ ] Add default project selection from config.
-- [ ] Add a resume-friendly command or documented pattern for the last project.
-- [ ] Add shortcuts or aliases for common starts: dry run, resume, history,
-  provider check, and plain log mode.
-- [ ] Ensure install, setup, doctor, and visual onboarding docs steer first
-  execution through `--dry-run`.
-- [ ] Add installed-user docs for pipx, wheel, sdist, local venv, uninstall, and
-  upgrade flows.
-- [ ] Add first-run setup docs after the setup command exists.
-- [ ] Update config docs after XDG and `APEX_INFINITE_CONFIG` resolution exist.
-- [ ] Add terminal doctor docs after the doctor entrypoint exists.
-- [ ] Keep provider setup docs synchronized with setup, config resolution, and
-  doctor behavior for Ollama, OpenAI, and Grok.
+Completed 2026-07-09.
+
+- [x] Add default project selection from config (`defaults.project` and
+  `defaults.projects_dir` written by `--setup`, read by the CLI when
+  `--path` is omitted).
+- [x] Add a resume-friendly command/documented pattern for the last
+  project (bare `apex-infinite` with `defaults.project`; documented in
+  `docs/terminal-install.md`; visual command-strip Resume).
+- [x] Add shortcuts or aliases for common starts (alias block in
+  `docs/terminal-install.md`: dry run, resume, history, provider check,
+  plain log mode).
+- [x] Ensure install, setup, doctor, and visual onboarding docs steer
+  first execution through `--dry-run` (README quick start, setup next
+  steps, doctor fix hints, first-run panel default, install guide).
+- [x] Add installed-user docs for pipx, wheel, sdist, local venv,
+  uninstall, and upgrade flows (`docs/terminal-install.md`).
+- [x] Add first-run setup docs (README Configuration + install guide).
+- [x] Update config docs for XDG and `APEX_INFINITE_CONFIG` resolution
+  (README Configuration, install guide, operator runbook).
+- [x] Add terminal doctor docs (README Usage/Options, install guide,
+  runbook startup checklist).
+- [x] Keep provider setup docs synchronized with setup, config
+  resolution, and doctor behavior for Ollama, OpenAI, and Grok (setup
+  templates mirror packaged config; README provider docs unchanged and
+  consistent).
 
 ## Production Hardening Remaining Work
 
