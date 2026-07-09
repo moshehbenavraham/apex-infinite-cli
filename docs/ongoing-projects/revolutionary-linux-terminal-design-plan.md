@@ -1,5 +1,48 @@
 # Revolutionary Linux Terminal Design Plan
 
+## Implementation Status (2026-07-09)
+
+Implemented in-repo:
+
+- Workstream 1: `visual_state.py` display state store with typed event rows,
+  spec map, signal panel, run health, and effect pulses (tested without
+  PySide6).
+- Workstream 2: `profile_store.py` XDG profile persistence with atomic
+  writes, corruption backup, import/export, and last-session restore.
+- Workstream 3: `Main.qml` split into `shell/`, `controls/`, and `effects/`
+  components; first screen is the operator command surface with run strip,
+  mission rail, event core (filters/search/export), spec map, and signal
+  panel.
+- Workstream 4: QML-only effects (glow, scanline/pixel-grid/subpixel canvas
+  field, phosphor trail, signal distortion, glass curvature, ambient frame)
+  with event-reactive pulse triggers, rendering modes, and quality tiers.
+- Workstream 5 (events): `spec_system_detected` and
+  `autonomy_policy_resolved` emitted by the CLI; the remaining Hyperterminal
+  names registered with stream coverage.
+- Workstream 5 (shaders): six clean-room GLSL 440 modules with
+  `PROVENANCE.md`, `scripts/build-shaders.sh` (verified compiling via
+  pyside6-qsb), and capability-gated detection in `render_caps.py`.
+- Workstream 6: `doctor.py` pass/warn/fail diagnostics surfaced in the
+  drawer and event log, plus a first-run banner defaulting to dry run.
+- Workstream 7: original icon, `.desktop`, AppStream metadata,
+  `scripts/build-appimage.sh` with checksum and dependency inventory,
+  `packaging/NOTICES.md`, and `packaging/RELEASE-CHECKLIST.md`.
+- Workstream 8: terminal autonomy-policy summary before runs; docs updated
+  (`README.md`, `docs/event-stream.md`, `docs/visual-wrapper-boundary.md`,
+  `docs/ARCHITECTURE.md`).
+- Verification: offscreen launch and screenshot pixel-nonblank smokes,
+  clean base-install PySide6-absence check, qmllint pass, black/mypy/pylint
+  clean, `EXAMPLE/` and `.qsb` tracking guards as tests.
+
+Remaining for release sessions:
+
+- Promote compiled shader modules into the QML render path (Stage 2
+  integration) once artifact review is scoped.
+- Full graphical first-run config-write wizard with explicit shared-config
+  confirmation (banner + doctor + dry-run default shipped).
+- Build and verify the AppImage on a clean machine per
+  `packaging/RELEASE-CHECKLIST.md`.
+
 ## Purpose
 
 Turn Apex Infinite Visual from a source-mode QML wrapper into a full-production

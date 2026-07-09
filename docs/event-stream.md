@@ -76,6 +76,15 @@ Startup and configuration:
 - `provider_check_finished`
 - `startup`
 
+Hyperterminal design-lane facts (emitted after `project_resolved`):
+
+- `spec_system_detected` - `.spec_system/` detection facts for the resolved
+  project: `detected`, plus `has_prd`, `phase_count`, and `latest_phase`
+  when detected.
+- `autonomy_policy_resolved` - `dry_run`, `max_iterations`,
+  `start_command`, `risk_level`, and `provider_preflight` before the loop
+  starts.
+
 Provider preflight events are startup lifecycle events. Normal startup emits
 them after project resolution, after Codex flag validation when that non-dry-run
 validation runs, and before the main loop `startup` event. `--check-provider
@@ -115,6 +124,20 @@ Storage, operator, and stop states:
 - `max_iterations_reached`
 - `run_stopped`
 - `event_stream_error`
+
+Registered names reserved for the visual wrapper and future CLI sessions
+(payloads must follow the same validation rules; the wrapper may ingest
+them synthetically):
+
+- `spec_session_resolved` - current spec session identity (`session`).
+- `task_progress` - session task checklist progress (`done`, `total`).
+- `artifact_detected` - a safe artifact reference (`name` or `path`).
+- `run_duration_tick` - elapsed run seconds (`seconds`).
+- `wrapper_capabilities_resolved` - render backend facts from
+  `render_caps.capabilities_payload()`.
+- `doctor_started`, `doctor_check`, `doctor_finished` - launch-readiness
+  diagnostics with display-safe `status` values `pass`, `warn`, `fail`.
+- `codex_flags_resolved` - resolved Codex flag compatibility facts.
 
 The registry also accepts compatibility names for wrapper experiments and
 future migrations: `config_resolved`, `history_summary_started`,

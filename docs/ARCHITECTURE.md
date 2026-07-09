@@ -32,7 +32,13 @@ initialized Apex Spec project
 | Renderer | `src/apex_infinite/ui.py` | Rich | Styled, plain, ASCII, and compact terminal output from raw workflow facts. |
 | Event stream | `src/apex_infinite/events.py` | JSONL | Validated lifecycle event writer for automation and wrappers. |
 | Logging | `src/apex_infinite/logging_config.py` | Python logging | Local diagnostic logging and last-error file support. |
-| Optional visual wrapper | `src/apex_infinite_visual/` | PySide6, Qt Quick/QML | Linux source-mode wrapper that launches or replays the base CLI through the event boundary. |
+| Optional visual wrapper | `src/apex_infinite_visual/` | PySide6, Qt Quick/QML | Hyperterminal command surface that launches or replays the base CLI through the event boundary. |
+| Visual state store | `src/apex_infinite_visual/visual_state.py` | Python | PySide6-free event-derived display state: run health, spec map, signal panel, typed rows, effect pulses. |
+| Visual profiles | `src/apex_infinite_visual/profile_store.py` | JSON, XDG | Versioned visual profile persistence with atomic writes, backups, and import/export. |
+| Render capabilities | `src/apex_infinite_visual/render_caps.py` | Python | Backend detection, shader artifact discovery, and quality tier clamping. |
+| Visual doctor | `src/apex_infinite_visual/doctor.py` | Python | Display-safe pass/warn/fail launch diagnostics for the wrapper. |
+| Shaders | `src/apex_infinite_visual/shaders/` | GLSL 440, qsb | Clean-room shader sources with provenance; compiled artifacts are untracked build outputs. |
+| Desktop assets | `src/apex_infinite_visual/assets/` | SVG, desktop, AppStream | Original icon, launcher entry, and AppStream metadata for Linux packaging. |
 | Ollama helpers | `scripts/`, `docker-compose.ollama.yml` | Bash, Docker Compose | Local Ollama deployment, model pull, provider checks, and compatibility aliases. |
 | Tests | `tests/` | pytest | Prompt routing, config, UI, event stream, history, subprocess, provider preflight, and visual wrapper coverage. |
 

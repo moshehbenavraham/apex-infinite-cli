@@ -1,4 +1,5 @@
-"""PySide6/Qt Quick prototype entrypoint for the optional visual wrapper."""
+# pylint: disable=too-many-lines
+"""PySide6/Qt Quick entrypoint for the Apex Infinite Hyperterminal wrapper."""
 
 from __future__ import annotations
 
@@ -11,15 +12,31 @@ import threading
 from dataclasses import dataclass
 from pathlib import Path
 
-from apex_infinite_visual.events import EventStateAdapter
+from apex_infinite_visual.doctor import DoctorContext, doctor_event_rows, run_doctor
 from apex_infinite_visual.launcher import (
     ApexCliLaunchError,
     ApexCliLaunchOptions,
     ApexCliProcess,
     ApexCliTimeoutError,
 )
+from apex_infinite_visual.profile_store import (
+    ProfileStore,
+    ProfileStoreError,
+    load_window_state,
+    save_window_state,
+)
+from apex_infinite_visual.render_caps import (
+    RenderCapabilities,
+    RenderCapsError,
+    capabilities_payload,
+    detect_capabilities,
+    resolve_quality_tier,
+)
 from apex_infinite_visual.settings import (
+    DEFAULT_QUALITY_TIER,
     FONT_FAMILIES,
+    QUALITY_TIERS,
+    RENDERING_MODES,
     THEME_CRT_GREEN,
     THEME_PLAIN,
     WRAPPER_THEME_NAMES,
@@ -27,6 +44,9 @@ from apex_infinite_visual.settings import (
     WrapperSettingsError,
     build_settings,
 )
+from apex_infinite_visual.visual_state import VisualState, VisualStateStore
+
+SESSION_PROFILE_NAME = "last-session"
 
 
 class VisualWrapperUnavailable(RuntimeError):
@@ -35,7 +55,7 @@ class VisualWrapperUnavailable(RuntimeError):
 
 @dataclass(frozen=True)
 class VisualWrapperOptions:  # pylint: disable=too-many-instance-attributes
-    """Runtime options for the prototype wrapper surface."""
+    """Runtime options for the Hyperterminal wrapper surface."""
 
     project_path: str
     start_command: str
@@ -54,6 +74,13 @@ class VisualWrapperOptions:  # pylint: disable=too-many-instance-attributes
     font_scale: float = 1.0
     plain_fallback: bool = False
     process_timeout_seconds: int | None = None
+    rendering_mode: str | None = None
+    quality_tier: str = DEFAULT_QUALITY_TIER
+    font_width: float = 1.0
+    line_spacing: float = 1.0
+    profile: str | None = None
+    restore_profile: bool = False
+    profile_store_path: str | None = None
 
 
 def import_qt_modules():  # pylint: disable=import-outside-toplevel
@@ -99,7 +126,7 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
     timer = qt["QTimer"]
 
     class WrapperBridge(
-        # pylint: disable=too-many-instance-attributes,invalid-name
+        # pylint: disable=too-many-instance-attributes,invalid-name,too-many-public-methods
         qobject  # type: ignore[misc, valid-type]
     ):
         """Expose event-driven wrapper state and controls to QML."""
@@ -108,20 +135,41 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
         logChanged = signal()
         controlsChanged = signal()
         effectsChanged = signal()
+        specChanged = signal()
+        signalPanelChanged = signal()
+        doctorChanged = signal()
+        profilesChanged = signal()
+        pulsesChanged = signal()
 
         def __init__(self, options: VisualWrapperOptions):
             super().__init__()
             self._options = options
-            self._adapter = EventStateAdapter(max_entries=200)
-            self._snapshot = self._adapter.snapshot()
+            self._store = VisualStateStore(max_rows=400)
+            self._state: VisualState = self._store.snapshot()
             self._log_lines: list[str] = []
+            self._pulse_names: list[str] = []
+            self._stage_filter = ""
+            self._severity_filter = ""
+            self._search_text = ""
             self._project_path = options.project_path
             self._start_command = options.start_command
             self._max_iterations = options.max_iterations
             self._dry_run = options.dry_run
             self._settings = _settings_from_options(options)
+            self._profile_store: ProfileStore | None = None
+            self._profile_error = ""
+            self._active_profile = ""
+            self._doctor_rows: list[dict[str, object]] = []
+            self._doctor_status = ""
+            self._doctor_ready = True
+            self._caps = _detect_caps_safely()
+            self._apply_capabilities()
+            self._restore_profile_if_requested()
+            self._apply_capabilities()
             self._theme_names = list(WRAPPER_THEME_NAMES)
             self._font_families = list(FONT_FAMILIES)
+            self._rendering_modes = list(RENDERING_MODES)
+            self._quality_tiers = list(QUALITY_TIERS)
             self._glow_enabled = False
             self._scanlines_enabled = False
             self._flicker_enabled = False
@@ -141,21 +189,34 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             self._pump_timer.setInterval(50)
             self._pump_timer.timeout.connect(self._drain_queue)
             self._pump_timer.start()
+            self._ingest_capabilities_event()
+
+        @property
+        def _adapter(self):
+            """Backwards-compatible access to the event adapter."""
+            return self._store.adapter
+
+        # ------------------------------------------------------------------
+        # Property getters
+        # ------------------------------------------------------------------
 
         def _get_status(self) -> str:
-            return self._snapshot.status
+            return self._state.status
 
         def _get_stage(self) -> str:
-            return self._snapshot.stage
+            return self._state.stage
+
+        def _get_run_health(self) -> str:
+            return self._state.run_health
 
         def _get_running(self) -> bool:
-            return self._running or self._snapshot.running
+            return self._running or self._state.running
 
         def _get_has_error(self) -> bool:
-            return self._snapshot.has_error
+            return self._state.has_error
 
         def _get_error_text(self) -> str:
-            return self._snapshot.error_text
+            return self._state.error_text
 
         def _get_project_path(self) -> str:
             return self._project_path
@@ -170,21 +231,188 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             return self._dry_run
 
         def _get_provider(self) -> str:
-            return self._snapshot.provider_name or "Provider pending"
+            return self._state.provider_name or "Provider pending"
 
         def _get_model(self) -> str:
-            return self._snapshot.model_name or "Model pending"
+            return self._state.model_name or "Model pending"
+
+        def _get_config_source(self) -> str:
+            return self._state.config_source or (
+                self._options.config_path or "Default config"
+            )
+
+        def _get_codex_flags_text(self) -> str:
+            if self._state.codex_flags_ok is None:
+                return "Not checked"
+            return "Compatible" if self._state.codex_flags_ok else "Incompatible"
+
+        def _get_event_stream_mode(self) -> str:
+            return (
+                "JSONL subprocess" if self._options.launch_cli else "Fixture playback"
+            )
+
+        def _get_history_db_text(self) -> str:
+            history = Path.home() / ".apex-infinite" / "history.db"
+            return "Present" if history.exists() else "Created on first run"
+
+        def _get_autonomy_summary(self) -> str:
+            if self._dry_run:
+                return (
+                    f"DRY RUN - Codex is not executed. "
+                    f"Max iterations: {self._max_iterations}."
+                )
+            return (
+                f"LIVE - Codex executes with workflow autonomy. "
+                f"Max iterations: {self._max_iterations}. Risk: elevated."
+            )
 
         def _get_iteration(self) -> str:
-            if self._snapshot.iteration is None:
+            if self._state.iteration is None:
                 return "Not started"
-            return str(self._snapshot.iteration)
+            return str(self._state.iteration)
 
         def _get_manager_output(self) -> str:
-            return self._snapshot.manager_output or "No decision yet"
+            return self._state.manager_output or "No decision yet"
+
+        def _get_manager_reason(self) -> str:
+            return self._state.manager_reason
 
         def _get_log_lines(self) -> list[str]:
             return list(self._log_lines)
+
+        def _get_event_rows(self) -> list[dict[str, object]]:
+            rows = []
+            for row in self._state.rows:
+                if self._stage_filter and row.stage != self._stage_filter:
+                    continue
+                if self._severity_filter and row.severity != self._severity_filter:
+                    continue
+                if self._search_text:
+                    haystack = f"{row.title} {row.detail} {row.event}".lower()
+                    if self._search_text.lower() not in haystack:
+                        continue
+                rows.append(
+                    {
+                        "sequence": row.sequence,
+                        "severity": row.severity,
+                        "stage": row.stage,
+                        "title": row.title,
+                        "detail": row.detail,
+                        "timestamp": row.timestamp,
+                        "event": row.event,
+                        "iteration": -1 if row.iteration is None else row.iteration,
+                    }
+                )
+            return rows
+
+        def _get_stage_filter(self) -> str:
+            return self._stage_filter
+
+        def _get_severity_filter(self) -> str:
+            return self._severity_filter
+
+        def _get_search_text(self) -> str:
+            return self._search_text
+
+        def _get_pulse_names(self) -> list[str]:
+            return list(self._pulse_names)
+
+        # Spec map -----------------------------------------------------------
+
+        def _get_spec_detected(self) -> bool:
+            return self._state.spec.detected
+
+        def _get_spec_phase(self) -> str:
+            spec = self._state.spec
+            if not spec.detected:
+                return "No spec system"
+            if spec.latest_phase:
+                return f"{spec.latest_phase} of {spec.phase_count}"
+            return f"{spec.phase_count} phase(s)"
+
+        def _get_spec_session(self) -> str:
+            return self._state.spec.session or "Session pending"
+
+        def _get_spec_command(self) -> str:
+            return self._state.spec.current_command or "No command yet"
+
+        def _get_task_progress_text(self) -> str:
+            spec = self._state.spec
+            if spec.tasks_done is None or spec.tasks_total is None:
+                return "No task data"
+            return f"{spec.tasks_done} / {spec.tasks_total}"
+
+        def _get_task_progress_ratio(self) -> float:
+            spec = self._state.spec
+            if not spec.tasks_total:
+                return 0.0
+            done = spec.tasks_done or 0
+            return max(0.0, min(1.0, done / spec.tasks_total))
+
+        # Signal panel --------------------------------------------------------
+
+        def _get_provider_health(self) -> str:
+            return self._state.signal.provider_health
+
+        def _get_stderr_events(self) -> int:
+            return self._state.signal.stderr_events
+
+        def _get_malformed_events(self) -> int:
+            return self._state.signal.malformed_events
+
+        def _get_duration_text(self) -> str:
+            seconds = self._state.signal.duration_seconds
+            minutes, secs = divmod(max(0, seconds), 60)
+            return f"{minutes:02d}:{secs:02d}"
+
+        def _get_last_event(self) -> str:
+            return self._state.last_event or "None"
+
+        def _get_artifacts(self) -> list[str]:
+            return list(self._state.signal.artifacts)
+
+        # Capabilities ---------------------------------------------------------
+
+        def _get_backend_name(self) -> str:
+            return self._caps.backend if self._caps else "unknown"
+
+        def _get_shaders_available(self) -> bool:
+            return bool(self._caps and self._caps.shaders_available)
+
+        def _get_recommended_tier(self) -> str:
+            return self._caps.recommended_tier if self._caps else DEFAULT_QUALITY_TIER
+
+        # Doctor ---------------------------------------------------------------
+
+        def _get_doctor_rows(self) -> list[dict[str, object]]:
+            return list(self._doctor_rows)
+
+        def _get_doctor_status(self) -> str:
+            return self._doctor_status
+
+        def _get_doctor_ready(self) -> bool:
+            return self._doctor_ready
+
+        def _get_first_run_needed(self) -> bool:
+            if self._options.config_path:
+                return not Path(os.path.expanduser(self._options.config_path)).is_file()
+            return not (Path.cwd() / "config.yaml").is_file()
+
+        # Profiles -------------------------------------------------------------
+
+        def _get_profile_names(self) -> list[str]:
+            store = self._ensure_profile_store()
+            if store is None:
+                return []
+            return store.profile_names()
+
+        def _get_active_profile(self) -> str:
+            return self._active_profile
+
+        def _get_profile_error(self) -> str:
+            return self._profile_error
+
+        # Visual settings --------------------------------------------------------
 
         def _get_theme(self) -> str:
             return self._settings.theme_name
@@ -197,6 +425,27 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
 
         def _get_theme_label(self) -> str:
             return self._settings.preset.label
+
+        def _get_rendering_mode(self) -> str:
+            return self._settings.rendering_mode
+
+        def _get_effective_rendering_mode(self) -> str:
+            return self._settings.effective_rendering_mode
+
+        def _get_rendering_modes(self) -> list[str]:
+            return list(self._rendering_modes)
+
+        def _get_quality_tier(self) -> str:
+            return self._settings.quality_tier
+
+        def _get_effective_quality_tier(self) -> str:
+            return self._settings.effective_quality_tier
+
+        def _get_quality_tiers(self) -> list[str]:
+            return list(self._quality_tiers)
+
+        def _get_effect_fps(self) -> int:
+            return self._settings.effect_fps
 
         def _get_reduced_effects(self) -> bool:
             return self._settings.reduced_effects
@@ -218,6 +467,12 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
 
         def _get_font_scale(self) -> float:
             return self._settings.font_scale
+
+        def _get_font_width(self) -> float:
+            return self._settings.font_width
+
+        def _get_line_spacing(self) -> float:
+            return self._settings.line_spacing
 
         def _get_font_families(self) -> list[str]:
             return list(self._font_families)
@@ -267,8 +522,34 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
         def _get_curvature_enabled(self) -> bool:
             return self._curvature_enabled
 
+        def _get_bloom_enabled(self) -> bool:
+            return self._settings.effect_enabled("bloom")
+
+        def _get_persistence_enabled(self) -> bool:
+            return self._settings.effect_enabled("persistence")
+
+        def _get_noise_enabled(self) -> bool:
+            return self._settings.effect_enabled("noise")
+
+        def _get_jitter_enabled(self) -> bool:
+            return self._settings.effect_enabled("jitter")
+
+        def _get_sync_enabled(self) -> bool:
+            return self._settings.effect_enabled("sync")
+
+        def _get_chroma_enabled(self) -> bool:
+            return self._settings.effect_enabled("chroma")
+
+        def _get_ambient_frame_enabled(self) -> bool:
+            return self._settings.effect_enabled("ambient_frame")
+
+        # ------------------------------------------------------------------
+        # Qt properties
+        # ------------------------------------------------------------------
+
         statusText = property_factory(str, _get_status, notify=statusChanged)
         stageText = property_factory(str, _get_stage, notify=statusChanged)
+        runHealth = property_factory(str, _get_run_health, notify=statusChanged)
         running = property_factory(bool, _get_running, notify=statusChanged)
         hasError = property_factory(bool, _get_has_error, notify=statusChanged)
         errorText = property_factory(str, _get_error_text, notify=statusChanged)
@@ -278,11 +559,82 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             int, _get_max_iterations, notify=controlsChanged
         )
         dryRun = property_factory(bool, _get_dry_run, notify=controlsChanged)
+        autonomySummary = property_factory(
+            str, _get_autonomy_summary, notify=controlsChanged
+        )
         providerName = property_factory(str, _get_provider, notify=statusChanged)
         modelName = property_factory(str, _get_model, notify=statusChanged)
+        configSource = property_factory(str, _get_config_source, notify=statusChanged)
+        codexFlagsText = property_factory(
+            str, _get_codex_flags_text, notify=statusChanged
+        )
+        eventStreamMode = property_factory(
+            str, _get_event_stream_mode, notify=controlsChanged
+        )
+        historyDbText = property_factory(
+            str, _get_history_db_text, notify=statusChanged
+        )
         iterationText = property_factory(str, _get_iteration, notify=statusChanged)
         managerOutput = property_factory(str, _get_manager_output, notify=statusChanged)
+        managerReason = property_factory(str, _get_manager_reason, notify=statusChanged)
         logLines = property_factory("QStringList", _get_log_lines, notify=logChanged)
+        eventRows = property_factory("QVariantList", _get_event_rows, notify=logChanged)
+        stageFilter = property_factory(str, _get_stage_filter, notify=logChanged)
+        severityFilter = property_factory(str, _get_severity_filter, notify=logChanged)
+        searchText = property_factory(str, _get_search_text, notify=logChanged)
+        pulseNames = property_factory(
+            "QStringList", _get_pulse_names, notify=pulsesChanged
+        )
+        specDetected = property_factory(bool, _get_spec_detected, notify=specChanged)
+        specPhase = property_factory(str, _get_spec_phase, notify=specChanged)
+        specSession = property_factory(str, _get_spec_session, notify=specChanged)
+        specCommand = property_factory(str, _get_spec_command, notify=specChanged)
+        taskProgressText = property_factory(
+            str, _get_task_progress_text, notify=specChanged
+        )
+        taskProgressRatio = property_factory(
+            float, _get_task_progress_ratio, notify=specChanged
+        )
+        providerHealth = property_factory(
+            str, _get_provider_health, notify=signalPanelChanged
+        )
+        stderrEvents = property_factory(
+            int, _get_stderr_events, notify=signalPanelChanged
+        )
+        malformedEvents = property_factory(
+            int, _get_malformed_events, notify=signalPanelChanged
+        )
+        durationText = property_factory(
+            str, _get_duration_text, notify=signalPanelChanged
+        )
+        lastEvent = property_factory(str, _get_last_event, notify=signalPanelChanged)
+        artifacts = property_factory(
+            "QStringList", _get_artifacts, notify=signalPanelChanged
+        )
+        backendName = property_factory(str, _get_backend_name, notify=effectsChanged)
+        shadersAvailable = property_factory(
+            bool, _get_shaders_available, notify=effectsChanged
+        )
+        recommendedTier = property_factory(
+            str, _get_recommended_tier, notify=effectsChanged
+        )
+        doctorRows = property_factory(
+            "QVariantList", _get_doctor_rows, notify=doctorChanged
+        )
+        doctorStatus = property_factory(str, _get_doctor_status, notify=doctorChanged)
+        doctorLaunchReady = property_factory(
+            bool, _get_doctor_ready, notify=doctorChanged
+        )
+        firstRunNeeded = property_factory(
+            bool, _get_first_run_needed, notify=doctorChanged
+        )
+        profileNames = property_factory(
+            "QStringList", _get_profile_names, notify=profilesChanged
+        )
+        activeProfile = property_factory(
+            str, _get_active_profile, notify=profilesChanged
+        )
+        profileError = property_factory(str, _get_profile_error, notify=profilesChanged)
         themeName = property_factory(str, _get_theme, notify=effectsChanged)
         effectiveThemeName = property_factory(
             str, _get_effective_theme, notify=effectsChanged
@@ -291,6 +643,23 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             "QStringList", _get_theme_names, notify=effectsChanged
         )
         themeLabel = property_factory(str, _get_theme_label, notify=effectsChanged)
+        renderingMode = property_factory(
+            str, _get_rendering_mode, notify=effectsChanged
+        )
+        effectiveRenderingMode = property_factory(
+            str, _get_effective_rendering_mode, notify=effectsChanged
+        )
+        renderingModes = property_factory(
+            "QStringList", _get_rendering_modes, notify=effectsChanged
+        )
+        qualityTier = property_factory(str, _get_quality_tier, notify=effectsChanged)
+        effectiveQualityTier = property_factory(
+            str, _get_effective_quality_tier, notify=effectsChanged
+        )
+        qualityTiers = property_factory(
+            "QStringList", _get_quality_tiers, notify=effectsChanged
+        )
+        effectFps = property_factory(int, _get_effect_fps, notify=effectsChanged)
         reducedEffects = property_factory(
             bool, _get_reduced_effects, notify=effectsChanged
         )
@@ -305,6 +674,8 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
         )
         fontFamily = property_factory(str, _get_font_family, notify=effectsChanged)
         fontScale = property_factory(float, _get_font_scale, notify=effectsChanged)
+        fontWidth = property_factory(float, _get_font_width, notify=effectsChanged)
+        lineSpacing = property_factory(float, _get_line_spacing, notify=effectsChanged)
         fontFamilies = property_factory(
             "QStringList", _get_font_families, notify=effectsChanged
         )
@@ -332,6 +703,25 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
         curvatureEnabled = property_factory(
             bool, _get_curvature_enabled, notify=effectsChanged
         )
+        bloomEnabled = property_factory(bool, _get_bloom_enabled, notify=effectsChanged)
+        persistenceEnabled = property_factory(
+            bool, _get_persistence_enabled, notify=effectsChanged
+        )
+        noiseEnabled = property_factory(bool, _get_noise_enabled, notify=effectsChanged)
+        jitterEnabled = property_factory(
+            bool, _get_jitter_enabled, notify=effectsChanged
+        )
+        syncEnabled = property_factory(bool, _get_sync_enabled, notify=effectsChanged)
+        chromaEnabled = property_factory(
+            bool, _get_chroma_enabled, notify=effectsChanged
+        )
+        ambientFrameEnabled = property_factory(
+            bool, _get_ambient_frame_enabled, notify=effectsChanged
+        )
+
+        # ------------------------------------------------------------------
+        # Run control slots
+        # ------------------------------------------------------------------
 
         @slot()
         def startRun(self) -> None:
@@ -349,7 +739,7 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
         @slot()
         def stopRun(self) -> None:
             """Stop the current fixture or subprocess lifecycle."""
-            if not self._running and not self._snapshot.running:
+            if not self._running and not self._state.running:
                 return
             self._stop_requested = True
             if self._fixture_timer.isActive():
@@ -372,6 +762,42 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             if self._process:
                 self._process.terminate()
             self._running = False
+            self._persist_session_profile()
+
+        @slot()
+        def runDoctor(self) -> None:
+            """Run launch-readiness diagnostics and publish results."""
+            context = DoctorContext(
+                project_path=self._project_path,
+                config_path=self._options.config_path or "",
+            )
+            self._ingest_synthetic_event("doctor_started", {"source": "wrapper"})
+            report = run_doctor(context)
+            rows = doctor_event_rows(report)
+            for row in rows:
+                self._ingest_synthetic_event("doctor_check", row)
+            self._ingest_synthetic_event(
+                "doctor_finished",
+                {
+                    "status": report.status,
+                    "launch_ready": report.launch_ready,
+                    **report.counts(),
+                },
+            )
+            self._doctor_rows = rows
+            self._doctor_status = report.status
+            self._doctor_ready = report.launch_ready
+            self.doctorChanged.emit()
+
+        @slot(int, int)
+        def storeWindowGeometry(self, width: int, height: int) -> None:
+            """Persist runtime window geometry under XDG state."""
+            if not self._options.restore_profile:
+                return
+            try:
+                save_window_state({"width": int(width), "height": int(height)})
+            except ProfileStoreError:
+                pass
 
         @slot(str)
         def setProjectPath(self, value: str) -> None:
@@ -405,11 +831,87 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             self._dry_run = bool(value)
             self.controlsChanged.emit()
 
+        # ------------------------------------------------------------------
+        # Event log filter slots
+        # ------------------------------------------------------------------
+
+        @slot(str)
+        def exportEvents(self, path: str) -> None:
+            """Export the current filtered event rows as JSON."""
+            target = Path(os.path.expanduser(path))
+            try:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(
+                    json.dumps(
+                        self._get_event_rows(),
+                        ensure_ascii=True,
+                        sort_keys=True,
+                        indent=2,
+                    )
+                    + "\n",
+                    encoding="ascii",
+                )
+            except OSError as exc:
+                self._ingest_synthetic_event(
+                    "error",
+                    {
+                        "stage": "wrapper",
+                        "error_type": "export_failed",
+                        "message": f"Event export failed: {exc.__class__.__name__}",
+                    },
+                )
+
+        @slot(str)
+        def setStageFilter(self, value: str) -> None:
+            """Filter event rows by stage bucket ('' clears)."""
+            self._stage_filter = value.strip()
+            self.logChanged.emit()
+
+        @slot(str)
+        def setSeverityFilter(self, value: str) -> None:
+            """Filter event rows by severity ('' clears)."""
+            self._severity_filter = value.strip()
+            self.logChanged.emit()
+
+        @slot(str)
+        def setSearchText(self, value: str) -> None:
+            """Filter event rows by free text ('' clears)."""
+            self._search_text = value.strip()
+            self.logChanged.emit()
+
+        # ------------------------------------------------------------------
+        # Visual settings slots
+        # ------------------------------------------------------------------
+
         @slot(str)
         def setTheme(self, value: str) -> None:
             """Update the QML theme selector."""
             plain_fallback = value == THEME_PLAIN
             self._update_settings(theme_name=value, plain_fallback=plain_fallback)
+
+        @slot(str)
+        def setRenderingMode(self, value: str) -> None:
+            """Update the operator rendering mode."""
+            self._update_settings(rendering_mode=value)
+
+        @slot(str)
+        def setQualityTier(self, value: str) -> None:
+            """Update the effect quality tier, clamped to capabilities."""
+            resolved = value
+            if self._caps is not None:
+                try:
+                    resolved = resolve_quality_tier(value, self._caps)
+                except RenderCapsError as exc:
+                    self._ingest_synthetic_event(
+                        "error",
+                        {
+                            "stage": "settings",
+                            "error_type": "invalid_settings",
+                            "message": str(exc),
+                        },
+                    )
+                    return
+            self._update_settings(quality_tier=resolved)
 
         @slot(bool)
         def setReducedEffects(self, value: bool) -> None:
@@ -430,6 +932,16 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
         def setFontScale(self, value: float) -> None:
             """Update the wrapper font scale."""
             self._update_settings(font_scale=round(float(value), 2))
+
+        @slot(float)
+        def setFontWidth(self, value: float) -> None:
+            """Update the wrapper font width factor."""
+            self._update_settings(font_width=round(float(value), 2))
+
+        @slot(float)
+        def setLineSpacing(self, value: float) -> None:
+            """Update the event row line spacing factor."""
+            self._update_settings(line_spacing=round(float(value), 2))
 
         @slot(bool)
         def setPlainFallback(self, value: bool) -> None:
@@ -453,8 +965,164 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 self._curvature_enabled = enabled
             self.effectsChanged.emit()
 
+        # ------------------------------------------------------------------
+        # Profile slots
+        # ------------------------------------------------------------------
+
+        @slot(str)
+        def saveProfile(self, name: str) -> None:
+            """Save current visual settings as a named custom profile."""
+            store = self._ensure_profile_store()
+            if store is None:
+                return
+            try:
+                store.save_current(name, self._settings, effects=self._current_effects())
+                self._active_profile = name
+                self._profile_error = ""
+            except ProfileStoreError as exc:
+                self._profile_error = str(exc)
+            self.profilesChanged.emit()
+
+        @slot(str)
+        def loadProfile(self, name: str) -> None:
+            """Load a built-in or custom profile."""
+            store = self._ensure_profile_store()
+            if store is None:
+                return
+            try:
+                profile = store.get(name)
+                self._settings = profile.to_settings()
+                self._apply_capabilities()
+                self._active_profile = name
+                self._profile_error = ""
+                store.set_last_profile(name)
+            except (ProfileStoreError, WrapperSettingsError) as exc:
+                self._profile_error = str(exc)
+                self.profilesChanged.emit()
+                return
+            self._sync_effects_from_settings()
+            self.effectsChanged.emit()
+            self.profilesChanged.emit()
+
+        @slot(str)
+        def deleteProfile(self, name: str) -> None:
+            """Delete a custom profile."""
+            store = self._ensure_profile_store()
+            if store is None:
+                return
+            try:
+                store.delete(name)
+                if self._active_profile == name:
+                    self._active_profile = ""
+                self._profile_error = ""
+            except ProfileStoreError as exc:
+                self._profile_error = str(exc)
+            self.profilesChanged.emit()
+
+        @slot(str, str)
+        def duplicateProfile(self, source: str, target: str) -> None:
+            """Duplicate a profile to a new custom name."""
+            store = self._ensure_profile_store()
+            if store is None:
+                return
+            try:
+                store.duplicate(source, target)
+                self._profile_error = ""
+            except ProfileStoreError as exc:
+                self._profile_error = str(exc)
+            self.profilesChanged.emit()
+
+        @slot(str, str)
+        def exportProfile(self, name: str, path: str) -> None:
+            """Export one profile as JSON."""
+            store = self._ensure_profile_store()
+            if store is None:
+                return
+            try:
+                store.export_profile(name, Path(os.path.expanduser(path)))
+                self._profile_error = ""
+            except (ProfileStoreError, OSError) as exc:
+                self._profile_error = str(exc)
+            self.profilesChanged.emit()
+
+        @slot(str)
+        def importProfile(self, path: str) -> None:
+            """Import one profile JSON file."""
+            store = self._ensure_profile_store()
+            if store is None:
+                return
+            try:
+                store.import_profile(Path(os.path.expanduser(path)))
+                self._profile_error = ""
+            except ProfileStoreError as exc:
+                self._profile_error = str(exc)
+            self.profilesChanged.emit()
+
+        # ------------------------------------------------------------------
+        # Internal helpers
+        # ------------------------------------------------------------------
+
+        def _ensure_profile_store(self) -> ProfileStore | None:
+            if self._profile_store is not None:
+                return self._profile_store
+            try:
+                if self._options.profile_store_path:
+                    self._profile_store = ProfileStore(
+                        Path(self._options.profile_store_path)
+                    )
+                else:
+                    self._profile_store = ProfileStore()
+            except ProfileStoreError as exc:
+                self._profile_error = str(exc)
+                return None
+            if self._profile_store.load_error:
+                self._profile_error = self._profile_store.load_error
+            return self._profile_store
+
+        def _restore_profile_if_requested(self) -> None:
+            wanted = self._options.profile
+            if not wanted and not self._options.restore_profile:
+                return
+            store = self._ensure_profile_store()
+            if store is None:
+                return
+            name = wanted or store.last_profile
+            if not name:
+                return
+            try:
+                self._settings = store.get(name).to_settings()
+                self._apply_capabilities()
+                self._active_profile = name
+            except (ProfileStoreError, WrapperSettingsError) as exc:
+                self._profile_error = str(exc)
+
+        def _detect_caps(self) -> RenderCapabilities | None:
+            return self._caps
+
+        def _apply_capabilities(self) -> None:
+            if self._caps is None:
+                return
+            try:
+                resolved = resolve_quality_tier(self._settings.quality_tier, self._caps)
+                changes: dict[str, object] = {}
+                if resolved != self._settings.quality_tier:
+                    changes["quality_tier"] = resolved
+                if self._caps.reduced_effects_forced:
+                    changes["reduced_effects"] = True
+                if changes:
+                    self._settings = self._settings.updated(**changes)
+            except (RenderCapsError, WrapperSettingsError):
+                pass
+
+        def _ingest_capabilities_event(self) -> None:
+            if self._caps is None:
+                return
+            self._ingest_synthetic_event(
+                "wrapper_capabilities_resolved", capabilities_payload(self._caps)
+            )
+
         def _start_fixture_flow(self) -> None:
-            self._reset_adapter()
+            self._reset_store()
             self._fixture_rows = build_fixture_event_lines(
                 self._project_path,
                 self._start_command or "implement",
@@ -469,12 +1137,12 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 self._running = False
                 self.statusChanged.emit()
                 return
-            self._adapter.ingest_line(self._fixture_rows[self._fixture_index])
+            self._store.ingest_line(self._fixture_rows[self._fixture_index])
             self._fixture_index += 1
             self._refresh_snapshot()
 
         def _start_process_worker(self) -> None:
-            self._reset_adapter()
+            self._reset_store()
             self._worker = threading.Thread(target=self._run_process, daemon=True)
             self._worker.start()
 
@@ -562,7 +1230,7 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                     break
                 changed = True
                 if kind == "line":
-                    self._adapter.ingest_line(value)
+                    self._store.ingest_line(value)
                 elif kind == "stderr":
                     self._ingest_synthetic_event(
                         "error",
@@ -615,21 +1283,32 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 "timestamp": "2026-07-03T00:00:00Z",
                 "payload": payload,
             }
-            self._adapter.ingest_line(json.dumps(row, ensure_ascii=True))
+            self._store.ingest_line(json.dumps(row, ensure_ascii=True))
             self._refresh_snapshot()
 
-        def _reset_adapter(self) -> None:
-            self._adapter = EventStateAdapter(max_entries=200)
-            self._snapshot = self._adapter.snapshot()
+        def _reset_store(self) -> None:
+            self._store = VisualStateStore(max_rows=400)
+            self._state = self._store.snapshot()
             self._log_lines = []
             self.statusChanged.emit()
             self.logChanged.emit()
+            self.specChanged.emit()
+            self.signalPanelChanged.emit()
+
+        # Backwards-compatible alias used by earlier tests and tooling.
+        _reset_adapter = _reset_store
 
         def _refresh_snapshot(self) -> None:
-            self._snapshot = self._adapter.snapshot()
-            self._log_lines = [_format_log_line(entry) for entry in self._snapshot.log]
+            self._state = self._store.snapshot()
+            self._log_lines = [_format_log_line(entry) for entry in self._state.rows]
+            pulses = self._store.consume_pulses()
+            if pulses:
+                self._pulse_names = list(pulses)
+                self.pulsesChanged.emit()
             self.statusChanged.emit()
             self.logChanged.emit()
+            self.specChanged.emit()
+            self.signalPanelChanged.emit()
 
         def _update_settings(self, **changes: object) -> None:
             try:
@@ -653,7 +1332,36 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             self._flicker_enabled = self._settings.effect_enabled("flicker")
             self._curvature_enabled = self._settings.effect_enabled("curvature")
 
+        def _current_effects(self) -> dict[str, bool]:
+            return {
+                **self._settings.effect_map(),
+                "glow": self._glow_enabled,
+                "scanlines": self._scanlines_enabled,
+                "flicker": self._flicker_enabled,
+                "curvature": self._curvature_enabled,
+            }
+
+        def _persist_session_profile(self) -> None:
+            if not self._options.restore_profile:
+                return
+            store = self._ensure_profile_store()
+            if store is None:
+                return
+            try:
+                store.save_current(
+                    SESSION_PROFILE_NAME, self._settings, effects=self._current_effects()
+                )
+            except ProfileStoreError:
+                pass
+
     return WrapperBridge
+
+
+def _detect_caps_safely() -> RenderCapabilities | None:
+    try:
+        return detect_capabilities()
+    except RenderCapsError:
+        return None
 
 
 def _settings_from_options(options: VisualWrapperOptions) -> WrapperSettings:
@@ -664,6 +1372,10 @@ def _settings_from_options(options: VisualWrapperOptions) -> WrapperSettings:
         font_scale=options.font_scale,
         reduced_effects=options.reduced_effects,
         plain_fallback=options.plain_fallback,
+        rendering_mode=options.rendering_mode,
+        quality_tier=options.quality_tier,
+        font_width=options.font_width,
+        line_spacing=options.line_spacing,
     )
 
 
@@ -673,6 +1385,7 @@ def build_fixture_event_lines(
     max_iterations: int,
 ) -> list[str]:
     """Build deterministic fixture events for smoke tests and dry-run previews."""
+    resolved_path = str(Path(project_path).expanduser())
     rows = [
         (
             "startup_begin",
@@ -686,11 +1399,36 @@ def build_fixture_event_lines(
                 "model_name": "qwen2.5-coder:7b-instruct-q4_K_M",
             },
         ),
-        ("project_resolved", {"project_path": str(Path(project_path).expanduser())}),
+        ("project_resolved", {"project_path": resolved_path}),
+        (
+            "spec_system_detected",
+            {
+                "project_path": resolved_path,
+                "detected": True,
+                "has_prd": True,
+                "phase_count": 1,
+                "latest_phase": "phase01",
+            },
+        ),
+        (
+            "autonomy_policy_resolved",
+            {
+                "dry_run": True,
+                "max_iterations": max_iterations,
+                "start_command": start_command,
+                "risk_level": "low",
+                "provider_preflight": True,
+            },
+        ),
+        ("provider_check_started", {"provider_name": "ollama"}),
+        (
+            "provider_check_finished",
+            {"provider_name": "ollama", "model_count": 3},
+        ),
         (
             "startup",
             {
-                "project_path": str(Path(project_path).expanduser()),
+                "project_path": resolved_path,
                 "provider_name": "ollama",
                 "model_name": "qwen2.5-coder:7b-instruct-q4_K_M",
                 "max_iterations": max_iterations,
@@ -702,7 +1440,7 @@ def build_fixture_event_lines(
         (
             "iteration_started",
             {
-                "project_path": str(Path(project_path).expanduser()),
+                "project_path": resolved_path,
                 "provider_name": "ollama",
                 "model_name": "qwen2.5-coder:7b-instruct-q4_K_M",
                 "iteration": 1,
@@ -720,16 +1458,18 @@ def build_fixture_event_lines(
                 "known_command": True,
             },
         ),
+        ("task_progress", {"done": 4, "total": 12}),
         ("prompt_dispatched", {"iteration": 1, "prompt_length": 43}),
         (
             "codex_dry_run",
             {
                 "binary": "codex",
-                "project_path": str(Path(project_path).expanduser()),
+                "project_path": resolved_path,
                 "prompt_length": 43,
                 "timeout_seconds": 1800,
             },
         ),
+        ("artifact_detected", {"name": "session-spec.md"}),
         ("db_log_finished", {"project_path": project_path, "stored_state": "fixture"}),
         ("run_stopped", {"reason": "fixture_complete", "iteration": 1}),
     ]
@@ -773,6 +1513,35 @@ def parse_args(argv: list[str] | None = None) -> VisualWrapperOptions:
     parser.add_argument("--effect-intensity", type=int, default=None)
     parser.add_argument("--font-family", default="monospace")
     parser.add_argument("--font-scale", type=float, default=1.0)
+    parser.add_argument("--font-width", type=float, default=1.0)
+    parser.add_argument("--line-spacing", type=float, default=1.0)
+    parser.add_argument(
+        "--rendering-mode",
+        choices=list(RENDERING_MODES),
+        default=None,
+        help="Rendering mode (default: theme preset default)",
+    )
+    parser.add_argument(
+        "--quality-tier",
+        choices=list(QUALITY_TIERS),
+        default=DEFAULT_QUALITY_TIER,
+    )
+    parser.add_argument(
+        "--profile",
+        default=None,
+        help="Load a saved visual profile by name at startup",
+    )
+    parser.add_argument(
+        "--profile-store",
+        dest="profile_store_path",
+        default=None,
+        help="Override the visual profile store path (testing/debug)",
+    )
+    parser.add_argument(
+        "--no-restore-profile",
+        action="store_true",
+        help="Do not restore the last saved visual profile",
+    )
     parser.add_argument(
         "--plain-fallback",
         action="store_true",
@@ -796,6 +1565,10 @@ def parse_args(argv: list[str] | None = None) -> VisualWrapperOptions:
             font_scale=args.font_scale,
             reduced_effects=args.reduced_effects,
             plain_fallback=args.plain_fallback,
+            rendering_mode=args.rendering_mode,
+            quality_tier=args.quality_tier,
+            font_width=args.font_width,
+            line_spacing=args.line_spacing,
         )
     except WrapperSettingsError as exc:
         parser.error(str(exc))
@@ -817,6 +1590,13 @@ def parse_args(argv: list[str] | None = None) -> VisualWrapperOptions:
         font_scale=args.font_scale,
         plain_fallback=args.plain_fallback,
         process_timeout_seconds=args.process_timeout_seconds,
+        rendering_mode=args.rendering_mode,
+        quality_tier=args.quality_tier,
+        font_width=args.font_width,
+        line_spacing=args.line_spacing,
+        profile=args.profile,
+        restore_profile=not args.no_restore_profile,
+        profile_store_path=args.profile_store_path,
     )
 
 
@@ -829,7 +1609,15 @@ def run_app(options: VisualWrapperOptions) -> int:
     bridge_class = build_bridge_class(qt)
     bridge = bridge_class(options)
     engine = qt["QQmlApplicationEngine"]()
-    engine.rootContext().setContextProperty("bridge", bridge)
+    context = engine.rootContext()
+    context.setContextProperty("bridge", bridge)
+    window_state = load_window_state() if options.restore_profile else {}
+    context.setContextProperty(
+        "initialWindowWidth", int(window_state.get("width", 1280))
+    )
+    context.setContextProperty(
+        "initialWindowHeight", int(window_state.get("height", 800))
+    )
     engine.load(qt["QUrl"].fromLocalFile(str(options.qml_path)))
     if not engine.rootObjects():
         raise VisualWrapperUnavailable("QML surface could not be loaded")
@@ -846,7 +1634,7 @@ def run_app(options: VisualWrapperOptions) -> int:
 
 def _format_log_line(entry) -> str:
     detail = f" - {entry.detail}" if entry.detail else ""
-    return f"{entry.sequence:03d} [{entry.level.upper()}] {entry.title}{detail}"
+    return f"{entry.sequence:03d} [{entry.severity.upper()}] {entry.title}{detail}"
 
 
 def _stderr_summary(stderr: str) -> str:

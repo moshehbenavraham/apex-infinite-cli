@@ -29,3 +29,6 @@ Thumbs.db
 
 # General Ignore
 /EXAMPLE/
+
+# Generated shader artifacts (rebuild with scripts/build-shaders.sh)
+src/apex_infinite_visual/shaders/compiled/

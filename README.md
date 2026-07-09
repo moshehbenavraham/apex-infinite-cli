@@ -432,18 +432,45 @@ python -m pip install -e ".[visual]"
 apex-infinite-visual --dry-run --max-iterations 1
 ```
 
-The wrapper exposes green CRT, amber CRT, IBM DOS, and plain presets, effect
-intensity, font family, font scale, reduced effects, and plain fallback
-controls. The same settings can be passed on the command line:
+The wrapper opens as the Apex Infinite Hyperterminal: a full command surface
+with a run command strip (project, start command, dry-run/live segmented
+control, max iterations, start/stop/doctor), a mission state rail, a typed
+event core with severity/stage filters, search, and export, a spec map with
+task progress, and a signal panel with provider health and diagnostics.
+
+Built-in visual profiles: `crt-green`, `crt-amber`, `ibm-dos`, `plain`,
+`apex-reactor`, `operator-amber`, `blueprint-dos`, `whiteout-lab`,
+`blackbox`, and `incident-red`. Rendering modes: `modern-crisp`,
+`scanline`, `pixel-grid`, `subpixel`, and `cinematic`. Quality tiers:
+`cinematic`, `balanced`, `battery`, `low-effects`, and `plain`. Profiles
+persist under `~/.config/apex-infinite/visual-profiles.json` with
+import/export, and the last session profile is restored on launch (disable
+with `--no-restore-profile`). The same settings can be passed on the
+command line:
 
 ```bash
 apex-infinite-visual \
-  --theme crt-amber \
-  --effect-intensity 55 \
+  --theme apex-reactor \
+  --rendering-mode cinematic \
+  --quality-tier balanced \
+  --effect-intensity 70 \
   --font-family "monospace" \
   --font-scale 1.05 \
-  --plain-fallback
+  --line-spacing 1.1
 ```
+
+Effects are event-reactive: run start charges the surface, provider
+preflight sweeps it, manager decisions pulse, iterations leave persistence
+trails, operator stop drains the glow, and errors apply a distinct fault
+signature. Reduced-effects and plain fallbacks stay fully readable.
+
+Optional clean-room shader modules live in
+`src/apex_infinite_visual/shaders/` and compile with
+`scripts/build-shaders.sh`; without compiled artifacts the wrapper
+automatically uses the QML-only effect layer. Desktop metadata, an original
+icon, and an AppImage build script live under
+`src/apex_infinite_visual/assets/` and `scripts/build-appimage.sh`
+(see `packaging/RELEASE-CHECKLIST.md`).
 
 For headless smoke checks:
 

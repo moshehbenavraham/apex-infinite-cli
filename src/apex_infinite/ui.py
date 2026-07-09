@@ -555,6 +555,9 @@ class NoHumanOutputRenderer:  # pylint: disable=too-many-public-methods
     def print_startup(self, *_args, **_kwargs) -> None:
         """Suppress startup output."""
 
+    def print_autonomy_summary(self, *_args, **_kwargs) -> None:
+        """Suppress autonomy summary output."""
+
     def print_intro(self, *_args, **_kwargs) -> None:
         """Suppress intro output."""
 
@@ -681,6 +684,35 @@ class ApexRenderer:  # pylint: disable=too-many-public-methods
             "Apex Infinite Operator Console",
             rows,
             label=SEMANTIC_LABELS["boot"],
+        )
+
+    def print_autonomy_summary(
+        self, dry_run: bool, max_iterations: int, provider_preflight: bool
+    ) -> None:
+        """Render the autonomy policy before the loop begins."""
+        preflight = "enabled" if provider_preflight else "skipped"
+        if dry_run:
+            self.print_block(
+                "Autonomy Policy",
+                [
+                    ("Mode", "dry-run"),
+                    ("Codex execution", "disabled"),
+                    ("Max iterations", max_iterations),
+                    ("Provider preflight", preflight),
+                    ("Risk", "low"),
+                ],
+            )
+            return
+        self.print_block(
+            "Autonomy Policy",
+            [
+                ("Mode", "LIVE"),
+                ("Codex execution", "enabled with workflow autonomy"),
+                ("Max iterations", max_iterations),
+                ("Provider preflight", preflight),
+                ("Risk", "elevated - Codex edits the target project"),
+            ],
+            severity="warning",
         )
 
     def print_intro(self) -> None:

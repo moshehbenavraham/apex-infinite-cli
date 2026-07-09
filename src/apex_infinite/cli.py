@@ -1238,6 +1238,40 @@ def normalize_project_path_key(path):
     return expanded_path.rstrip("/") + "/"
 
 
+def build_spec_system_snapshot(project_path):
+    """Return registered facts about a project's Apex Spec system layout."""
+    spec_dir = Path(os.path.expanduser(str(project_path))) / ".spec_system"
+    prd_dir = spec_dir / "PRD"
+    detected = spec_dir.is_dir()
+    snapshot = {"project_path": str(project_path), "detected": detected}
+    if not detected:
+        return snapshot
+    snapshot["has_prd"] = (prd_dir / "PRD.md").is_file() or (
+        spec_dir / "PRD.md"
+    ).is_file()
+    try:
+        phases = _spec_phase_names(prd_dir)
+        if not phases:
+            phases = _spec_phase_names(spec_dir)
+    except OSError:
+        phases = []
+    snapshot["phase_count"] = len(phases)
+    if phases:
+        snapshot["latest_phase"] = phases[-1]
+    return snapshot
+
+
+def _spec_phase_names(root):
+    """Return phase directory names below a spec-system PRD directory."""
+    if not root.is_dir():
+        return []
+    return sorted(
+        entry.name
+        for entry in root.iterdir()
+        if entry.is_dir() and entry.name.startswith("phase")
+    )
+
+
 # ---------------------------------------------------------------------------
 # Database layer
 # ---------------------------------------------------------------------------
@@ -2674,6 +2708,32 @@ def _run_main(  # pylint: disable=too-many-arguments,too-many-positional-argumen
         renderer=renderer,
         machine_output=machine_output,
     )
+    _emit_event(
+        event_emitter,
+        "spec_system_detected",
+        build_spec_system_snapshot(project_path),
+        renderer=renderer,
+        machine_output=machine_output,
+    )
+    _emit_event(
+        event_emitter,
+        "autonomy_policy_resolved",
+        {
+            "dry_run": dry_run,
+            "max_iterations": max_iterations,
+            "start_command": start or "",
+            "risk_level": "low" if dry_run else "elevated",
+            "provider_preflight": not skip_provider_check,
+        },
+        renderer=renderer,
+        machine_output=machine_output,
+    )
+    if renderer:
+        renderer.print_autonomy_summary(
+            dry_run=dry_run,
+            max_iterations=max_iterations,
+            provider_preflight=not skip_provider_check,
+        )
 
     if not dry_run:
         _validate_codex_exec_flags_or_exit(

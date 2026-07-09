@@ -328,3 +328,43 @@ def test_sqlite_history_stores_raw_values_without_renderer_labels(
         assert all(marker not in value for marker in FORBIDDEN_HISTORY_MARKERS)
         assert all(glyph not in value for glyph in FRAME_GLYPHS)
         assert all(ord(character) < 128 for character in value)
+
+
+def test_autonomy_summary_dry_run_reads_low_risk():
+    renderer, output_console = make_renderer()
+
+    renderer.print_autonomy_summary(
+        dry_run=True, max_iterations=3, provider_preflight=True
+    )
+    text = output_console.export_text()
+
+    assert "Autonomy Policy" in text
+    assert "dry-run" in text
+    assert "disabled" in text
+    assert "low" in text
+
+
+def test_autonomy_summary_live_warns_about_risk():
+    renderer, output_console = make_renderer()
+
+    renderer.print_autonomy_summary(
+        dry_run=False, max_iterations=8, provider_preflight=False
+    )
+    text = output_console.export_text()
+
+    assert "LIVE" in text
+    assert "elevated" in text
+    assert "skipped" in text
+    assert "8" in text
+
+
+def test_autonomy_summary_plain_mode_stays_ascii():
+    renderer, output_console = make_renderer(plain=True, ascii_only=True)
+
+    renderer.print_autonomy_summary(
+        dry_run=False, max_iterations=2, provider_preflight=True
+    )
+    text = output_console.export_text()
+
+    assert "Autonomy Policy" in text
+    text.encode("ascii")

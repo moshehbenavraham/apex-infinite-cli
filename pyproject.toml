@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "apex-infinite-cli"
-version = "2.0.13"
+version = "2.0.14"
 description = "Autonomous Codex CLI session manager for Apex Spec workflows."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -61,7 +61,20 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 apex_infinite = ["config.yaml"]
-apex_infinite_visual = ["qml/*.qml"]
+apex_infinite_visual = [
+    "qml/*.qml",
+    "qml/shell/*.qml",
+    "qml/controls/*.qml",
+    "qml/effects/*.qml",
+    "shaders/*.frag",
+    "shaders/*.vert",
+    "shaders/PROVENANCE.md",
+]
+"apex_infinite_visual.assets" = [
+    "*.svg",
+    "*.desktop",
+    "*.xml",
+]
 
 [tool.black]
 line-length = 88

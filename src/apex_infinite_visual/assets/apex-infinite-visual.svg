@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Apex Infinite Hyperterminal icon. Original artwork created for this
+     project; no external image sources were used. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#04120b"/>
+      <stop offset="1" stop-color="#020604"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4dffa6" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#4dffa6" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#4dffa6" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="28" fill="url(#bg)"
+        stroke="#14442b" stroke-width="4"/>
+  <rect x="24" y="24" width="208" height="208" rx="18" fill="none"
+        stroke="#1e5c3a" stroke-width="2" opacity="0.7"/>
+  <!-- Scanline hints -->
+  <g stroke="#0c2418" stroke-width="2" opacity="0.8">
+    <line x1="30" y1="70" x2="226" y2="70"/>
+    <line x1="30" y1="102" x2="226" y2="102"/>
+    <line x1="30" y1="134" x2="226" y2="134"/>
+    <line x1="30" y1="166" x2="226" y2="166"/>
+    <line x1="30" y1="198" x2="226" y2="198"/>
+  </g>
+  <!-- Apex chevron -->
+  <path d="M 128 56 L 186 172 L 158 172 L 128 110 L 98 172 L 70 172 Z"
+        fill="#4dffa6"/>
+  <!-- Infinity underline -->
+  <path d="M 88 196 C 88 184 106 184 110 196 C 114 208 132 208 132 196
+           C 132 184 150 184 154 196 C 158 208 176 208 176 196"
+        fill="none" stroke="#4dffa6" stroke-width="8" stroke-linecap="round"/>
+  <!-- Signal sweep -->
+  <rect x="30" y="82" width="196" height="3" fill="url(#beam)"/>
+</svg>

@@ -255,6 +255,60 @@ def test_event_emitter_accepts_provider_preflight_event_names(event_name):
     assert rows[0]["payload"] == {"provider_name": "ollama"}
 
 
+HYPERTERMINAL_EVENT_NAMES = [
+    "spec_system_detected",
+    "spec_session_resolved",
+    "autonomy_policy_resolved",
+    "codex_flags_resolved",
+    "task_progress",
+    "artifact_detected",
+    "run_duration_tick",
+    "wrapper_capabilities_resolved",
+    "doctor_started",
+    "doctor_check",
+    "doctor_finished",
+]
+
+
+@pytest.mark.parametrize("event_name", HYPERTERMINAL_EVENT_NAMES)
+def test_hyperterminal_event_names_write_to_file_stream(event_name, event_file_path):
+    with open_event_stream(str(event_file_path)) as emitter:
+        emitter.emit(event_name, {"detected": True})
+
+    rows = read_jsonl(event_file_path)
+    assert rows[0]["event"] == event_name
+    assert rows[0]["payload"] == {"detected": True}
+
+
+@pytest.mark.parametrize("event_name", HYPERTERMINAL_EVENT_NAMES)
+def test_hyperterminal_event_names_write_to_stdout_machine_output(event_name, capsys):
+    with open_event_stream("-", stdout_allowed=True) as emitter:
+        emitter.emit(event_name, {"detected": True})
+
+    rows = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert rows[0]["event"] == event_name
+
+
+def test_spec_system_snapshot_reports_missing_spec_dir(tmp_path):
+    snapshot = apex_infinite.build_spec_system_snapshot(str(tmp_path))
+
+    assert snapshot == {"project_path": str(tmp_path), "detected": False}
+
+
+def test_spec_system_snapshot_reports_phases_and_prd(tmp_path):
+    spec_dir = tmp_path / ".spec_system"
+    (spec_dir / "phase01").mkdir(parents=True)
+    (spec_dir / "phase02").mkdir()
+    (spec_dir / "PRD.md").write_text("# PRD\n", encoding="ascii")
+
+    snapshot = apex_infinite.build_spec_system_snapshot(str(tmp_path))
+
+    assert snapshot["detected"] is True
+    assert snapshot["has_prd"] is True
+    assert snapshot["phase_count"] == 2
+    assert snapshot["latest_phase"] == "phase02"
+
+
 @pytest.mark.parametrize("event_name", ["", "bad event", "unknown_event"])
 def test_event_emitter_rejects_invalid_event_names(event_name):
     stream = FlushTrackingStream()

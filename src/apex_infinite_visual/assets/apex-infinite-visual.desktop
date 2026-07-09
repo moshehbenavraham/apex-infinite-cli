@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Application
+Name=Apex Infinite Hyperterminal
+GenericName=Workflow Command Surface
+Comment=Operator console for autonomous Apex Spec Codex workflows
+Exec=apex-infinite-visual
+Icon=apex-infinite-visual
+Terminal=false
+Categories=Development;Utility;
+Keywords=codex;workflow;automation;terminal;apex;
+StartupNotify=true
+Actions=Doctor;DryRun;
+
+[Desktop Action Doctor]
+Name=Run Doctor Diagnostics
+Exec=apex-infinite-visual --dry-run --start-command doctor
+
+[Desktop Action DryRun]
+Name=Safe Dry Run
+Exec=apex-infinite-visual --dry-run

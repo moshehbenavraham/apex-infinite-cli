@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.apexinfinite.Hyperterminal</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Apex Infinite Hyperterminal</name>
+  <summary>Operator console for autonomous Apex Spec Codex workflows</summary>
+  <description>
+    <p>
+      Apex Infinite Hyperterminal is the optional Linux visual surface for
+      the apex-infinite workflow runner. It renders registered workflow
+      events as a dense, reactive command center: run controls, mission
+      state, spec progress, provider health, and a typed event core with
+      filters and export.
+    </p>
+    <p>
+      The base CLI stays terminal-only; the Hyperterminal consumes the
+      machine-readable JSONL event stream and never scrapes terminal
+      output.
+    </p>
+  </description>
+  <launchable type="desktop-id">apex-infinite-visual.desktop</launchable>
+  <url type="homepage">https://github.com/moshehbenavraham/apex-infinite-cli</url>
+  <provides>
+    <binary>apex-infinite-visual</binary>
+  </provides>
+  <categories>
+    <category>Development</category>
+    <category>Utility</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="2.1.0" date="2026-07-09">
+      <description>
+        <p>First Hyperterminal release: component command surface, visual
+        profiles, quality tiers, event-reactive effects, doctor, and
+        desktop integration.</p>
+      </description>
+    </release>
+  </releases>
+</component>
