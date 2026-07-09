@@ -85,6 +85,12 @@ For the optional Linux visual wrapper source mode only:
 python -m pip install -e ".[visual]"
 ```
 
+Fast local preview without manual venv activation:
+
+```bash
+make visual
+```
+
 `pyproject.toml` is the canonical package, dependency, test, lint, and coverage
 configuration. The `requirements*.txt` files are compatibility shims for older
 local workflows.
@@ -420,11 +426,47 @@ for a deterministic JSONL sample.
 The optional Linux visual wrapper is separate from the base terminal CLI. It
 uses PySide6 with Qt Quick/QML as an optional dependency and consumes the JSONL
 event stream through the guarded `--event-stream - --machine-output` boundary.
-Session 08 release verification keeps source/dev visual mode shippable after
-final gates; binary publishing remains gated for future packaging, license,
-notice, checksum, and source/relink review.
+Source/dev visual mode is the Apex Infinite Hyperterminal command surface.
+Binary publishing remains gated on AppImage build inspection, clean-machine
+launch evidence, license/module review, notices, checksum, dependency
+inventory, and source/relink review.
 
-Install the optional dependencies, then run the fixture-backed smoke path:
+For a local preview, run the fixture-backed visual launcher:
+
+```bash
+make visual
+```
+
+This creates `.venv` if needed, installs the visual extra if needed, and opens
+the Hyperterminal with fixture events.
+
+To launch the real CLI subprocess in the visual wrapper while keeping Codex in
+dry-run mode:
+
+```bash
+make visual-cli
+```
+
+To launch the real CLI subprocess and allow the workflow to execute:
+
+```bash
+make visual-real
+```
+
+By default, the launcher targets this checkout. Override the target project or
+start command with environment variables:
+
+```bash
+APEX_VISUAL_PATH=~/projects/my-app APEX_VISUAL_START_COMMAND=plansession make visual-real
+```
+
+To pass visual wrapper flags through:
+
+```bash
+./scripts/run-visual.sh --theme blackbox --effect-intensity 90
+```
+
+Manual source-mode setup still works:
 
 ```bash
 cd apex-infinite-cli
@@ -479,14 +521,13 @@ QT_QPA_PLATFORM=offscreen apex-infinite-visual \
   --dry-run --max-iterations 1 --auto-close-ms 900
 ```
 
-To launch the real CLI subprocess from the wrapper, opt in explicitly:
+The equivalent manual real-CLI command is:
 
 ```bash
 apex-infinite-visual \
   --launch-cli \
   --path ~/projects/my-app/ \
   --start-command implement \
-  --dry-run \
   --max-iterations 1
 ```
 

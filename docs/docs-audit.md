@@ -13,6 +13,54 @@ Phase 1 documentation changes and missing standard project documentation while
 verifying that root docs, operator docs, event docs, history docs, visual
 wrapper docs, and transcript docs remain present.
 
+## 2026-07-09 Hyperterminal Plan Retirement Addendum
+
+The durable Hyperterminal product, UX, architecture, event, clean-room,
+profile, packaging, and release-gate details have been moved into permanent
+documentation. No ongoing-project research file is needed as a documentation
+source of truth after these updates.
+
+Updated durable docs:
+
+- `README.md` - current Hyperterminal source-mode and binary gate summary.
+- `docs/ARCHITECTURE.md` - visual architecture, QML component structure,
+  wrapper ownership, profile storage, and shader boundary.
+- `docs/CONVENTIONS.md` - current wrapper engineering rules for event state,
+  profile persistence, and generated shader artifacts.
+- `docs/PRD.md` - Phase 02 source-of-truth wording and current open decisions.
+- `docs/PRD_UX.md` - self-contained UX requirements without retired-plan
+  dependency.
+- `docs/event-stream.md` - permanent event extension rules for wrapper facts.
+- `docs/visual-wrapper-boundary.md` - clean-room source-of-truth list and
+  concept translation table.
+- `docs/visual-wrapper-productization.md` - profile schema, settings, render
+  capabilities, current first-run scope, shader status, and AppImage path.
+- `docs/deployment.md` - visual AppImage release path and verification gates.
+- `docs/operator-runbook.md` - current source-mode and binary-gate wording.
+- `docs/clean-room-audit.md` - current Apex-owned shader/asset state and
+  binary release gates.
+- `packaging/RELEASE-CHECKLIST.md` - packaging decision wording without a
+  retired-plan dependency.
+
+Evidence used for this addendum:
+
+- `src/apex_infinite_visual/settings.py` for themes, rendering modes, quality
+  tiers, effect names, and fallback behavior.
+- `src/apex_infinite_visual/profile_store.py` for XDG paths, schema version,
+  profile operations, validation, atomic writes, and corruption backup.
+- `src/apex_infinite_visual/visual_state.py` for event-derived state and pulse
+  names.
+- `src/apex_infinite_visual/render_caps.py` for render capability payloads,
+  shader module detection, and quality-tier resolution.
+- `src/apex_infinite/events.py` for registered event names and payload
+  validation.
+- `src/apex_infinite_visual/qml/` for current shell, controls, and effects
+  component structure.
+- `src/apex_infinite_visual/assets/`, `src/apex_infinite_visual/shaders/`,
+  `scripts/build-shaders.sh`, `scripts/build-appimage.sh`,
+  `packaging/NOTICES.md`, and `packaging/RELEASE-CHECKLIST.md` for release
+  assets, shader provenance, and packaging gates.
+
 ## Summary
 
 | Area | Required | Found Before | Status |

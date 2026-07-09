@@ -268,9 +268,10 @@ apex-infinite-visual --dry-run --max-iterations 1
 Use this only for the Linux visual wrapper source mode. The base CLI install
 remains the default `pyproject.toml` dependency set; PySide6 and QML stay in
 the optional `visual` extra.
-Session 08 release verification keeps source/dev operation shippable after
-final gates; final AppImage or binary publication remains gated for future
-packaging, license, notice, checksum, and source/relink review.
+Source/dev operation is the supported Hyperterminal preview path. Final
+AppImage or binary publication remains gated on clean-machine launch evidence,
+packaging inspection, license/module review, notices, checksum, dependency
+inventory, and source/relink review.
 
 Source-mode settings can be selected before launch:
 

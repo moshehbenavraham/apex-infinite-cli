@@ -7,10 +7,8 @@
 This document is intended to survive deletion of the original research inputs.
 It incorporates the relevant UX facts from the local retro-terminal reference
 tree, the Apex Infinite CLI upgrade plan, the current CLI implementation, and
-the current CLI docs. It also incorporates the durable requirements from
-`docs/ongoing-projects/revolutionary-linux-terminal-design-plan.md`. Future
-planning and implementation should use this file and `PRD.md` as the durable
-product source of truth.
+the current CLI docs. Future planning and implementation should use this file
+and `PRD.md` as the durable product source of truth.
 
 ---
 
@@ -295,13 +293,14 @@ Hyperterminal visual commitments:
 - Desktop productization includes original icon, `.desktop` file, AppStream
   metadata, launcher actions, AppImage artifact, SHA256 checksum, dependency
   inventory, Qt/PySide6 notices, and clean-machine verification.
-- `pyside6-deploy` is evaluated first for packaging. Direct Nuitka or another
-  path requires written evidence before use.
+- `pyside6-deploy` was evaluated first for packaging. The current AppImage path
+  uses a venv-in-AppDir bundle so the shipped PyPI wheels remain byte-auditable
+  and the Qt/PySide6 LGPL replacement/relink path stays explicit.
 
 ### External Verification Facts
 
-These facts were checked on 2026-07-02 and are captured here so implementation
-planning does not depend on the original research tabs or source plan.
+These facts were checked on 2026-07-02 and are captured here for durable
+implementation planning.
 
 - PySide6 is the official Qt for Python binding and is available under open
   source LGPLv3/GPL licensing or a commercial license.
@@ -311,8 +310,9 @@ planning does not depend on the original research tabs or source plan.
 - PyQt remains excluded because GPL-incompatible distribution requires a
   commercial PyQt license.
 - Qt for Python ships `pyside6-deploy`, a Nuitka-based deployment helper that
-  produces a Linux `.bin` executable. The first binary release should wrap the
-  resulting Linux build into an AppImage.
+  produces a Linux `.bin` executable. The current release path instead wraps a
+  reviewed venv-in-AppDir bundle into an AppImage unless a later release
+  records a better packaging decision.
 - Qt Quick `ShaderEffect` supports custom vertex and fragment shaders in QML,
   but effects may not render with unsupported scene graph backends such as the
   software backend. The wrapper must detect this and fall back to a beautiful
@@ -1395,19 +1395,20 @@ Hyperterminal scope without making final session stubs authoritative.
 
 - Apex Infinite CLI remains terminal-first and operator-facing at the base
   package layer, while Phase 02 adds a Linux visual product lane. Evidence:
-  `PRD.md`, the CLI README, operator runbook, current implementation, and the
-  Hyperterminal plan all keep the Python CLI as workflow engine. It is safe to
-  proceed because graphical dependencies stay isolated in the optional visual
-  package path.
+  `PRD.md`, the CLI README, operator runbook, architecture docs, current
+  implementation, and visual-wrapper docs all keep the Python CLI as workflow
+  engine. It is safe to proceed because graphical dependencies stay isolated in
+  the optional visual package path.
 - The first Phase 02 visual milestone should stabilize state, profiles, and
-  QML-only high design before custom shaders. Evidence: the Hyperterminal plan
-  orders visual state, profile persistence, shell redesign, and QML effects
-  before shader work. It is safe because shader complexity is gated behind a
-  working command surface and fallback model.
+  QML-only high design before custom shaders. Evidence: the PRD, architecture
+  docs, and visual-wrapper productization docs order visual state, profile
+  persistence, shell redesign, and QML effects before shader promotion. It is
+  safe because shader complexity is gated behind a working command surface and
+  fallback model.
 - `auto` should resolve to `crt-green` only for capable interactive terminals
-  and to `plain` for constrained output. Evidence: the product PRD and source
-  plan both require this fallback model. It is safe because invalid user theme
-  configuration still fails fast.
+  and to `plain` for constrained output. Evidence: the product PRD,
+  conventions, and settings implementation require this fallback model. It is
+  safe because invalid user theme configuration still fails fast.
 - The reference terminal project informs UX vocabulary but not implementation
   data. Evidence: the reference material is GPL-family and the product PRD
   forbids copying source, QML, shaders, generated shader blobs, assets, fonts,
@@ -1419,14 +1420,15 @@ Hyperterminal scope without making final session stubs authoritative.
   preview, DB log confirmation, and history ledger are primary surfaces because
   the product is an autonomous workflow runner. Renderer internals and raw event
   payload dumps remain developer/debug surfaces.
-- The Hyperterminal plan names the local `EXAMPLE/cool-retro-term/` tree as
-  conceptual source material only. It is safe to use the plan's extracted
-  concepts because this UX PRD records forbidden translations and clean-room
+- The local `EXAMPLE/cool-retro-term/` tree is conceptual source material
+  only. It is safe to use independently translated concepts because this UX PRD
+  and the wrapper boundary docs record forbidden translations and clean-room
   gates instead of copying implementation data.
-- This UX PRD must be self-contained with respect to the source example tree
-  and upgrade plan. It is safe because this file embeds the relevant current
-  behavior, visual concepts, no-copy boundaries, configuration rules, event
-  requirements, wrapper direction, acceptance checks, and resolved decisions.
+- This UX PRD must be self-contained with respect to source example trees and
+  archived planning notes. It is safe because this file embeds the relevant
+  current behavior, visual concepts, no-copy boundaries, configuration rules,
+  event requirements, wrapper direction, acceptance checks, and resolved
+  decisions.
 - Hyperterminal should optimize for a custom event-composed scene rather than a
   terminal-emulator viewport. Evidence: the current CLI product needs lifecycle
   facts, logs, status, and captured responses rather than an interactive shell;
@@ -1438,10 +1440,10 @@ Hyperterminal scope without making final session stubs authoritative.
 
 ### Conflict Resolutions
 
-- The completed product history contains Phase 00 and Phase 01, while the
-  Hyperterminal plan defines a new 14-session visual lane. The chosen
-  interpretation is to preserve completed phase records and add Phase 02 as the
-  planned Hyperterminal scope. `phasebuild` owns final phase/session structure.
+- The completed product history contains Phase 00 and Phase 01, while Phase 02
+  defines the Hyperterminal visual lane. The chosen interpretation is to
+  preserve completed phase records and keep Phase 02 as the planned
+  Hyperterminal scope.
 - The visual source is a full graphical terminal emulator with tabs, menus,
   settings dialogs, shader passes, copied assets, and external submodules,
   while Apex Infinite CLI is a Python workflow manager. The chosen
@@ -1450,13 +1452,12 @@ Hyperterminal scope without making final session stubs authoritative.
   event-driven visual effects without depending on the reference app,
   qmltermwidget, or QTermWidget.
 - Older UX source material described the visual wrapper as optional future
-  productization, while the Hyperterminal plan promotes it to a planned product
-  lane. The chosen interpretation is Phase 02 Hyperterminal with base CLI
-  dependency isolation and explicit release gates.
+  productization. The chosen interpretation is Phase 02 Hyperterminal with
+  base CLI dependency isolation and explicit release gates.
 - `NO_COLOR` normally means no color, while explicit `--theme` can opt back
-  into styled output per the source plan. The chosen interpretation is that
-  environmental constraints set safe defaults, while explicit operator choices
-  can override them when documented and tested.
+  into styled output under the documented UI configuration rules. The chosen
+  interpretation is that environmental constraints set safe defaults, while
+  explicit operator choices can override them when documented and tested.
 - `--event-stream -` is useful for machine pipelines but unsafe if human output
   also goes to stdout. The chosen interpretation is to require
   `--machine-output`, which disables human rendering and reserves stdout for

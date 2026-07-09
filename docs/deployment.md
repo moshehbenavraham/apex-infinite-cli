@@ -50,6 +50,29 @@ Use the full release smoke matrix in
 [Operator runbook](operator-runbook.md#local-release-smoke-procedure) before a
 public release.
 
+## Visual AppImage Release
+
+The first binary visual-wrapper artifact is:
+
+```text
+apex-infinite-visual-linux-x86_64.AppImage
+```
+
+Build it only in a release session:
+
+```bash
+scripts/build-appimage.sh
+```
+
+Before publishing, inspect the AppDir contents, bundled PySide6/Qt modules,
+QML resources, shader artifacts, dependency inventory, notices, and checksum.
+Verify the AppImage on a clean supported Linux machine that does not have this
+repository or its `.venv`.
+
+The current AppImage path uses a venv-in-AppDir bundle rather than compiling
+the Python application with Nuitka. This keeps the bundled PyPI wheels
+byte-auditable and keeps the Qt/PySide6 LGPL replacement/relink path explicit.
+
 ## Release And Rollback
 
 - Release: manual. Build artifacts with `python -m build`, review smoke
@@ -57,8 +80,9 @@ public release.
 - Rollback: manual. Reinstall a known-good build or commit through the target
   environment's package process. No automated rollback workflow is present.
 - Optional visual-wrapper binary release: gated. Future binary publication must
-  complete generated-bundle review, license/module review, notices, checksums,
-  and source/relink instructions.
+  complete generated-bundle review, license/module review, notices, checksum,
+  dependency inventory, clean-machine launch evidence, and source/relink
+  instructions.
 
 ## Operational Gates
 

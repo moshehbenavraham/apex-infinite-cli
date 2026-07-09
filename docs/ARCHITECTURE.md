@@ -42,6 +42,72 @@ initialized Apex Spec project
 | Ollama helpers | `scripts/`, `docker-compose.ollama.yml` | Bash, Docker Compose | Local Ollama deployment, model pull, provider checks, and compatibility aliases. |
 | Tests | `tests/` | pytest | Prompt routing, config, UI, event stream, history, subprocess, provider preflight, and visual wrapper coverage. |
 
+## Hyperterminal Visual Architecture
+
+The optional Linux visual app is the Apex Infinite Hyperterminal surface. The
+command names remain `apex-infinite` and `apex-infinite-visual`; the
+Hyperterminal name describes the visual product mode, not a new workflow
+engine.
+
+The durable visual architecture is:
+
+```text
+Python CLI workflow engine
+  -> registered JSONL events / importable event API
+  -> visual event adapter
+  -> PySide6-free visual state store
+  -> QML bridge
+  -> scene components
+  -> effect pipeline
+  -> presentation shell
+```
+
+The wrapper may own presentation state, visual preferences, layout state, and
+explicitly confirmed shared-config writes. It must not own manager decisions,
+prompt construction, Codex execution semantics, history semantics, or stop
+conditions.
+
+The QML surface is organized as reusable shell, control, and effect components:
+
+```text
+src/apex_infinite_visual/qml/
+|-- Main.qml
+|-- shell/
+|   |-- AppShell.qml
+|   |-- CommandSurface.qml
+|   |-- FirstRunBanner.qml
+|   |-- RunConsole.qml
+|   |-- SettingsDrawer.qml
+|   |-- SignalPanel.qml
+|   |-- SpecMap.qml
+|   \-- StatusRail.qml
+|-- controls/
+|   |-- ApexButton.qml
+|   |-- ApexSegmentedControl.qml
+|   |-- ApexSlider.qml
+|   |-- ApexStatusCell.qml
+|   \-- ApexToggle.qml
+\-- effects/
+    |-- EffectSurface.qml
+    |-- FrameTreatment.qml
+    |-- GlassCurvature.qml
+    |-- GlowField.qml
+    |-- PhosphorTrail.qml
+    |-- ScanlineField.qml
+    \-- SignalDistortion.qml
+```
+
+Primary Hyperterminal zones are the run command strip, mission state rail, spec
+map, event core, signal panel, and visual profile drawer. The first viewport is
+the usable operator command surface, not a landing page or product explainer.
+
+Effects are staged. QML-only effects provide the source-mode release path:
+glow, scanlines/pixel grid, frame treatment, pulse, persistence, reduced
+effects, plain fallback, quality tiers, and screenshot smoke coverage. Custom
+shader mode is optional and must stay capability-gated. Tracked shader sources
+live under `src/apex_infinite_visual/shaders/`; compiled `.qsb` files are
+generated artifacts unless a release explicitly promotes and packages them.
+
 ## Data And Dependencies
 
 - **History**: `src/apex_infinite/cli.py` writes SQLite rows under
@@ -58,6 +124,11 @@ initialized Apex Spec project
   subprocess modules.
 - **Optional wrapper dependencies**: PySide6 and Nuitka are isolated in the
   `visual` optional dependency extra.
+- **Visual profiles**:
+  `${XDG_CONFIG_HOME:-~/.config}/apex-infinite/visual-profiles.json` stores
+  wrapper-only profiles. `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/visual-state.json`
+  stores runtime window state. Neither file stores provider secrets or mutates
+  shared CLI config.
 
 ## Interface Boundaries
 
@@ -70,6 +141,12 @@ initialized Apex Spec project
 - The visual wrapper must not copy terminal-emulator source, QML, shaders,
   images, icons, fonts, resource manifests, build scripts, or profile data from
   reference projects.
+- QML consumes typed state and invokable actions from the bridge. Raw JSONL
+  parsing belongs in Python adapter/state code, where it can be tested without
+  PySide6.
+- Missing visual facts must be added as registered events or explicit wrapper
+  controls; they must not be inferred from Rich panels, plain text, ANSI
+  captures, or history display rows.
 
 ## Related Docs
 

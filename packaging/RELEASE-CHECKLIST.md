@@ -4,8 +4,8 @@ Run every gate before shipping a visual release artifact.
 
 ## Packaging Decision Record
 
-`pyside6-deploy` (Nuitka-based) was evaluated first per the design plan.
-The venv-in-AppDir approach in `scripts/build-appimage.sh` was chosen
+`pyside6-deploy` (Nuitka-based) was evaluated first for the visual AppImage
+lane. The venv-in-AppDir approach in `scripts/build-appimage.sh` was chosen
 instead because:
 
 - It keeps the bundle byte-auditable: the AppDir contains unmodified PyPI

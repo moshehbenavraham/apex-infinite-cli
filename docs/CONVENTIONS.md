@@ -235,9 +235,17 @@ honor.
   event stream or importable event API.
 - Do not scrape Rich output, plain human output, or terminal frames for wrapper
   state.
-- The wrapper may provide a read-only terminal-like log viewport, status
-  panels, theme selection, effect intensity, font, scaling, reduced effects,
-  and plain fallback controls.
+- The wrapper may provide a read-only event log viewport, status panels,
+  command strip, spec map, signal panel, visual profile drawer, effect
+  intensity, rendering mode, quality tier, font controls, reduced effects, and
+  plain fallback controls.
+- Keep raw JSONL parsing in Python adapter/state code. QML consumes typed state
+  and invokable actions.
+- Persist wrapper-only visual profiles under XDG config and runtime visual
+  state under XDG state. Do not store provider secrets in profiles and do not
+  write shared CLI config without explicit confirmation.
+- Treat compiled `.qsb` files as generated artifacts unless a release
+  explicitly promotes reviewed compiled shader outputs into package data.
 - Document PySide6 LGPLv3/commercial obligations before productizing a wrapper.
 - Do not use PyQt unless a future explicit license decision allows it.
 - Do not depend on qmltermwidget, QTermWidget, a copied terminal emulator, or an

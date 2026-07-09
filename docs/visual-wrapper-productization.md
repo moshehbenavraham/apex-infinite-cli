@@ -2,9 +2,14 @@
 
 ## Status
 
-Session 08 release verification keeps the optional Linux source visual mode in
-a source-shippable state after final gates. It does not publish an AppImage or
-other binary artifact.
+The optional Linux source visual mode is the Apex Infinite Hyperterminal
+surface. It is a PySide6/QML command surface over the base CLI workflow engine,
+not a separate workflow engine and not a terminal-emulator viewport.
+
+Source mode is implemented and verified through focused wrapper tests. The
+repository includes original desktop metadata, AppStream metadata, icon assets,
+shader sources, notices, a release checklist, and an AppImage build script.
+Clean-machine AppImage launch evidence is still a release-session gate.
 
 The base terminal CLI remains the workflow engine. The wrapper launches that
 CLI with the guarded event-stream command and renders lifecycle state from
@@ -16,6 +21,10 @@ apex-infinite --event-stream - --machine-output ...
 
 The wrapper must not parse Rich output, plain terminal text, SQLite history
 rows, ANSI captures, or reference terminal frames.
+
+The first viewport is the operator command surface. It is composed from the run
+command strip, mission state rail, spec map, event core, signal panel, visual
+profile drawer, and effect surface.
 
 ## Source Setup
 
@@ -80,17 +89,128 @@ The wrapper sets `QT_QUICK_BACKEND=software` automatically when
 
 ## Settings
 
-The Python settings model owns all productized visual settings:
+The Python settings model owns productized visual settings. QML consumes
+settings through the bridge; normal QML rendering must not own duplicated
+preset, schema, or fallback logic.
 
 - `crt-green`, `crt-amber`, `ibm-dos`, and `plain` presets.
+- Hyperterminal profiles: `apex-reactor`, `operator-amber`,
+  `blueprint-dos`, `whiteout-lab`, `blackbox`, and `incident-red`.
+- Rendering modes: `modern-crisp`, `scanline`, `pixel-grid`, `subpixel`, and
+  `cinematic`.
+- Quality tiers: `cinematic`, `balanced`, `battery`, `low-effects`, and
+  `plain`.
 - Effect intensity from 0 to 100.
+- Effect toggles for glow, scanlines, flicker, curvature, bloom, persistence,
+  noise, jitter, sync, chroma, and ambient frame.
 - Font family as non-empty ASCII text.
 - Font scale from 0.8 to 1.4.
+- Font width from 0.8 to 1.25.
+- Line spacing from 0.9 to 1.6.
 - Reduced effects, which disables optional effects.
 - Plain fallback, which switches to the plain preset and disables effects.
 
-QML consumes settings through the bridge. Normal QML rendering should not own
-duplicated preset logic.
+Plain fallback and reduced effects are hard fallbacks, not aesthetic profiles.
+They must keep state visible through text, color, simple layout, and stable
+status panels.
+
+## Profile Persistence
+
+Visual profiles are wrapper-only presentation state. They never contain
+provider secrets and never touch shared CLI config without explicit user
+confirmation.
+
+Storage locations:
+
+```text
+${XDG_CONFIG_HOME:-~/.config}/apex-infinite/visual-profiles.json
+${XDG_STATE_HOME:-~/.local/state}/apex-infinite/visual-state.json
+```
+
+Profile storage is JSON, ASCII-written, versioned, atomically persisted, and
+backed up on corruption. Built-in profiles are derived from the Python settings
+presets; custom profiles live in the XDG profile file.
+
+Schema version 1 profile fields:
+
+- `version`
+- `name`
+- `theme_name`
+- `rendering_mode`
+- `quality_tier`
+- `effect_intensity`
+- `font_family`
+- `font_scale`
+- `font_width`
+- `line_spacing`
+- `reduced_effects`
+- `plain_fallback`
+- `effects`
+
+Known `effects` keys are `glow`, `scanlines`, `flicker`, `curvature`, `bloom`,
+`persistence`, `noise`, `jitter`, `sync`, `chroma`, and `ambient_frame`.
+
+Supported backend operations are save current, set last profile, duplicate,
+rename, delete custom, reset built-in, import JSON, and export JSON. Profile
+names are non-empty ASCII text up to 64 characters and cannot contain path
+separators or control characters. Import rejects unsupported versions,
+unknown effect keys, invalid settings values, and secret-looking fields.
+
+The current QML drawer exposes save, load, and delete. Import, export,
+duplicate, rename, and reset are backend/bridge capabilities that need drawer
+controls if UI parity is required for release.
+
+## Render Capabilities And Effects
+
+Render capability detection is PySide6-free and runs before Qt imports. It
+uses environment facts such as `QT_QPA_PLATFORM`, `QT_QUICK_BACKEND`,
+`LIBGL_ALWAYS_SOFTWARE`, available compiled shader artifacts, and
+`APEX_INFINITE_VISUAL_TIER`.
+
+Capability output is event-safe and may be emitted as
+`wrapper_capabilities_resolved`. The payload reports platform, backend,
+offscreen state, shader availability, shader module names, recommended quality
+tier, and whether reduced effects are forced.
+
+QML-only source mode owns the current production visual path:
+
+- Glow fields.
+- Scanline, pixel-grid, and subpixel overlays.
+- Phosphor trails for event-row persistence.
+- Signal distortion with bounded intensity.
+- Glass curvature.
+- Ambient frame treatment.
+- Event-reactive pulses for run start, provider health, decisions,
+  iterations, stop, completion, and fault states.
+
+Shader source modules are clean-room GLSL 440 files under
+`src/apex_infinite_visual/shaders/` with provenance in
+`src/apex_infinite_visual/shaders/PROVENANCE.md`. Compiled `.qsb` files are
+ignored local build outputs unless a release explicitly promotes reviewed
+compiled artifacts into package data and the QML render path.
+
+## Graphical First Run And Doctor
+
+`src/apex_infinite_visual/doctor.py` provides display-safe pass, warn, and
+fail diagnostics for launch readiness. Doctor facts may be surfaced as
+`doctor_started`, `doctor_check`, and `doctor_finished` events.
+
+The current first-run surface is a banner plus doctor/dry-run guidance. A full
+graphical shared-config write flow is still release work. That flow must:
+
+1. Detect missing shared CLI config.
+2. Show provider choices: Ollama, OpenAI, Grok.
+3. Let the user enter or confirm model.
+4. Let the user select Codex binary.
+5. Show detected Codex flag compatibility.
+6. Let the user choose projects directory and target project.
+7. Run doctor.
+8. Show pass, warn, fail results.
+9. Offer dry-run as the default first launch.
+10. Require explicit confirmation before writing shared CLI config.
+
+The first-run flow must stay inside the same command shell; it must not become
+a separate plain wizard that feels like another product.
 
 ## Failure States
 
@@ -138,17 +258,20 @@ check pass.
 
 ## Packaging Path
 
-Binary packaging remains deferred after Session 08. The intended future Linux
-path is:
+The intended Linux binary path is:
 
 1. Build and review the source visual mode.
-2. Run `pyside6-deploy` or an explicitly reviewed Nuitka path in an isolated
-   packaging workspace.
-3. Inspect generated files, collected Qt plugins, and licenses.
+2. Build an isolated AppDir using `scripts/build-appimage.sh`.
+3. Inspect generated files, collected Qt plugins, bundled wheels, QML
+   resources, and licenses.
 4. Wrap the reviewed Linux output as
    `apex-infinite-visual-linux-x86_64.AppImage` only after license review.
 5. Publish SHA256 checksums and source/dev install instructions with the
    binary artifact.
+
+`pyside6-deploy` was evaluated as the first candidate. The current AppImage
+script uses a venv-in-AppDir approach because it keeps bundled wheels
+byte-auditable and keeps LGPL replacement/relink review straightforward.
 
 Do not commit generated packaging outputs unless a later release session
 explicitly scopes them.
@@ -190,15 +313,14 @@ git diff --check
 The local `EXAMPLE/` tree remains ignored reference material only. It is not a
 runtime dependency and not a source for implementation details.
 
-## Session 08 Release Position
+## Current Release Position
 
-Session 08 verified source-mode checks, optional dependency isolation,
-event-stream boundaries, clean-room scans, dependency audit evidence, and
-license-gate documentation. Source mode remains shippable after the final
-T021/T022 gates.
+Source mode has focused checks for optional dependency isolation, event-stream
+boundaries, clean-room scans, dependency audit evidence, visual state, profile
+persistence, render capabilities, doctor diagnostics, and license-gate
+documentation.
 
-No packaging path was executed or selected for a real artifact in this session.
-A future binary release must decide whether packaging uses `pyside6-deploy`,
-direct Nuitka invocation, or another reviewed path, then verify generated
-bundle contents, AppImage behavior, notices, checksums, source/relink
-instructions, and clean-room boundaries before publishing any artifact.
+The current AppImage script uses the venv-in-AppDir packaging path. A binary
+release must still verify generated bundle contents, AppImage behavior,
+notices, checksums, dependency inventory, source/relink instructions, and
+clean-room boundaries before publishing any artifact.

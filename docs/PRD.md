@@ -141,7 +141,9 @@ dependencies out of the base CLI install.
 - Visual wrapper profile files are stored under `${XDG_CONFIG_HOME:-~/.config}/apex-infinite/visual-profiles.json`.
 - Visual wrapper runtime window state can be stored under `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/visual-state.json`.
 - The first visual binary artifact is `apex-infinite-visual-linux-x86_64.AppImage` with SHA256 checksum and release notices.
-- `pyside6-deploy` is evaluated first for visual packaging; direct Nuitka or another path requires documented evidence before use.
+- `pyside6-deploy` was evaluated first for visual packaging. The current
+  AppImage path uses a venv-in-AppDir bundle so PyPI wheels stay byte-auditable
+  and Qt/PySide6 replacement or relink review stays explicit.
 
 ## Phases
 
@@ -213,10 +215,12 @@ Completed session stubs are archived under `.spec_system/archive/phases/phase_01
 
 ### Source
 
-Phase 02 is planned from
-`docs/ongoing-projects/revolutionary-linux-terminal-design-plan.md`, which
-promotes the existing source-mode visual wrapper into a production Linux command
-surface.
+Phase 02 promotes the existing source-mode visual wrapper into the Apex
+Infinite Hyperterminal: a production Linux command surface over the base CLI
+workflow engine. Durable scope and contracts live in this PRD, `docs/PRD_UX.md`,
+`docs/ARCHITECTURE.md`, `docs/event-stream.md`,
+`docs/visual-wrapper-boundary.md`, and
+`docs/visual-wrapper-productization.md`.
 
 ### Objectives
 
@@ -314,11 +318,15 @@ Planned session stubs are defined by `phasebuild`.
   plan.
 - The repository should be treated as a single standalone package rooted at this
   directory.
-- Apex Infinite Hyperterminal is the visual lane name, not a command rename. The command names remain `apex-infinite` and `apex-infinite-visual` unless a future release explicitly changes them.
+- Apex Infinite Hyperterminal is the visual lane name, not a command rename.
+  The command names remain `apex-infinite` and `apex-infinite-visual` unless a
+  future release explicitly changes them.
 - Prompt routing should remain stable during UI work: `docs/prompt-contract.md`
   and the upgrade plan both require prompt changes to be made only with matching
   tests and docs.
-- `cool-retro-term` is inspiration only: the upgrade and Hyperterminal plans record GPL/license boundaries and forbid copying source, shader, asset, font, profile, manifest, build, terminal-widget, or package metadata.
+- `cool-retro-term` is inspiration only: the durable product docs record
+  GPL/license boundaries and forbid copying source, shader, asset, font,
+  profile, manifest, build, terminal-widget, or package metadata.
 
 ### Conflict Resolutions
 
@@ -326,10 +334,18 @@ Planned session stubs are defined by `phasebuild`.
   interpretation is single-repo planning with sessions scoped to the standalone
   repository root.
 - Visual direction references `cool-retro-term`, while license boundaries forbid copying. The chosen interpretation is clean-room visual translation: use concepts such as terminal mood, status hierarchy, and effect categories while creating independent tokens, code, docs, and assets.
-- The older PRD treated the Linux wrapper as exploratory, while the Hyperterminal plan makes it a planned product lane. The chosen interpretation is to add Phase 02 while preserving completed Phase 00 and Phase 01 records.
+- The older PRD treated the Linux wrapper as exploratory. The chosen
+  interpretation is to add Phase 02 Hyperterminal as a planned product lane
+  while preserving completed Phase 00 and Phase 01 records.
 
 ## Open Decisions
 
-1. Decide which QML-only effects earn promotion into original shader effects after command-surface architecture and capability detection are stable.
-2. Decide whether `pyside6-deploy` remains the packaging path after inspecting generated bundle contents; document evidence before using direct Nuitka or another approach.
-3. Decide final original icon and asset provenance before desktop metadata and AppImage release.
+1. Decide whether command-strip resume is required for release. If not, remove
+   resume from release-facing acceptance language.
+2. Decide whether shader mode is in scope for the source-mode visual release.
+   If not, keep compiled `.qsb` artifacts ignored and document shader mode as
+   deferred.
+3. Decide whether the QML profile drawer must expose every backend profile
+   operation before release.
+4. Decide whether the terminal CLI polish pass is complete beyond the current
+   autonomy-summary and event-boundary work.

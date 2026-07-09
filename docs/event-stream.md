@@ -147,6 +147,24 @@ Current code may emit `error` for startup, history-summary, or manager-decision
 failures. Consumers should ignore unknown future event names only after logging
 the raw event for diagnosis.
 
+## Event Extension Rules
+
+The visual wrapper must not scrape missing workflow facts from Rich panels,
+plain terminal output, SQLite history display rows, ANSI captures, or
+terminal-control sequences. If a visual surface needs a new fact, add a stable
+registered event or an explicit wrapper control.
+
+For every new event:
+
+- Add the name to `src/apex_infinite/events.py`.
+- Cover file-stream behavior in tests.
+- Cover `--event-stream - --machine-output` behavior in tests.
+- Keep payloads JSON-safe, bounded, and factual.
+- Exclude secrets, ANSI escapes, Rich markup, frame glyphs, renderer
+  snapshots, copied reference identifiers, visual token values, and full
+  prompts or subprocess output.
+- Prefer primitive payload fields and small objects over display-ready strings.
+
 ## Payload Principles
 
 Events report bounded facts, not full terminal output:
