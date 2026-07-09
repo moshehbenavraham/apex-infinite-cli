@@ -50,6 +50,43 @@ apex-infinite --path /path/to/apex-spec-project --start plansession
 Run the same command with `--dry-run` first when checking a new target project,
 provider, model, Codex binary, autonomy flags, or reasoning effort.
 
+### Production-Like Local Run
+
+The strongest supported local operator entry point is the guarded base CLI
+launcher:
+
+```bash
+make production \
+  PROJECT=/absolute/path/to/initialized-apex-spec-project \
+  START=plansession
+```
+
+`PROJECT` is required, must be absolute, and must contain `.spec_system`.
+`START` is optional; omit it when resuming and allowing the manager to select
+the next action from history. The launcher requires an existing user-owned
+config (the XDG shared config written by `apex-infinite --setup` by default)
+and an existing `.venv/bin/apex-infinite`; it never installs or upgrades
+dependencies at launch.
+
+Before live execution, the launcher runs `--doctor --check-provider-chat` and
+stops on any readiness failure. It then starts a non-dry-run CLI with a
+50-iteration safety limit and distinct, private JSONL files for preflight and
+run events. Override the deterministic defaults when needed:
+
+```bash
+make production \
+  PROJECT=/absolute/path/to/project \
+  CONFIG=/absolute/path/to/config.yaml \
+  START=implement \
+  MAX_ITERATIONS=25 \
+  LOG_DIR=/absolute/path/to/private-logs
+```
+
+This is a production-like local execution profile, not a hosted service or a
+claim of production certification. The configured Codex autonomy flags still
+apply; the packaged default bypasses approvals and sandboxing and therefore
+requires an externally controlled, recoverable workspace.
+
 ## Supported Commands
 
 The CLI recognizes the staged Apex Spec commands and routes them through the
@@ -508,6 +545,12 @@ To launch the real CLI subprocess and allow the workflow to execute:
 ```bash
 make visual-real
 ```
+
+`make visual-real` is the live GUI/source-mode launcher, not the guarded
+primary operator entry point. Its convenience defaults target this checkout,
+start at `implement`, and stop after one iteration. Use `make production` for
+the strict terminal readiness gate and durable preflight/run logs, or override
+all visual run values explicitly as shown below.
 
 By default, the launcher targets this checkout. Override the target project or
 start command with environment variables:

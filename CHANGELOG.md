@@ -7,6 +7,9 @@ Format follows Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
+- Added a guarded `make production` launcher for the primary terminal CLI with
+  explicit initialized-project validation, doctor and provider-chat gates,
+  bounded live execution, and separate private preflight/run event logs.
 - Converted the project into a self-contained Python package with CLI-local
   `pyproject.toml`, `src/` layout, console scripts, and package data.
 - Moved the base CLI runtime into `src/apex_infinite/` and the optional visual

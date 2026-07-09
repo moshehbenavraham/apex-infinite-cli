@@ -66,6 +66,46 @@ apex-infinite --path ~/projects/my-app/ --start plansession
 
 Use this when the target path and first command are already known.
 
+### Guarded production-like local execution
+
+```bash
+cd apex-infinite-cli
+make production \
+  PROJECT=/absolute/path/to/initialized-apex-spec-project \
+  START=plansession
+```
+
+This is the primary serious local operator target. It is intentionally stricter
+than a direct invocation: `PROJECT` must be absolute, exist, and contain
+`.spec_system`; the XDG shared config and repository virtualenv executable must
+already exist; and launch-time installation is forbidden. Run
+`.venv/bin/apex-infinite --setup` first when the shared config is absent.
+
+The launcher writes separate `preflight-<utc>-<pid>.jsonl` and
+`run-<utc>-<pid>.jsonl` files, runs terminal doctor plus a provider chat check,
+and only then starts live autonomous execution. It does not pass `--dry-run`,
+`--skip-provider-check`, or `--machine-output`. The default safety cap is 50
+iterations.
+
+Optional Make variables are:
+
+```text
+CONFIG=/absolute/path/to/config.yaml
+START=plansession
+MAX_ITERATIONS=25
+LOG_DIR=/absolute/path/to/private-logs
+```
+
+Omit `START` when resuming and allowing the manager to select the next action
+from stored history. A `START` value overrides only the first iteration. The
+default log directory is
+`${XDG_STATE_HOME:-~/.local/state}/apex-infinite/logs/`; there is no automatic
+rotation, so include these files in the operator's retention procedure.
+
+This target is production-like source operation, not a hosted deployment.
+The default broad-autonomy Codex flags remain suitable only for an externally
+controlled and recoverable workspace.
+
 ### Provider preflight
 
 ```bash
@@ -434,6 +474,10 @@ For an existing project:
   `--reduced-logging` to disable, `--run-log-dir` to relocate, and delete
   files from the directory to purge. There is no automatic rotation;
   clean the directory as part of routine maintenance.
+- **Production launcher logs**: `make production` writes separate preflight
+  and live-run JSONL files to the same XDG state log directory unless
+  `LOG_DIR` is set. Files are created with a private process umask, use unique
+  UTC-plus-process identifiers, and require the same manual rotation policy.
 - **Event export**: the visual event core can also export the currently
   filtered rows as JSON from the signal panel.
 - **Provider traffic**: prompts can carry recent history, latest agent

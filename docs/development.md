@@ -27,6 +27,7 @@
 | `.venv/bin/python -m build --outdir /tmp/apex-infinite-cli-smoke-dist` | Build release artifacts outside the repo. |
 | `./scripts/ollama-docker.sh --chat` | Start local Ollama, ensure the configured model exists, and run a chat check. |
 | `./scripts/check-ollama.sh --chat` | Check the configured local Ollama provider. |
+| `make production PROJECT=/absolute/path` | Run the guarded, preflighted, production-like local CLI against an initialized Apex Spec project. |
 | `make ollama-up` | Compatibility target for `./scripts/ollama-docker.sh up`. |
 | `make ollama-down` | Stop the local Ollama container without deleting model data. |
 
@@ -59,7 +60,7 @@ test suite uses fixtures and does not require a running local model.
 | `src/apex_infinite_visual/` | Optional Linux visual wrapper source mode. |
 | `tests/` | Unit and integration-style tests for CLI behavior. |
 | `docs/` | Operator, architecture, event, history, wrapper, and troubleshooting docs. |
-| `scripts/` | Local Ollama helper scripts. |
+| `scripts/` | Guarded runtime, local Ollama, visual, and packaging helpers. |
 | `.spec_system/` | Apex Spec workflow state, PRDs, session specs, and audits. |
 
 ## Development Notes

@@ -11,6 +11,10 @@
 | GitHub Actions quality job | `.github/workflows/quality.yml` | Installs `.[dev]`, then runs Black, Pylint, and mypy. |
 
 No staging or production web service is defined in this repository.
+`make production PROJECT=/absolute/path` is the strongest supported
+production-like local operator profile: it gates live base-CLI execution on an
+initialized project, shared config, terminal doctor, and provider chat check.
+It does not deploy a service or change the source-shippable release position.
 
 ## Required Environment Variables
 

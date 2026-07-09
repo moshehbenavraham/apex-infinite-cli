@@ -1,4 +1,7 @@
-.PHONY: visual visual-cli visual-real visual-smoke ollama-up ollama-down ollama-status ollama-logs ollama-restart ollama-pull ollama-chat
+.PHONY: production visual visual-cli visual-real visual-smoke ollama-up ollama-down ollama-status ollama-logs ollama-restart ollama-pull ollama-chat
+
+production:
+	@./scripts/run-production.sh
 
 visual:
 	@./scripts/run-visual.sh

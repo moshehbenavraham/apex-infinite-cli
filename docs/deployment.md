@@ -1,5 +1,10 @@
 # Deployment
 
+This repository does not deploy a hosted service. For guarded live operation
+of the source-shippable base CLI, use `make production PROJECT=/absolute/path`
+as documented in the operator runbook. That target performs local readiness
+checks and starts the operator process; it is not an infrastructure deployment.
+
 ## Local Dev
 
 Create the repository environment:

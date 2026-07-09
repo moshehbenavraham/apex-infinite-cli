@@ -1,5 +1,6 @@
 include CHANGELOG.md
 include LICENSE
+include Makefile
 include README.md
 include requirements*.txt
 recursive-include docs *.md *.txt *.jsonl
