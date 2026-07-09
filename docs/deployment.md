@@ -1,9 +1,24 @@
 # Deployment
 
-This repository does not deploy a hosted service. For guarded live operation
-of the source-shippable base CLI, use `make production PROJECT=/absolute/path`
-as documented in the operator runbook. That target performs local readiness
-checks and starts the operator process; it is not an infrastructure deployment.
+This repository does not deploy a hosted service. For guarded live source
+operation through the optional visual wrapper, use `make production` as
+documented in the operator runbook. Pass `PROJECT=/absolute/path` for a one-run
+override, or set `APEX_INFINITE_DEFAULT_PROJECT` in the environment or `.env`,
+or `defaults.project` in config. The target gates the base CLI with terminal,
+visual-dependency, and provider-chat checks, then opens the wrapper in live
+mode and waits for the operator to click `Start`; it is not an infrastructure
+deployment.
+
+Production path precedence is explicit `APEX_PRODUCTION_PATH` or `PROJECT`,
+then the environment/`.env` default, then the YAML default. Config resolution
+uses the shared chain through packaged defaults; an explicitly selected missing
+`CONFIG` fails fast.
+
+The repository `.venv` must already contain the base CLI and `.[visual]`
+dependencies, and a graphical Linux session must be available. Production
+does not call `scripts/run-visual.sh`, create a virtualenv, or install packages.
+It writes a private preflight log immediately and a wrapper run log only after
+`Start`. Use the base `apex-infinite` command directly for headless operation.
 
 ## Local Dev
 

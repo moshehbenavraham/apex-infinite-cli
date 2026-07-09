@@ -25,10 +25,79 @@ if [[ -z "${HOME:-}" ]]; then
     fail "HOME must be set for config, history, and state storage."
 fi
 
-PROJECT_PATH="${APEX_PRODUCTION_PATH:-${PROJECT:-}}"
-if [[ -z "$PROJECT_PATH" ]]; then
-    fail "set PROJECT=/absolute/path/to/an/initialized-apex-spec-project"
+CLI_BIN="${APEX_PRODUCTION_CLI:-$ROOT/.venv/bin/apex-infinite}"
+CLI_BIN="$(expand_home "$CLI_BIN")"
+if [[ "$CLI_BIN" == */* ]]; then
+    if [[ ! -x "$CLI_BIN" ]]; then
+        fail "apex-infinite executable not found: $CLI_BIN"
+    fi
+else
+    RESOLVED_CLI="$(command -v "$CLI_BIN" || true)"
+    if [[ -z "$RESOLVED_CLI" ]]; then
+        fail "apex-infinite executable not found on PATH: $CLI_BIN"
+    fi
+    CLI_BIN="$RESOLVED_CLI"
 fi
+
+VISUAL_OVERRIDE="${APEX_PRODUCTION_VISUAL:-}"
+VISUAL_BIN="${VISUAL_OVERRIDE:-$ROOT/.venv/bin/apex-infinite-visual}"
+VISUAL_BIN="$(expand_home "$VISUAL_BIN")"
+if [[ "$VISUAL_BIN" == */* ]]; then
+    if [[ ! -x "$VISUAL_BIN" ]]; then
+        fail "visual executable not found: $VISUAL_BIN (install .[visual])"
+    fi
+else
+    RESOLVED_VISUAL="$(command -v "$VISUAL_BIN" || true)"
+    if [[ -z "$RESOLVED_VISUAL" ]]; then
+        fail "visual executable not found on PATH: $VISUAL_BIN (install .[visual])"
+    fi
+    VISUAL_BIN="$RESOLVED_VISUAL"
+fi
+if [[ -z "$VISUAL_OVERRIDE" && -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" ]]; then
+    case "${QT_QPA_PLATFORM:-}" in
+        offscreen|minimal) ;;
+        *) fail "visual production requires DISPLAY or WAYLAND_DISPLAY" ;;
+    esac
+fi
+
+PYTHON_BIN="$ROOT/.venv/bin/python"
+if [[ ! -x "$PYTHON_BIN" ]]; then
+    fail "production settings resolver not found: $PYTHON_BIN"
+fi
+
+PROJECT_SELECTION="${APEX_PRODUCTION_PATH:-${PROJECT:-}}"
+CONFIG_SELECTION="${APEX_PRODUCTION_CONFIG:-${CONFIG:-${APEX_INFINITE_CONFIG:-}}}"
+SETTINGS_ARGS=()
+if [[ -n "$PROJECT_SELECTION" ]]; then
+    SETTINGS_ARGS+=(--project "$PROJECT_SELECTION")
+fi
+if [[ -n "$CONFIG_SELECTION" ]]; then
+    SETTINGS_ARGS+=(--config "$CONFIG_SELECTION")
+fi
+
+SETTINGS_OUTPUT=""
+if ! SETTINGS_OUTPUT="$(
+    "$PYTHON_BIN" \
+        -m apex_infinite.production_config \
+        "${SETTINGS_ARGS[@]}"
+)"; then
+    exit 2
+fi
+mapfile -t RESOLVED_SETTINGS <<< "$SETTINGS_OUTPUT"
+if [[ "${#RESOLVED_SETTINGS[@]}" -ne 2 ]]; then
+    fail "settings resolver returned an invalid response"
+fi
+CONFIG_PATH="${RESOLVED_SETTINGS[0]}"
+PROJECT_PATH="${RESOLVED_SETTINGS[1]}"
+
+CONFIG_PATH="$(expand_home "$CONFIG_PATH")"
+if [[ "$CONFIG_PATH" != /* ]]; then
+    fail "CONFIG must be an absolute path: $CONFIG_PATH"
+fi
+if [[ ! -f "$CONFIG_PATH" ]]; then
+    fail "config not found: $CONFIG_PATH (run apex-infinite --setup or set CONFIG)"
+fi
+
 PROJECT_PATH="$(expand_home "$PROJECT_PATH")"
 if [[ "$PROJECT_PATH" != /* ]]; then
     fail "PROJECT must be an absolute path: $PROJECT_PATH"
@@ -38,18 +107,6 @@ if [[ ! -d "$PROJECT_PATH" ]]; then
 fi
 if [[ ! -d "$PROJECT_PATH/.spec_system" ]]; then
     fail "PROJECT is not initialized: missing $PROJECT_PATH/.spec_system"
-fi
-
-CONFIG_PATH="${APEX_PRODUCTION_CONFIG:-${CONFIG:-${APEX_INFINITE_CONFIG:-}}}"
-if [[ -z "$CONFIG_PATH" ]]; then
-    CONFIG_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/apex-infinite/config.yaml"
-fi
-CONFIG_PATH="$(expand_home "$CONFIG_PATH")"
-if [[ "$CONFIG_PATH" != /* ]]; then
-    fail "CONFIG must be an absolute path: $CONFIG_PATH"
-fi
-if [[ ! -f "$CONFIG_PATH" ]]; then
-    fail "config not found: $CONFIG_PATH (run apex-infinite --setup or set CONFIG)"
 fi
 
 MAX_ITERATIONS_VALUE="${APEX_PRODUCTION_MAX_ITERATIONS:-${MAX_ITERATIONS:-50}}"
@@ -76,52 +133,43 @@ if [[ ! -d "$LOG_DIR_VALUE" || ! -w "$LOG_DIR_VALUE" ]]; then
     fail "LOG_DIR is not writable: $LOG_DIR_VALUE"
 fi
 
-CLI_BIN="${APEX_PRODUCTION_CLI:-$ROOT/.venv/bin/apex-infinite}"
-CLI_BIN="$(expand_home "$CLI_BIN")"
-if [[ "$CLI_BIN" == */* ]]; then
-    if [[ ! -x "$CLI_BIN" ]]; then
-        fail "apex-infinite executable not found: $CLI_BIN"
-    fi
-else
-    RESOLVED_CLI="$(command -v "$CLI_BIN" || true)"
-    if [[ -z "$RESOLVED_CLI" ]]; then
-        fail "apex-infinite executable not found on PATH: $CLI_BIN"
-    fi
-    CLI_BIN="$RESOLVED_CLI"
-fi
-
 RUN_STAMP="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 PREFLIGHT_LOG="$LOG_DIR_VALUE/preflight-$RUN_STAMP.jsonl"
-RUN_LOG="$LOG_DIR_VALUE/run-$RUN_STAMP.jsonl"
 
-printf 'Apex Infinite production-like local run\n'
+printf 'Apex Infinite visual production-like local run\n'
 printf '  Project: %s\n' "$PROJECT_PATH"
 printf '  Config: %s\n' "$CONFIG_PATH"
 printf '  Start: %s\n' "${START_COMMAND:-manager auto-selection}"
 printf '  Max iterations: %s\n' "$MAX_ITERATIONS_VALUE"
 printf '  Preflight events: %s\n' "$PREFLIGHT_LOG"
-printf '  Run events: %s\n' "$RUN_LOG"
+printf '  Run events directory: %s\n' "$LOG_DIR_VALUE"
 printf 'Running readiness and provider chat checks...\n'
 
 if ! "$CLI_BIN" \
     --config "$CONFIG_PATH" \
     --path "$PROJECT_PATH" \
     --doctor \
+    --doctor-visual \
     --check-provider-chat \
     --event-stream "$PREFLIGHT_LOG"; then
-    fail "readiness checks failed; the live run was not started"
+    fail "readiness checks failed; the visual console was not started"
 fi
 
-LIVE_ARGS=(
+VISUAL_ARGS=(
     --config "$CONFIG_PATH"
     --path "$PROJECT_PATH"
+    --start-command "$START_COMMAND"
     --max-iterations "$MAX_ITERATIONS_VALUE"
-    --check-provider-chat
-    --event-stream "$RUN_LOG"
+    --launch-cli
+    --require-initialized-project
+    --run-log-dir "$LOG_DIR_VALUE"
+    --no-restore-profile
+    --theme "${APEX_VISUAL_THEME:-apex-reactor}"
+    --rendering-mode "${APEX_VISUAL_RENDERING_MODE:-cinematic}"
+    --quality-tier "${APEX_VISUAL_QUALITY_TIER:-balanced}"
+    --effect-intensity "${APEX_VISUAL_EFFECT_INTENSITY:-85}"
 )
-if [[ -n "$START_COMMAND" ]]; then
-    LIVE_ARGS+=(--start "$START_COMMAND")
-fi
 
-printf 'Readiness checks passed. Starting live autonomous execution.\n'
-exec "$CLI_BIN" "${LIVE_ARGS[@]}"
+printf 'Readiness checks passed. Opening the live visual console.\n'
+printf 'Review the controls, then click Start to begin autonomous execution.\n'
+exec "$VISUAL_BIN" "${VISUAL_ARGS[@]}"

@@ -86,6 +86,29 @@ python -c "import PySide6" && echo "UNEXPECTED: visual extra leaked" \
   || echo "OK: base install is terminal-only"
 ```
 
+## Repository production target
+
+`make production` is intentionally a visual source-checkout entry point, not a
+base-only installed-user command. Prepare the repository virtualenv before
+using it:
+
+```bash
+cd apex-infinite-cli
+python3 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -e ".[dev,visual]"
+```
+
+The target requires the existing base and visual executables plus a graphical
+Linux session. It never calls `scripts/run-visual.sh` and never creates a
+virtualenv or installs dependencies. After its terminal, visual-dependency,
+and provider-chat gates pass, it opens the wrapper in live mode and waits for
+the operator to review the controls and click `Start`. The preflight JSONL log
+is written immediately; the wrapper run log is created only on `Start`.
+
+Base-only or headless installations remain supported through the direct
+`apex-infinite` command and do not require PySide6.
+
 ## First run
 
 ```bash
@@ -112,13 +135,38 @@ The resolved path and its source category are shown in the startup panel
 and emitted as the `config_resolved` event. A `.env` file next to the
 selected config file overrides a `.env` in the working directory.
 
+`make production` also accepts `APEX_PRODUCTION_CONFIG` or Make `CONFIG` as an
+explicit selection ahead of this chain. An explicitly selected missing config
+fails fast; without one, resolution can reach the packaged defaults.
+
+## Default project resolution
+
+For normal CLI runs, an explicit `--path` wins, followed by
+`APEX_INFINITE_DEFAULT_PROJECT` from the environment or `.env`, then
+`defaults.project` in the resolved config. For production launches, an
+explicit `APEX_PRODUCTION_PATH` or Make `PROJECT` wins before those shared
+defaults. All production project paths must be absolute and point to an
+initialized project containing `.spec_system`.
+
+Either reusable default can support a bare `apex-infinite` or
+`make production` invocation:
+
+```dotenv
+APEX_INFINITE_DEFAULT_PROJECT=/absolute/path/to/initialized-apex-spec-project
+```
+
+```yaml
+defaults:
+  project: "/absolute/path/to/initialized-apex-spec-project"
+```
+
 ## Common shortcuts
 
 Shell aliases for frequent starts:
 
 ```bash
 alias apex-dry='apex-infinite --dry-run'
-alias apex-resume='apex-infinite'          # default project comes from config
+alias apex-resume='apex-infinite'          # default project comes from env/config
 alias apex-history='apex-infinite --history'
 alias apex-check='apex-infinite --check-provider'
 alias apex-plain='apex-infinite --plain'
@@ -126,9 +174,10 @@ alias apex-plain='apex-infinite --plain'
 
 Resume pattern: history lives in SQLite keyed by project path, and the
 manager summarizes it on every run, so "resume" is simply re-running
-`apex-infinite` against the same project. With `defaults.project` set in
-the shared config (via `--setup --default-project ...`), a bare
-`apex-infinite` resumes the configured project.
+`apex-infinite` against the same project. With
+`APEX_INFINITE_DEFAULT_PROJECT` set in the environment or `.env`, or with
+`defaults.project` set in shared config via `--setup --default-project ...`,
+a bare `apex-infinite` resumes the configured project.
 
 ## Uninstall data cleanup
 

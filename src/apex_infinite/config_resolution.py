@@ -1,4 +1,4 @@
-"""Shared config-file resolution for the CLI, setup, doctor, and wrapper.
+"""Shared config and default-project resolution.
 
 This module is intentionally dependency-free (standard library only) so the
 optional visual wrapper can import it without pulling terminal rendering or
@@ -14,6 +14,9 @@ provider dependencies. The precedence chain is a release contract:
 Explicit flag and environment selections are returned even when the file is
 missing so config loading fails fast with a clear operator-facing error
 instead of silently falling through to another file.
+
+Default projects use a separate chain: an explicit path, then
+``APEX_INFINITE_DEFAULT_PROJECT``, then ``defaults.project`` from config.
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 CONFIG_ENV_VAR = "APEX_INFINITE_CONFIG"
+DEFAULT_PROJECT_ENV_VAR = "APEX_INFINITE_DEFAULT_PROJECT"
 CONFIG_DIR_NAME = "apex-infinite"
 CONFIG_FILE_NAME = "config.yaml"
 
@@ -33,6 +37,10 @@ SOURCE_XDG = "xdg"
 SOURCE_CWD = "cwd"
 SOURCE_SOURCE_ROOT = "source-root"
 SOURCE_PACKAGED = "packaged"
+
+PROJECT_SOURCE_EXPLICIT = "explicit"
+PROJECT_SOURCE_ENV = "environment"
+PROJECT_SOURCE_CONFIG = "config"
 
 SOURCE_CATEGORIES = (
     SOURCE_CLI_FLAG,
@@ -62,6 +70,18 @@ class ResolvedConfig:
     def exists(self) -> bool:
         """Return whether the resolved file currently exists."""
         return Path(self.path).is_file()
+
+
+@dataclass(frozen=True)
+class ResolvedProject:
+    """One selected project path and the source that chose it."""
+
+    path: str
+    source: str
+
+
+class ProjectResolutionError(ValueError):
+    """Raised when configured default-project values are malformed."""
 
 
 def xdg_config_home(env: Mapping[str, str] | None = None) -> Path:
@@ -133,3 +153,39 @@ def first_run_needed(
     if resolved.source not in USER_OWNED_SOURCES:
         return True
     return not resolved.exists
+
+
+def resolve_project(
+    explicit_path: str | None = None,
+    config: Mapping[str, object] | None = None,
+    env: Mapping[str, str] | None = None,
+) -> ResolvedProject | None:
+    """Resolve a project through explicit, environment, and config defaults.
+
+    Callers that load dotenv files should do so before invoking this helper.
+    An explicit path always wins, followed by
+    ``APEX_INFINITE_DEFAULT_PROJECT`` and then ``defaults.project``.
+    """
+    if explicit_path:
+        return ResolvedProject(path=explicit_path, source=PROJECT_SOURCE_EXPLICIT)
+
+    environ = env if env is not None else os.environ
+    env_path = environ.get(DEFAULT_PROJECT_ENV_VAR, "").strip()
+    if env_path:
+        return ResolvedProject(path=env_path, source=PROJECT_SOURCE_ENV)
+
+    config_mapping = config if config is not None else {}
+    defaults = config_mapping.get("defaults")
+    if defaults is None:
+        return None
+    if not isinstance(defaults, Mapping):
+        raise ProjectResolutionError("config 'defaults' must be a mapping")
+
+    config_path = defaults.get("project")
+    if config_path is None:
+        return None
+    if not isinstance(config_path, str):
+        raise ProjectResolutionError("config 'defaults.project' must be a string")
+    if not config_path.strip():
+        return None
+    return ResolvedProject(path=config_path, source=PROJECT_SOURCE_CONFIG)

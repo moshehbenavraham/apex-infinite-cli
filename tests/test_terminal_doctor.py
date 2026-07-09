@@ -106,6 +106,24 @@ def test_doctor_skip_provider_check_warns_instead(monkeypatch, tmp_path):
     assert "WARN Provider connectivity" in result.output
 
 
+def test_doctor_uses_environment_default_project(monkeypatch, tmp_path):
+    cwd = tmp_path / "cwd"
+    cwd.mkdir()
+    monkeypatch.chdir(cwd)
+    config_path, project_path, _captured = prepare_cli(monkeypatch, tmp_path)
+    monkeypatch.setenv("APEX_INFINITE_DEFAULT_PROJECT", str(project_path))
+    monkeypatch.setattr(apex_infinite, "check_codex_binary", fake_codex_check)
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        ["--config", str(config_path), "--doctor", "--skip-provider-check"],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "PASS Project path" in result.output
+    assert "Project directory exists" in result.output
+
+
 def test_doctor_machine_output_is_jsonl_only(monkeypatch, tmp_path):
     result, _captured = invoke_doctor(
         monkeypatch,

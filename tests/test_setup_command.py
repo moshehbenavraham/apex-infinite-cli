@@ -249,6 +249,10 @@ def test_interactive_setup_abort_writes_nothing(monkeypatch, tmp_path):
 
 
 def test_default_project_from_config_is_used(monkeypatch, tmp_path):
+    cwd = tmp_path / "cwd"
+    cwd.mkdir()
+    monkeypatch.chdir(cwd)
+    monkeypatch.delenv("APEX_INFINITE_DEFAULT_PROJECT", raising=False)
     config_path, project_path, captured = prepare_cli(monkeypatch, tmp_path)
     config_with_defaults = CONFIG_TEXT + (f'defaults:\n  project: "{project_path}"\n')
     config_path.write_text(config_with_defaults, encoding="ascii")
@@ -260,6 +264,90 @@ def test_default_project_from_config_is_used(monkeypatch, tmp_path):
 
     assert result.exit_code == 0, result.output
     assert captured["path"] == f"{project_path}/"
+
+
+def test_default_project_from_environment_is_used(monkeypatch, tmp_path):
+    cwd = tmp_path / "cwd"
+    cwd.mkdir()
+    monkeypatch.chdir(cwd)
+    config_path, project_path, captured = prepare_cli(monkeypatch, tmp_path)
+    monkeypatch.setenv("APEX_INFINITE_DEFAULT_PROJECT", str(project_path))
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        ["--config", str(config_path), "--max-iterations", "0"],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "Using default project from environment" in result.output
+    assert captured["path"] == f"{project_path}/"
+
+
+def test_default_project_from_config_local_env_is_used(monkeypatch, tmp_path):
+    cwd = tmp_path / "cwd"
+    cwd.mkdir()
+    monkeypatch.chdir(cwd)
+    monkeypatch.delenv("APEX_INFINITE_DEFAULT_PROJECT", raising=False)
+    config_path, project_path, captured = prepare_cli(monkeypatch, tmp_path)
+    (config_path.parent / ".env").write_text(
+        f"APEX_INFINITE_DEFAULT_PROJECT={project_path}\n",
+        encoding="ascii",
+    )
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        ["--config", str(config_path), "--max-iterations", "0"],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert captured["path"] == f"{project_path}/"
+
+
+def test_explicit_path_wins_over_environment_default(monkeypatch, tmp_path):
+    cwd = tmp_path / "cwd"
+    cwd.mkdir()
+    monkeypatch.chdir(cwd)
+    config_path, project_path, captured = prepare_cli(monkeypatch, tmp_path)
+    environment_project = tmp_path / "environment-project"
+    environment_project.mkdir()
+    monkeypatch.setenv("APEX_INFINITE_DEFAULT_PROJECT", str(environment_project))
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        [
+            "--config",
+            str(config_path),
+            "--path",
+            str(project_path),
+            "--max-iterations",
+            "0",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "Using default project from environment" not in result.output
+    assert captured["path"] == f"{project_path}/"
+
+
+def test_malformed_default_project_fails_clearly(monkeypatch, tmp_path):
+    cwd = tmp_path / "cwd"
+    cwd.mkdir()
+    monkeypatch.chdir(cwd)
+    monkeypatch.delenv("APEX_INFINITE_DEFAULT_PROJECT", raising=False)
+    malformed_config = CONFIG_TEXT + "defaults:\n  project:\n    nested: value\n"
+    config_path, _project_path, captured = prepare_cli(
+        monkeypatch, tmp_path, config_text=malformed_config
+    )
+
+    result = CliRunner().invoke(
+        apex_infinite.main,
+        ["--config", str(config_path), "--max-iterations", "0"],
+    )
+
+    assert result.exit_code == 1
+    assert "Invalid project configuration" in result.output
+    assert "config 'defaults.project' must be a string" in result.output
+    assert "path" not in captured
 
 
 def test_validate_setup_values_unit():

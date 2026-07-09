@@ -7,9 +7,13 @@ Format follows Keep a Changelog.
 ## [Unreleased]
 
 ### Changed
-- Added a guarded `make production` launcher for the primary terminal CLI with
-  explicit initialized-project validation, doctor and provider-chat gates,
-  bounded live execution, and separate private preflight/run event logs.
+- Made `make production` resolve reusable environment or YAML project defaults,
+  retain strict initialized-project, terminal, visual-dependency, and
+  provider-chat gates, then open the preinstalled visual wrapper in live mode
+  and wait for the operator to click `Start`.
+- Kept production launch-time installation disabled and split its private event
+  evidence into an immediate preflight log and a wrapper run log created only
+  after the operator clicks `Start`.
 - Converted the project into a self-contained Python package with CLI-local
   `pyproject.toml`, `src/` layout, console scripts, and package data.
 - Moved the base CLI runtime into `src/apex_infinite/` and the optional visual

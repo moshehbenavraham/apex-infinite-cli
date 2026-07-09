@@ -27,7 +27,8 @@
 | `.venv/bin/python -m build --outdir /tmp/apex-infinite-cli-smoke-dist` | Build release artifacts outside the repo. |
 | `./scripts/ollama-docker.sh --chat` | Start local Ollama, ensure the configured model exists, and run a chat check. |
 | `./scripts/check-ollama.sh --chat` | Check the configured local Ollama provider. |
-| `make production PROJECT=/absolute/path` | Run the guarded, preflighted, production-like local CLI against an initialized Apex Spec project. |
+| `make production [PROJECT=/absolute/path]` | Gate and open the live visual production console; review it and click `Start`. Requires the existing `.[visual]` environment. |
+| `make visual-real` | Open the unguarded one-iteration live visual development launcher; it may bootstrap missing visual dependencies. |
 | `make ollama-up` | Compatibility target for `./scripts/ollama-docker.sh up`. |
 | `make ollama-down` | Stop the local Ollama container without deleting model data. |
 
@@ -67,6 +68,9 @@ test suite uses fixtures and does not require a running local model.
 
 - Keep base CLI imports headless-safe; PySide6 belongs only in the optional
   visual wrapper path.
+- Keep `scripts/run-visual.sh` a development convenience. The production target
+  must use the preinstalled visual executable after its strict preflight and
+  must not install or upgrade packages.
 - Preserve the SQLite `cc_response` column for history compatibility.
 - Update tests and docs together when changing prompt routing, event payloads,
   config parsing, renderer output, history behavior, or subprocess command

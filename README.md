@@ -52,7 +52,7 @@ provider, model, Codex binary, autonomy flags, or reasoning effort.
 
 ### Production-Like Local Run
 
-The strongest supported local operator entry point is the guarded base CLI
+The strongest supported local operator entry point is the guarded visual
 launcher:
 
 ```bash
@@ -61,17 +61,40 @@ make production \
   START=plansession
 ```
 
-`PROJECT` is required, must be absolute, and must contain `.spec_system`.
-`START` is optional; omit it when resuming and allowing the manager to select
-the next action from history. The launcher requires an existing user-owned
-config (the XDG shared config written by `apex-infinite --setup` by default)
-and an existing `.venv/bin/apex-infinite`; it never installs or upgrades
-dependencies at launch.
+`PROJECT` is an explicit override. When it is omitted, the launcher uses
+`APEX_INFINITE_DEFAULT_PROJECT` from the environment or `.env`, then
+`defaults.project` from the resolved config. `APEX_PRODUCTION_PATH` overrides
+`PROJECT`; every resolved production project must be absolute, exist, and
+contain `.spec_system`.
 
-Before live execution, the launcher runs `--doctor --check-provider-chat` and
-stops on any readiness failure. It then starts a non-dry-run CLI with a
-50-iteration safety limit and distinct, private JSONL files for preflight and
-run events. Override the deterministic defaults when needed:
+For a reusable `.env` default:
+
+```dotenv
+APEX_INFINITE_DEFAULT_PROJECT=/absolute/path/to/initialized-apex-spec-project
+```
+
+The launcher uses the shared config resolution chain: `APEX_INFINITE_CONFIG`,
+the XDG shared config, `./config.yaml`, the source checkout root, then packaged
+defaults. `APEX_PRODUCTION_CONFIG` or Make `CONFIG` explicitly selects a config
+ahead of that chain; a missing explicitly selected file fails fast. The
+launcher requires existing `.venv/bin/apex-infinite` and
+`.venv/bin/apex-infinite-visual` executables. Install the repository environment
+with `.[visual]` (or `.[dev,visual]`) before using this target; production never
+creates a virtualenv or installs or upgrades dependencies at launch.
+
+`START` is optional; omit it when resuming and allowing the manager to select
+the next action from history.
+
+Before opening the console, the launcher runs
+`--doctor --doctor-visual --check-provider-chat` and stops on any readiness
+failure. It writes a private preflight JSONL file, then opens the visual wrapper
+in live CLI mode with a 50-iteration safety limit. Review the preflighted
+project, start command, live mode, and iteration cap in the window, then click
+`Start` to begin autonomous execution. At Start, production guardrails recheck
+that the current project is absolute and contains `.spec_system`. The wrapper
+creates its private
+`run-<utc>-<pid>-<unique>.jsonl` event log only after the operator clicks
+`Start`. Override the deterministic defaults when needed:
 
 ```bash
 make production \
@@ -85,7 +108,9 @@ make production \
 This is a production-like local execution profile, not a hosted service or a
 claim of production certification. The configured Codex autonomy flags still
 apply; the packaged default bypasses approvals and sandboxing and therefore
-requires an externally controlled, recoverable workspace.
+requires an externally controlled, recoverable workspace. A graphical Linux
+session is required; use `apex-infinite` directly for headless terminal
+operation.
 
 ## Supported Commands
 
@@ -176,12 +201,22 @@ Config resolution order (first match wins): `--config` flag,
 working directory, the source checkout root (development), then the
 packaged defaults at `src/apex_infinite/config.yaml`. The resolved path
 and source category appear in the startup panel and the `config_resolved`
-event. A `.env` beside the selected config file overrides a cwd `.env`.
+event. An explicitly selected missing config fails fast instead of falling
+through. A `.env` beside the selected config file overrides a cwd `.env`.
+
+When `--path` is omitted, `APEX_INFINITE_DEFAULT_PROJECT` from the environment
+or `.env` takes precedence over YAML `defaults.project`. For `make production`,
+the explicit `APEX_PRODUCTION_PATH` or `PROJECT` value takes precedence over
+both defaults.
 
 Edit the config to choose your LLM provider and configure the Codex CLI agent:
 
 ```yaml
 provider: grok  # ollama | grok | openai
+
+# Optional project used when no explicit path is supplied.
+defaults:
+  project: "/absolute/path/to/initialized-apex-spec-project"
 
 # Codex CLI agent configuration
 codex:
@@ -391,7 +426,7 @@ apex-infinite --provider ollama --check-provider
 apex-infinite --provider ollama --check-provider --check-provider-chat
 ./scripts/check-ollama.sh --chat
 
-# Resume the configured default project (defaults.project from --setup)
+# Resume the default project from .env or defaults.project
 apex-infinite
 
 # Purge stored local history
@@ -414,7 +449,7 @@ apex-infinite --path ~/projects/my-app/ --event-stream - --machine-output
 ## Options
 
 ```text
---path TEXT               Project path (prompted if not given)
+--path TEXT               Project path (uses a default or prompts when omitted)
 --start TEXT              Starting command (e.g. "plansession")
 --ceo TEXT                Initial CEO instructions
 --provider TEXT           LLM provider override: ollama|grok|openai
@@ -546,11 +581,16 @@ To launch the real CLI subprocess and allow the workflow to execute:
 make visual-real
 ```
 
-`make visual-real` is the live GUI/source-mode launcher, not the guarded
-primary operator entry point. Its convenience defaults target this checkout,
-start at `implement`, and stop after one iteration. Use `make production` for
-the strict terminal readiness gate and durable preflight/run logs, or override
-all visual run values explicitly as shown below.
+`make visual-real` is the unguarded live GUI/source-mode convenience launcher.
+It can bootstrap the visual development environment, targets this checkout,
+starts at `implement`, and caps the run at one iteration by default. It opens
+live mode and waits for the operator to click `Start`.
+
+`make production` does not call `scripts/run-visual.sh` and never installs
+dependencies. It retains the strict terminal and provider-chat gate, resolves
+the production project and config defaults, opens the same wrapper in live
+mode with a 50-iteration cap, and waits for `Start`. Use `make visual-real` for
+development convenience and `make production` for guarded operator runs.
 
 By default, the launcher targets this checkout. Override the target project or
 start command with environment variables:
@@ -632,8 +672,8 @@ apex-infinite-visual \
   --max-iterations 1
 ```
 
-Real-CLI wrapper runs write a durable copy of the full JSONL event stream
-to `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/logs/run-<utc>.jsonl`
+Real-CLI wrapper runs write a durable copy of the full JSONL event stream to
+`${XDG_STATE_HOME:-~/.local/state}/apex-infinite/logs/run-<utc>-<pid>-<unique>.jsonl`
 by default. Pass `--reduced-logging` to keep no per-run log, or
 `--run-log-dir DIR` to relocate it. Logs contain only registered event
 payloads (no secrets, ANSI, or markup); delete files from the logs

@@ -208,7 +208,7 @@ Completed 2026-07-09 per ADR 0001 #11.
   `write_last_error` remain for wrapper-internal errors.)
 - [x] Make full logging the default for the visual app's real CLI path.
   (Every `--launch-cli` run tees its JSONL event stream to
-  `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/logs/run-<utc>.jsonl`
+  `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/logs/run-<utc>-<pid>-<unique>.jsonl`
   with no extra flags; `--reduced-logging` opts out; `--run-log-dir`
   overrides the location. Retention is until the operator deletes the
   files; the log directory and cleanup are documented in

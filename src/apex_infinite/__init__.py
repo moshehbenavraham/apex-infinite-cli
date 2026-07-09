@@ -1,5 +1,5 @@
 """Apex Infinite CLI package."""
 
-__version__ = "2.0.21"
+__version__ = "2.0.22"
 
 __all__ = ["__version__"]

@@ -28,7 +28,13 @@ from rich.panel import Panel
 from rich.table import Table
 
 from apex_infinite import __version__
-from apex_infinite.config_resolution import resolve_config
+from apex_infinite.config_resolution import (
+    PROJECT_SOURCE_CONFIG,
+    PROJECT_SOURCE_ENV,
+    ProjectResolutionError,
+    resolve_config,
+    resolve_project,
+)
 from apex_infinite.doctor import (
     DOCTOR_FAIL,
     DOCTOR_PASS,
@@ -1122,6 +1128,22 @@ def _build_terminal_doctor_report(  # pylint: disable=too-many-arguments,too-man
 
     if config is not None:
         checks.extend(_doctor_provider_checks(config, check_chat, skip_provider))
+
+    try:
+        resolved_project = resolve_project(project_path, config, env=os.environ)
+    except ProjectResolutionError as exc:
+        checks.append(
+            DoctorCheck(
+                "project_default",
+                "Default project",
+                DOCTOR_FAIL,
+                str(exc),
+                fix_hint="Set APEX_INFINITE_DEFAULT_PROJECT or fix defaults.project.",
+            )
+        )
+    else:
+        if resolved_project is not None:
+            project_path = resolved_project.path
 
     checks.append(check_project_path(project_path or ""))
     checks.append(check_spec_system(project_path or ""))
@@ -2786,7 +2808,10 @@ def infinite_loop(  # pylint: disable=too-many-positional-arguments,too-many-arg
 
 @click.command()
 @click.option(
-    "--path", "project_path", default=None, help="Project path (prompted if not given)"
+    "--path",
+    "project_path",
+    default=None,
+    help="Project path (uses a configured default or prompts when omitted)",
 )
 @click.option("--start", default=None, help='Starting command (e.g. "plansession")')
 @click.option("--ceo", default=None, help="Initial CEO instructions")
@@ -3232,19 +3257,34 @@ def _run_main(  # pylint: disable=too-many-arguments,too-many-positional-argumen
         db_show_history(history_path, renderer=renderer, verbose=verbose)
         return
 
-    # Default project from shared config (written by --setup).
-    config_defaults = config.get("defaults") or {}
-    if not project_path and config_defaults.get("project"):
-        project_path = str(config_defaults["project"])
-        renderer.print_status(
-            f"Using default project from config: {project_path}", "Project"
+    # Default project from dotenv/environment or shared config.
+    try:
+        resolved_project = resolve_project(project_path, config, env=os.environ)
+    except ProjectResolutionError as exc:
+        _exit_with_startup_error(
+            f"Invalid project configuration: {exc}",
+            event_emitter=event_emitter,
+            machine_output=machine_output,
+            renderer=renderer,
+            title="Project Path",
         )
+    if resolved_project is not None:
+        project_path = resolved_project.path
+        if resolved_project.source == PROJECT_SOURCE_ENV:
+            renderer.print_status(
+                f"Using default project from environment: {project_path}", "Project"
+            )
+        elif resolved_project.source == PROJECT_SOURCE_CONFIG:
+            renderer.print_status(
+                f"Using default project from config: {project_path}", "Project"
+            )
 
     # Interactive mode if no path given
     if not project_path:
         renderer.print_intro()
 
         # List configured (or ~/projects/) directories
+        config_defaults = config.get("defaults") or {}
         projects_dir = Path(
             os.path.expanduser(
                 str(config_defaults.get("projects_dir") or (Path.home() / "projects"))

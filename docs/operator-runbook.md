@@ -12,6 +12,8 @@ It assumes the CLI, config, and Codex skill are already installed.
 - A valid `config.yaml`
 - Required API keys exported through `.env` or the shell environment
 - A target project directory that Codex can access
+- For `make production`, a graphical Linux session and the repository
+  virtualenv installed with `.[visual]`
 
 ## Startup Checklist
 
@@ -21,7 +23,9 @@ Before the first run:
    config, then `apex-infinite --doctor` to verify Python, config, Codex,
    provider, project, and history readiness in one pass. Doctor exits
    non-zero on blockers and prints a fix command per failing row.
-1. Confirm the target `--path` is the project you want Codex to modify.
+1. Confirm the resolved project is the project you want Codex to modify.
+   An explicit `--path` wins, followed by `APEX_INFINITE_DEFAULT_PROJECT`
+   from the environment or `.env`, then config `defaults.project`.
 2. Confirm the resolved config points at the intended provider and model.
    Resolution order: `--config`, `APEX_INFINITE_CONFIG`, the XDG shared
    config written by `--setup`, `./config.yaml`, the source checkout root,
@@ -55,7 +59,8 @@ apex-infinite
 ```
 
 Use this when you want the CLI to list directories under `~/projects/` and
-prompt for the project, start command, and optional CEO instruction.
+prompt for the project, start command, and optional CEO instruction. If a
+default project is configured, a bare invocation uses it without prompting.
 
 ### Direct execution
 
@@ -76,16 +81,38 @@ make production \
 ```
 
 This is the primary serious local operator target. It is intentionally stricter
-than a direct invocation: `PROJECT` must be absolute, exist, and contain
-`.spec_system`; the XDG shared config and repository virtualenv executable must
-already exist; and launch-time installation is forbidden. Run
-`.venv/bin/apex-infinite --setup` first when the shared config is absent.
+than a direct invocation: the resolved project must be absolute, exist, and
+contain `.spec_system`; `.venv/bin/apex-infinite`,
+`.venv/bin/apex-infinite-visual`, and PySide6 must already exist; and
+launch-time installation is forbidden. Prepare the repository environment
+beforehand with `.venv/bin/python -m pip install -e ".[dev,visual]"`.
 
-The launcher writes separate `preflight-<utc>-<pid>.jsonl` and
-`run-<utc>-<pid>.jsonl` files, runs terminal doctor plus a provider chat check,
-and only then starts live autonomous execution. It does not pass `--dry-run`,
-`--skip-provider-check`, or `--machine-output`. The default safety cap is 50
-iterations.
+Project selection order is an explicit `APEX_PRODUCTION_PATH` or Make
+`PROJECT`, then `APEX_INFINITE_DEFAULT_PROJECT` from the environment or
+`.env`, then `defaults.project` in the resolved config. For example:
+
+```dotenv
+APEX_INFINITE_DEFAULT_PROJECT=/absolute/path/to/initialized-apex-spec-project
+```
+
+Without an explicit `CONFIG`, the launcher follows the shared config chain:
+`APEX_INFINITE_CONFIG`, the XDG shared config, `./config.yaml`, the source
+checkout root, then packaged defaults. `APEX_PRODUCTION_CONFIG` or Make
+`CONFIG` explicitly selects a config ahead of that chain; a missing explicit
+selection fails fast. Run `.venv/bin/apex-infinite --setup` when you want a
+user-owned shared config instead of packaged defaults.
+
+The launcher writes `preflight-<utc>-<pid>.jsonl`, then runs terminal doctor,
+the visual dependency check, and a provider chat check. A failed gate prevents
+the window from opening. A successful gate opens the visual wrapper in live
+CLI mode; it does not start the autonomous loop automatically. Review the
+project, optional start command, live mode, and iteration cap, then click
+`Start`. The wrapper launches the base CLI through its JSONL machine-output
+boundary. Production guardrails recheck that the current project is absolute
+and contains `.spec_system` at Start. The wrapper creates
+`run-<utc>-<pid>-<unique>.jsonl` when the operator clicks `Start`. If the window
+is closed without clicking `Start`, no run log is created. The default safety
+cap is 50 iterations.
 
 Optional Make variables are:
 
@@ -96,11 +123,21 @@ MAX_ITERATIONS=25
 LOG_DIR=/absolute/path/to/private-logs
 ```
 
+`PROJECT` is optional when an environment, `.env`, or YAML project default is
+configured. It remains the clearest one-run override.
+
 Omit `START` when resuming and allowing the manager to select the next action
 from stored history. A `START` value overrides only the first iteration. The
 default log directory is
 `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/logs/`; there is no automatic
 rotation, so include these files in the operator's retention procedure.
+
+Production invokes `.venv/bin/apex-infinite-visual` directly; it does not use
+`scripts/run-visual.sh`. That script and `make visual-real` are development
+conveniences that may install missing visual dependencies and use checkout,
+`implement`, and one-iteration defaults. For headless operation, invoke the
+base `apex-infinite` CLI directly after running the equivalent doctor and
+provider checks.
 
 This target is production-like source operation, not a hosted deployment.
 The default broad-autonomy Codex flags remain suitable only for an externally
@@ -469,15 +506,18 @@ For an existing project:
   marker lives in `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/`.
 - **Wrapper run logs**: real-CLI visual runs write the full JSONL event
   stream to `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/logs/`
-  (`run-<utc>.jsonl`) by default. These are the export/diagnosis artifact
-  for a run: structured, timestamped, secret-free registered events. Use
+  (`run-<utc>-<pid>-<unique>.jsonl`) by default. These are the export/diagnosis
+  artifact for a run: structured, timestamped, secret-free registered events.
+  Use
   `--reduced-logging` to disable, `--run-log-dir` to relocate, and delete
   files from the directory to purge. There is no automatic rotation;
   clean the directory as part of routine maintenance.
-- **Production launcher logs**: `make production` writes separate preflight
-  and live-run JSONL files to the same XDG state log directory unless
-  `LOG_DIR` is set. Files are created with a private process umask, use unique
-  UTC-plus-process identifiers, and require the same manual rotation policy.
+- **Production launcher logs**: `make production` writes the unique
+  `preflight-<utc>-<pid>.jsonl` gate log to the XDG state log directory unless
+  `LOG_DIR` is set. After the operator clicks `Start`, the wrapper writes its
+  `run-<utc>-<pid>-<unique>.jsonl` stream to the same directory. Closing the
+  window before `Start` leaves only the preflight log. Files inherit the
+  launcher's private process umask and require the same manual rotation policy.
 - **Event export**: the visual event core can also export the currently
   filtered rows as JSON from the signal panel.
 - **Provider traffic**: prompts can carry recent history, latest agent

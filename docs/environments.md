@@ -5,18 +5,23 @@
 | Environment | URL Or Location | Purpose |
 |-------------|-----------------|---------|
 | Local CLI | Developer machine | Runs `apex-infinite` against an initialized Apex Spec project. |
+| Local visual wrapper | Graphical Linux session | Runs `apex-infinite-visual`; `make production` uses it after guarded preflight. |
 | Local Ollama Docker | `http://127.0.0.1:11434` by default | Optional local OpenAI-compatible provider. |
 | Hosted Grok provider | `https://api.x.ai/v1` | Optional hosted provider configured through `XAI_API_KEY`. |
 | Hosted OpenAI provider | `https://api.openai.com/v1` | Optional hosted provider configured through `OPENAI_API_KEY`. |
 | GitHub Actions quality job | `.github/workflows/quality.yml` | Installs `.[dev]`, then runs Black, Pylint, and mypy. |
 
 No staging or production web service is defined in this repository.
-`make production PROJECT=/absolute/path` is the strongest supported
-production-like local operator profile: it gates live base-CLI execution on an
-initialized project, shared config, terminal doctor, and provider chat check.
-It does not deploy a service or change the source-shippable release position.
+`make production` is the strongest supported production-like local operator
+profile: it gates a live base-CLI run on an initialized project, resolved
+config, terminal doctor, visual dependencies, and a provider chat check. It
+then opens the visual wrapper in live mode and waits for the operator to click
+`Start`. Supply `PROJECT` explicitly or configure a reusable environment,
+`.env`, or YAML project default. The repository `.[visual]` environment and a
+graphical Linux session must already be available. This does not deploy a
+service or change the source-shippable release position.
 
-## Required Environment Variables
+## Runtime Environment Variables
 
 | Variable | Purpose | Secret |
 |----------|---------|--------|
@@ -26,8 +31,13 @@ It does not deploy a service or change the source-shippable release position.
 | `OLLAMA_MODEL` | Local Ollama model name. | No |
 | `XAI_API_KEY` | Grok provider API key. | Yes |
 | `OPENAI_API_KEY` | OpenAI provider API key. | Yes |
+| `APEX_INFINITE_DEFAULT_PROJECT` | Default project when no explicit path is supplied. | No |
 | `APEX_INFINITE_PROVIDER_CHECK_TIMEOUT` | Provider preflight timeout in seconds. | No |
 | `APEX_INFINITE_LIVE_OLLAMA` | Opt-in flag for live Ollama tests. | No |
+| `APEX_VISUAL_THEME` | Visual theme used by development and production launchers. | No |
+| `APEX_VISUAL_RENDERING_MODE` | Visual rendering mode used by development and production launchers. | No |
+| `APEX_VISUAL_QUALITY_TIER` | Visual quality tier used by development and production launchers. | No |
+| `APEX_VISUAL_EFFECT_INTENSITY` | Visual effect intensity used by development and production launchers. | No |
 | `OLLAMA_DOCKER_PROJECT` | Docker Compose project name for local Ollama. | No |
 | `OLLAMA_DOCKER_CONTAINER` | Local Ollama container name. | No |
 | `OLLAMA_DOCKER_IMAGE` | Ollama Docker image tag. | No |
@@ -43,6 +53,16 @@ It does not deploy a service or change the source-shippable release position.
 variables at runtime. The repository `.env.example` contains placeholders and
 local defaults only; real hosted provider keys belong in `.env` or the shell
 environment and must not be committed.
+
+For production launches, an explicit `APEX_PRODUCTION_PATH` or `PROJECT` wins,
+followed by `APEX_INFINITE_DEFAULT_PROJECT` from the environment or `.env`,
+then config `defaults.project`. Config resolution falls through to packaged
+defaults when no explicit selection or user config exists; an explicitly
+selected missing `CONFIG` remains an error.
+
+Production invokes the preinstalled visual executable directly, not
+`scripts/run-visual.sh`. The guarded preflight log is created before the window
+opens; the wrapper run log is created only after the operator clicks `Start`.
 
 ## Data Locations
 

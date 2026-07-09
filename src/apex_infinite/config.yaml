@@ -1,6 +1,12 @@
 # Choose active provider: ollama | grok | openai
 provider: ollama
 
+# Optional default when no explicit project path is supplied. Uncomment and
+# replace the example path, or set APEX_INFINITE_DEFAULT_PROJECT in .env.
+# Production APEX_PRODUCTION_PATH or PROJECT values take precedence.
+# defaults:
+#   project: "/absolute/path/to/initialized-apex-spec-project"
+
 # Codex CLI agent configuration
 codex:
   binary: "codex"

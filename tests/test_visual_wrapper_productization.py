@@ -178,6 +178,40 @@ def test_launcher_validates_cli_script_and_project_path(tmp_path):
             )
         )
 
+    with pytest.raises(ApexCliLaunchError, match="missing .spec_system"):
+        build_apex_cli_command(
+            ApexCliLaunchOptions(
+                project_path=tmp_path,
+                cli_script=cli_script,
+                require_initialized_project=True,
+            )
+        )
+
+    (tmp_path / ".spec_system").mkdir()
+    production_command = build_apex_cli_command(
+        ApexCliLaunchOptions(
+            project_path=tmp_path,
+            cli_script=cli_script,
+            require_initialized_project=True,
+        )
+    )
+    assert production_command[production_command.index("--path") + 1] == str(tmp_path)
+
+
+def test_production_project_guard_rejects_relative_path(tmp_path, monkeypatch):
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / ".spec_system").mkdir()
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(ApexCliLaunchError, match="must be absolute"):
+        build_apex_cli_command(
+            ApexCliLaunchOptions(
+                project_path="project",
+                require_initialized_project=True,
+            )
+        )
+
 
 class TimeoutProcess:
     """Process double that times out once and then exits during cleanup."""

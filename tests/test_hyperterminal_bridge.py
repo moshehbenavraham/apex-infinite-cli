@@ -335,6 +335,7 @@ def test_parse_args_accepts_hyperterminal_flags(tmp_path):
             "--profile-store",
             str(tmp_path / "p.json"),
             "--no-restore-profile",
+            "--require-initialized-project",
         ]
     )
 
@@ -343,6 +344,7 @@ def test_parse_args_accepts_hyperterminal_flags(tmp_path):
     assert options.font_width == 1.1
     assert options.line_spacing == 1.2
     assert options.restore_profile is False
+    assert options.require_initialized_project is True
     assert options.profile_store_path == str(tmp_path / "p.json")
 
 
@@ -568,6 +570,24 @@ def test_run_log_written_by_default_for_cli_runs(tmp_path):
     assert len(log_files) == 1
     lines = log_files[0].read_text(encoding="ascii").splitlines()
     assert any('"run_stopped"' in line for line in lines)
+    row = json.loads(lines[-1])
+    assert row["timestamp"].endswith("Z")
+    assert row["timestamp"] != "2026-07-03T00:00:00Z"
+
+
+def test_run_log_names_are_unique(tmp_path):
+    log_dir = tmp_path / "run-logs"
+    bridge = make_bridge(tmp_path, launch_cli=True, run_log_dir=str(log_dir))
+
+    bridge._open_run_log()  # pylint: disable=protected-access
+    first = bridge.runLogPath
+    bridge._open_run_log()  # pylint: disable=protected-access
+    second = bridge.runLogPath
+    bridge._close_run_log()  # pylint: disable=protected-access
+
+    assert first != second
+    assert Path(first).is_file()
+    assert Path(second).is_file()
 
 
 def test_run_log_skipped_with_reduced_logging(tmp_path):

@@ -2,6 +2,7 @@
 
 import json
 
+import pytest
 from click.testing import CliRunner
 
 import apex_infinite.cli as apex_infinite
@@ -13,8 +14,13 @@ from apex_infinite.config_resolution import (
     SOURCE_PACKAGED,
     SOURCE_SOURCE_ROOT,
     SOURCE_XDG,
+    PROJECT_SOURCE_CONFIG,
+    PROJECT_SOURCE_ENV,
+    PROJECT_SOURCE_EXPLICIT,
+    ProjectResolutionError,
     first_run_needed,
     resolve_config,
+    resolve_project,
     user_config_path,
 )
 
@@ -148,6 +154,62 @@ def test_first_run_needed_false_with_xdg_config(tmp_path):
     _make_config(tmp_path / "xdg" / "apex-infinite" / "config.yaml")
 
     assert first_run_needed(None, env=_xdg_env(tmp_path), cwd=tmp_path / "cwd") is False
+
+
+def test_resolve_project_explicit_path_wins_over_env_and_config():
+    resolved = resolve_project(
+        "/projects/explicit",
+        {"defaults": {"project": "/projects/config"}},
+        env={"APEX_INFINITE_DEFAULT_PROJECT": "/projects/environment"},
+    )
+
+    assert resolved is not None
+    assert resolved.path == "/projects/explicit"
+    assert resolved.source == PROJECT_SOURCE_EXPLICIT
+
+
+def test_resolve_project_environment_wins_over_config():
+    resolved = resolve_project(
+        None,
+        {"defaults": {"project": "/projects/config"}},
+        env={"APEX_INFINITE_DEFAULT_PROJECT": "  /projects/environment  "},
+    )
+
+    assert resolved is not None
+    assert resolved.path == "/projects/environment"
+    assert resolved.source == PROJECT_SOURCE_ENV
+
+
+def test_resolve_project_config_is_fallback():
+    resolved = resolve_project(
+        None,
+        {"defaults": {"project": "/projects/config"}},
+        env={},
+    )
+
+    assert resolved is not None
+    assert resolved.path == "/projects/config"
+    assert resolved.source == PROJECT_SOURCE_CONFIG
+
+
+def test_resolve_project_returns_none_without_a_default():
+    assert resolve_project(None, {}, env={}) is None
+    assert resolve_project(None, {"defaults": {"project": ""}}, env={}) is None
+
+
+@pytest.mark.parametrize(
+    ("config", "message"),
+    [
+        ({"defaults": []}, "config 'defaults' must be a mapping"),
+        (
+            {"defaults": {"project": ["not", "a", "path"]}},
+            "config 'defaults.project' must be a string",
+        ),
+    ],
+)
+def test_resolve_project_rejects_malformed_defaults(config, message):
+    with pytest.raises(ProjectResolutionError, match=message):
+        resolve_project(None, config, env={})
 
 
 def test_load_config_prefers_config_directory_env_file(monkeypatch, tmp_path):

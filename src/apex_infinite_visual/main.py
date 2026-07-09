@@ -11,6 +11,7 @@ import sys
 import threading
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TextIO
 
@@ -96,6 +97,7 @@ class VisualWrapperOptions:  # pylint: disable=too-many-instance-attributes
     reduced_logging: bool = False
     run_log_dir: str | None = None
     run_doctor: bool = False
+    require_initialized_project: bool = False
 
 
 def import_qt_modules():  # pylint: disable=import-outside-toplevel
@@ -1322,6 +1324,7 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 model=self._options.model,
                 max_iterations=self._max_iterations,
                 dry_run=self._dry_run,
+                require_initialized_project=(self._options.require_initialized_project),
                 process_timeout_seconds=self._options.process_timeout_seconds,
             )
             try:
@@ -1450,7 +1453,9 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             row = {
                 "version": 1,
                 "event": event,
-                "timestamp": "2026-07-03T00:00:00Z",
+                "timestamp": datetime.now(timezone.utc)
+                .isoformat(timespec="milliseconds")
+                .replace("+00:00", "Z"),
                 "payload": payload,
             }
             line = json.dumps(row, ensure_ascii=True)
@@ -1558,11 +1563,11 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 else xdg_state_dir() / "logs"
             )
             stamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
-            path = log_dir / f"run-{stamp}.jsonl"
+            path = log_dir / f"run-{stamp}-{os.getpid()}-{time.time_ns()}.jsonl"
             try:
                 log_dir.mkdir(parents=True, exist_ok=True)
                 # pylint: disable-next=consider-using-with
-                self._run_log_handle = path.open("a", encoding="ascii", buffering=1)
+                self._run_log_handle = path.open("x", encoding="ascii", buffering=1)
                 self._run_log_path = str(path)
             except OSError:
                 self._run_log_handle = None
@@ -1813,6 +1818,11 @@ def parse_args(argv: list[str] | None = None) -> VisualWrapperOptions:
         help="Run launch-readiness diagnostics automatically at startup",
     )
     parser.add_argument(
+        "--require-initialized-project",
+        action="store_true",
+        help="Require an absolute project containing .spec_system at launch",
+    )
+    parser.add_argument(
         "--reduced-logging",
         action="store_true",
         help="Do not write the durable per-run JSONL log for real CLI runs",
@@ -1873,6 +1883,7 @@ def parse_args(argv: list[str] | None = None) -> VisualWrapperOptions:
         reduced_logging=args.reduced_logging,
         run_log_dir=args.run_log_dir,
         run_doctor=args.run_doctor,
+        require_initialized_project=args.require_initialized_project,
     )
 
 

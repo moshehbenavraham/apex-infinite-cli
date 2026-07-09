@@ -48,6 +48,7 @@ class ApexCliLaunchOptions:  # pylint: disable=too-many-instance-attributes
     model: str | None = None
     max_iterations: int | None = None
     dry_run: bool = False
+    require_initialized_project: bool = False
     process_timeout_seconds: int | None = None
     extra_env: Mapping[str, str] | None = None
 
@@ -64,7 +65,10 @@ class ApexCliProcess:
         self.popen_factory = popen_factory
         self.command = build_apex_cli_command(options)
         self.process: subprocess.Popen[str] | None = None
-        self._project_path = validate_project_path(options.project_path)
+        self._project_path = validate_project_path(
+            options.project_path,
+            require_initialized=options.require_initialized_project,
+        )
 
     @property
     def stdout(self) -> TextIO | None:
@@ -80,7 +84,10 @@ class ApexCliProcess:
         """Start the CLI process with stdout reserved for JSONL events."""
         if self.process is not None and self.process.poll() is None:
             raise RuntimeError("Apex CLI process is already running")
-        project_path = validate_project_path(self.options.project_path)
+        project_path = validate_project_path(
+            self.options.project_path,
+            require_initialized=self.options.require_initialized_project,
+        )
         env = os.environ.copy()
         if self.options.extra_env:
             env.update(dict(self.options.extra_env))
@@ -143,7 +150,12 @@ def build_apex_cli_command(options: ApexCliLaunchOptions) -> list[str]:
     """Build the guarded CLI command consumed by the visual wrapper."""
     if not options.python_executable:
         raise ValueError("python_executable is required")
-    project_path = str(validate_project_path(options.project_path))
+    project_path = str(
+        validate_project_path(
+            options.project_path,
+            require_initialized=options.require_initialized_project,
+        )
+    )
     if not options.module_name:
         raise ValueError("module_name is required")
     if options.max_iterations is not None and options.max_iterations < 1:
@@ -200,13 +212,24 @@ def resolve_launch_cwd(path: str | Path | None = None) -> Path:
     return validate_cli_script(path).parent
 
 
-def validate_project_path(path: str | Path) -> Path:
+def validate_project_path(
+    path: str | Path, *, require_initialized: bool = False
+) -> Path:
     """Resolve and validate the project path before launching the base CLI."""
-    project_path = Path(path).expanduser().resolve()
+    selected_path = Path(path).expanduser()
+    if require_initialized and not selected_path.is_absolute():
+        raise ApexCliLaunchError(
+            "invalid_project", "production project path must be absolute"
+        )
+    project_path = selected_path.resolve()
     if not project_path.exists():
         raise ApexCliLaunchError("invalid_project", "project path does not exist")
     if not project_path.is_dir():
         raise ApexCliLaunchError("invalid_project", "project path is not a directory")
+    if require_initialized and not (project_path / ".spec_system").is_dir():
+        raise ApexCliLaunchError(
+            "invalid_project", "production project is missing .spec_system"
+        )
     return project_path
 
 
