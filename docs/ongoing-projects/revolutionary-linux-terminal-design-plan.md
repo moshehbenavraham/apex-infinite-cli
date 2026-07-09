@@ -119,6 +119,536 @@ Forbidden translation:
   packaging scripts.
 - Do not vendor `qmltermwidget`, QTermWidget, or terminal-emulator code.
 
+## EXAMPLE Source Reference Map
+
+This map exists to make the design plan traceable. Every path below is
+reference-only evidence from the local study tree, not an implementation source
+for Apex. Use these anchors to understand what production concerns the
+reference app solved, then build Apex-owned code, constants, assets, profiles,
+metadata, and release scripts.
+
+### Clean-Room Boundary Anchors
+
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/README.md:7-15`
+  - Code references: project description, `qmltermwidget` dependency note,
+    settings categories.
+  - Plan mapping: validates that the reference app is a terminal-emulator-style
+    visual product, while Apex must stay a workflow command surface and must not
+    vendor `qmltermwidget`.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml:24-37`
+  - Code references: `import QMLTermWidget 2.0`, `QMLTermWidget`,
+    `QMLTermSession`, `ShaderEffectSource mainSource`.
+  - Plan mapping: reinforces the explicit Apex boundary that the visual wrapper
+    must render registered workflow events, not become a general terminal
+    emulator widget.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml:96-128`
+  - Code references: `QMLTermWidget`, `textureSize`, `colorScheme`,
+    `QMLTermSession`.
+  - Plan mapping: useful only as a conceptual reminder that the source surface
+    can be captured into render buffers; Apex should capture event rows and
+    panels, not terminal emulator state.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/resources.qrc:19-47`
+  - Code references: bundled fonts and original reference images/icons.
+  - Plan mapping: confirms that fonts and images are asset-heavy release
+    concerns; Apex must create or select its own licensed font and image path.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/resources.qrc:51-118`
+  - Code references: generated shader blobs, `.qsb` files, bundled font files.
+  - Plan mapping: every Apex shader artifact must be generated from Apex-owned
+    source and reviewed before release.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/packaging/debian/copyright:1-11`
+  - Code references: Debian copyright file, `GPL-3`.
+  - Plan mapping: reference material is license-sensitive and must remain
+    outside Apex tracked code unless a separate legal decision explicitly
+    changes scope.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/packaging/rpm/cool-retro-term.spec:19-25`
+  - Code references: `License: GPL-3.0+`.
+  - Plan mapping: release metadata can inspire Apex's dependency inventory and
+    notices, but not be copied.
+
+### Runtime App And Shell Structure Anchors
+
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/main.cpp:65-75`
+  - Code references: `--default-settings`, `--workdir`, `-e`, `--fullscreen`,
+    `--profile`, `--verbose`.
+  - Plan mapping: supports a real visual launcher CLI, but Apex options should
+    remain workflow-oriented: project path, dry-run/live-run, doctor, profile,
+    and first-run mode.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/main.cpp:86-111`
+  - Code references: `QApplication`, application identity, icon, desktop file
+    name.
+  - Plan mapping: Apex visual needs Linux-native application identity, icon,
+    and desktop integration rather than a script-only wrapper.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/main.cpp:101-140`
+  - Code references: `QQmlApplicationEngine`, `FileIO`, `FontManager`,
+    root context properties, import path registration, `engine.load`.
+  - Plan mapping: informs Apex bridge design, but Apex should expose workflow
+    state models and actions instead of terminal-widget command properties.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/main.qml:27-45`
+  - Code references: `ApplicationSettings`, `TimeManager`,
+    `SettingsWindow`, `TerminalWindow`.
+  - Plan mapping: supports splitting Apex `Main.qml` into app settings,
+    timing/effects, shell, and settings components.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml:26-52`
+  - Code references: `ApplicationWindow`, default dimensions, minimum size,
+    fullscreen, menu bar, title.
+  - Plan mapping: Apex app shell should be full-window, Linux-native, and
+    stable at minimum sizes.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml:53-125`
+  - Code references: `Action` objects for fullscreen, new window, quit,
+    settings, copy, paste, zoom, about, tab handling.
+  - Plan mapping: Apex command strip should expose real actions as first-class
+    UI controls and shortcuts, including run, stop, resume, doctor, profile,
+    and zoom/font controls.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml:41-60`
+  - Code references: `addTab()`, `closeTab()`, `ListModel`.
+  - Plan mapping: supports modeling repeated shell surfaces cleanly. Apex may
+    later use tabs for projects/runs, but the first production target should
+    stay one focused workflow surface.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml:124-154`
+  - Code references: `StackLayout`, `Repeater`, `TerminalContainer`.
+  - Plan mapping: reinforces decomposition into shell, command surface, run
+    console, status rail, signal panel, settings drawer, and effects surface.
+
+### Render Pipeline Anchors
+
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/app.pro:34-52`
+  - Code references: `qsb`, shader compilation, shader inputs, `QMAKE_EXTRA_COMPILERS`.
+  - Plan mapping: Apex shader source needs an explicit build/review pipeline
+    before generated artifacts are committed.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/app.pro:57-95`
+  - Code references: `RASTER_MODES`, `BINARY_FLAGS`, dynamic shader variant
+    targets, static shader variant targets.
+  - Plan mapping: supports capability-selected effect variants, but Apex should
+    design its own quality tiers and shader module switches.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml:26-48`
+  - Code references: `dynamicFragmentPath()`, `staticFragmentPath()`,
+    `rasterization`, `burnIn`, `frameEnabled`, `chromaColor`, `rgbShift`,
+    `bloom`, `screenCurvature`, `frameShininess`.
+  - Plan mapping: translates to Apex render capability flags and quality
+    profiles without copying names, paths, formulas, or shader constants.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml:50-71`
+  - Code references: `ShaderEffectSource source`, `BurnInEffect`,
+    `bloomSource`, `fontColor`, `backgroundColor`, `virtualResolution`,
+    `screenResolution`.
+  - Plan mapping: informs Apex scene graph state: event source, effect buffer,
+    bloom/glow buffer, profile colors, and viewport/capability sizing.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml:72-137`
+  - Code references: dynamic `ShaderEffect`, `screenBuffer`, `burnInSource`,
+    `frameSource`, `flickering`, `horizontalSync`, `glowingLine`, `jitter`,
+    `staticNoise`, `noiseTexture`, `rasterizationIntensity`.
+  - Plan mapping: supports the Apex Workstream 5 goal of an original dynamic
+    postprocess layer for noise, sync, jitter, persistence, and event pulse.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml:139-160`
+  - Code references: conditional `Loader`, `TerminalFrame`,
+    `ShaderEffectSource`, `hideSource`.
+  - Plan mapping: supports optional frame treatment behind capability and
+    reduced-effects gates.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml:162-200`
+  - Code references: static `ShaderEffect`, `bloomSource`, `rgbShift`,
+    `screen_brightness`, static `ShaderEffectSource frameBuffer`.
+  - Plan mapping: supports separating dynamic event-row effects from final
+    presentation composition.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml:56-82`
+  - Code references: `bloomEffectLoader`, `FastBlur`, `bloomSourceLoader`,
+    `ShaderEffectSource`.
+  - Plan mapping: informs the Apex QML-only Stage 1 glow path before custom
+    shaders exist.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml:268-295`
+  - Code references: `kterminalSource`, `textureSize`, `sourceRect`,
+    `burnInContainer`, `burnInQuality`.
+  - Plan mapping: Apex should use stable texture sizing for event panels and
+    effect buffers, with quality controls separated from visual intensity.
+
+### Effect And Shader Behavior Anchors
+
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:74-102`
+  - Code references: `staticNoise`, `screenCurvature`, `glowingLine`,
+    `burnIn`, `bloom`, `chromaColor`, `jitter`, `horizontalSync`,
+    `flickering`, `rgbShift`, `frameShininess`, `frameSize`, `screenRadius`,
+    `frameEnabled`.
+  - Plan mapping: validates the plan's effect inventory. Apex implementation
+    must bind similar categories to workflow state, not arbitrary decoration.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsEffectsTab.qml:29-94`
+  - Code references: effect controls for bloom, burn-in, static noise, jitter,
+    glow line, curvature, ambient light, flickering, horizontal sync, RGB
+    shift, and frame shininess.
+  - Plan mapping: Apex settings drawer should expose comparable operator
+    controls plus reduced/plain fallbacks and semantic event triggers.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml:24-50`
+  - Code references: `Loader`, `effectSource`, `lastUpdate`,
+    `burnInFadeTime`, `completelyUpdate()`.
+  - Plan mapping: supports an Apex-owned phosphor/persistence model reacting
+    to new event rows, iterations, errors, and run completion.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml:61-128`
+  - Code references: recursive `ShaderEffectSource`, terminal paint
+    connection, settings-change restart, `burn_in` shader.
+  - Plan mapping: Apex persistence must reset cleanly on profile/font/quality
+    changes and expose predictable fallbacks.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml:24-49`
+  - Code references: `ShaderEffect`, frame color mix, curvature, frame size,
+    radius, viewport size, ambient light, frame shaders.
+  - Plan mapping: Apex frame treatment should be a reusable effect component,
+    not hard-coded into the main shell.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.vert:39-49`
+  - Code references: time-based brightness, horizontal sync strength,
+    distortion scale/frequency.
+  - Plan mapping: Apex signal distortion can be event-reactive and bounded by
+    quality tier rather than constant idle motion.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag:23-52`
+  - Code references: uniforms for time, colors, virtual resolution,
+    rasterization intensity, burn-in, static noise, curvature, glow line,
+    chroma, jitter, horizontal sync, flickering, frame, bloom.
+  - Plan mapping: Apex shader interfaces should have a typed render-state
+    object derived from profiles, capability detection, and workflow events.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag:66-117`
+  - Code references: rasterization modes for scanline, pixel, and subpixel
+    treatments.
+  - Plan mapping: supports Apex rendering modes `scanline`, `pixel-grid`,
+    `subpixel`, and `modern-crisp`, implemented independently.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag:134-179`
+  - Code references: coordinate distortion, procedural noise sampling, jitter,
+    glow line, frame mixing, burn-in, rasterization, chroma conversion,
+    flickering.
+  - Plan mapping: evidence for the staged effect pipeline and verification
+    needs: nonblank pixels, reduced effects, performance, and fallback.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag:19-31`
+  - Code references: final composition uniforms and bloom source.
+  - Plan mapping: supports separating final presentation state from event-log
+    state.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag:51-68`
+  - Code references: curvature and RGB shift.
+  - Plan mapping: Apex chroma/subpixel effects should be optional, bounded,
+    and disabled in reduced/plain modes.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag:72-98`
+  - Code references: bloom sampling, frame reflection, brightness, noise,
+    final color.
+  - Plan mapping: supports final composition and frame-lighting design, with
+    Apex-owned formulas and constants.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/burn_in.frag:6-15`
+  - Code references: burn-in timing uniforms and source samplers.
+  - Plan mapping: Apex persistence needs explicit timing state, not hidden UI
+    timers.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/burn_in.frag:21-36`
+  - Code references: accumulated color, previous mask, decay, current mask.
+  - Plan mapping: Apex should implement event-row trails clean-room with
+    verified decay behavior.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag:6-16`
+  - Code references: frame uniforms for curvature, color, size, radius,
+    viewport, ambient light, shininess.
+  - Plan mapping: Apex frame effects should be profile-driven and responsive to
+    current run severity.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/terminal_frame.frag:38-79`
+  - Code references: frame coordinate distortion, rounded rectangle mask,
+    edge softness, glass, frame tint, noise, alpha.
+  - Plan mapping: supports original Apex frame/glass treatment with screenshot
+    and overlap verification.
+
+### Profiles, Settings, And Persistence Anchors
+
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:27-40`
+  - Code references: `version`, `profileVersion`, min/max font scaling,
+    burn-in fade time.
+  - Plan mapping: Apex profiles need explicit schema versioning and bounded
+    ranges.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:42-128`
+  - Code references: general settings, performance values, profile settings,
+    rasterization constants, font source constants, font aliases.
+  - Plan mapping: supports splitting Apex settings into visual profile,
+    runtime window state, effect quality, and font controls.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:160-211`
+  - Code references: `composeSettingsString()`, `composeProfileObject()`,
+    `composeProfileString()`.
+  - Plan mapping: Apex profile persistence should serialize a versioned,
+    validated object rather than raw QML state.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:213-240`
+  - Code references: `loadSettings()`, `storeSettings()`, `_CURRENT_SETTINGS`,
+    `_CURRENT_PROFILE`.
+  - Plan mapping: Apex should persist last profile and runtime state, but under
+    XDG JSON files with atomic writes and corruption backup.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:266-312`
+  - Code references: `loadProfileString()` restoring visual and font fields.
+  - Plan mapping: Apex profile load must be complete, deterministic, and tested
+    against all built-in profile fields.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:314-363`
+  - Code references: custom profile storage, `appendCustomProfile()`.
+  - Plan mapping: Apex needs custom profile lifecycle operations and tests.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:365-843`
+  - Code references: built-in profile `ListModel` entries.
+  - Plan mapping: Apex should ship richer built-in profiles, but names, colors,
+    constants, and JSON must be Apex-owned.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:853-875`
+  - Code references: startup argument handling, default settings, custom
+    profile load, `--profile`.
+  - Plan mapping: Apex visual profile selection can be CLI-driven, with invalid
+    profiles producing visible warnings.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsWindow.qml:38-73`
+  - Code references: tabs `General`, `Terminal`, `Effects`, `Advanced`.
+  - Plan mapping: supports Apex settings drawer structure: profile, command,
+    terminal text, effects, performance, doctor, and release diagnostics.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml:25-90`
+  - Code references: profile list, save, load, remove.
+  - Plan mapping: Apex should support save, duplicate, rename, delete custom,
+    reset built-in, and visible validation errors.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml:96-180`
+  - Code references: import/export, JSON parse, `profileVersion`, file read and
+    write.
+  - Plan mapping: Apex import/export must validate schema, reject secrets, and
+    never mutate shared CLI config without explicit confirmation.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml:185-237`
+  - Code references: brightness, contrast, margin, radius, frame size, opacity.
+  - Plan mapping: Apex visual profile should include layout density, row
+    sizing, frame strength, and brightness/contrast controls.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/Storage.qml:24-88`
+  - Code references: `LocalStorage.openDatabaseSync`, settings table, get/set,
+    drop.
+  - Plan mapping: Apex explicitly chooses XDG JSON with atomic writes instead
+    of QML local storage so tests can run without PySide6.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fileio.cpp:7-37`
+  - Code references: `FileIO::write()`, `FileIO::read()`.
+  - Plan mapping: Apex import/export should live in Python profile-store code
+    with schema validation, not QML file IO.
+
+### Font And Text Rendering Anchors
+
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml:29-72`
+  - Code references: font source controls, rendering mode combo, default,
+    scanlines, pixels, sub-pixels, modern.
+  - Plan mapping: Apex rendering modes should be visible operator choices and
+    must remain readable under all profiles.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml:76-117`
+  - Code references: font list selection, low-resolution vs modern fallback,
+    `fontName`.
+  - Plan mapping: Apex can use system fonts first and optional curated fonts
+    only with clear licenses and provenance.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml:119-172`
+  - Code references: `fontScaling`, `fontWidth`, `lineSpacing`.
+  - Plan mapping: Apex profile schema should include font family, scale, width,
+    and line spacing as planned.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml:175-219`
+  - Code references: chroma color, saturation color, font/background/frame
+    color buttons.
+  - Plan mapping: Apex settings should separate semantic palette tokens from
+    raw visual colors.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fontmanager.h:11-24`
+  - Code references: `Q_PROPERTY` values for font list, source,
+    rasterization, name, scaling, width, line spacing, low-resolution state.
+  - Plan mapping: Apex bridge should expose typed properties, not loosely
+    parsed strings.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fontmanager.cpp:27-42`
+  - Code references: monospace system font discovery via `QFontDatabase`.
+  - Plan mapping: Apex should prefer system monospace discovery before bundling
+    any font assets.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fontmanager.cpp:60-90`
+  - Code references: source/rasterization setters updating filtered fonts and
+    computed font.
+  - Plan mapping: Apex rendering mode changes must update dependent font and
+    layout state immediately.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fontmanager.cpp:197-381`
+  - Code references: bundled font registration list.
+  - Plan mapping: Apex must not copy bundled fonts, names, or font profile
+    choices from the reference tree.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fontmanager.cpp:426-463`
+  - Code references: source and rasterization filtering.
+  - Plan mapping: Apex font controls should enforce valid combinations rather
+    than allowing broken visual states.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fontmanager.cpp:465-528`
+  - Code references: target pixel height, line spacing, screen scaling, width,
+    fallback chain, `terminalFontChanged`.
+  - Plan mapping: Apex text rendering needs deterministic sizing so labels,
+    event rows, and buttons do not shift or overlap.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fontmanager.cpp:541-584`
+  - Code references: application font loading, family cache, base width
+    calculation.
+  - Plan mapping: any Apex bundled font path must include provenance, fallback,
+    and layout measurement tests.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fontlistmodel.h:10-21`
+  - Code references: `FontEntry` shape.
+  - Plan mapping: Apex profile store should use explicit structured data for
+    font choices and avoid ad hoc string parsing.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fontlistmodel.cpp:48-60`
+  - Code references: QML roles `name`, `text`, `source`, `baseWidth`,
+    `pixelSize`, `lowResolutionFont`, `isSystemFont`, `family`,
+    `fallbackName`.
+  - Plan mapping: Apex QML models should expose stable roles for all list-based
+    controls.
+
+### Timing, Performance, And Quality Anchors
+
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml:22-45`
+  - Code references: `FrameAnimation`, `effectsFrameSkip`, `framesPerUpdate`,
+    elapsed time updates.
+  - Plan mapping: Apex quality tiers need explicit frame pacing, battery/low
+    effects modes, and offscreen fallback behavior.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml:72-149`
+  - Code references: effects FPS, texture quality, bloom quality, burn-in
+    quality.
+  - Plan mapping: Apex should separate effect intensity from render cost and
+    expose quality tiers: Cinematic, Balanced, Battery, Low Effects, Plain.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:48-53`
+  - Code references: `effectsFrameSkip`, `bloomQuality`, `burnInQuality`.
+  - Plan mapping: quality defaults should be persisted and validated.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml:103-112`
+  - Code references: `rasterizationIntensity` and bloom scaling.
+  - Plan mapping: Apex effects should degrade gracefully at high pixel density
+    and low capability.
+
+### Desktop And Release Packaging Anchors
+
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/README.md:22-30`
+  - Code references: release artifacts and build documentation expectation.
+  - Plan mapping: Apex visual release must include installable artifacts,
+    verification notes, and clear build docs.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/cool-retro-term.desktop:1-16`
+  - Code references: `.desktop` fields, categories, keywords, desktop action.
+  - Plan mapping: Apex needs original desktop metadata with launcher actions
+    for visual run, doctor, and safe dry run.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/packaging/appdata/cool-retro-term.appdata.xml:1-40`
+  - Code references: AppStream component, metadata license, project license,
+    summary, screenshots, release entry.
+  - Plan mapping: Apex AppStream metadata must include its own description,
+    screenshots, license fields, and release notes.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/app.pro:101-117`
+  - Code references: install target and icon install locations.
+  - Plan mapping: Apex packaging must install the binary, icon sizes, desktop
+    file, AppStream metadata, and notices coherently.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/snap/snapcraft.yaml:1-17`
+  - Code references: snap name/version/summary, confinement, app command,
+    desktop entry, QML import path.
+  - Plan mapping: useful only as packaging category evidence. Apex should not
+    copy snap metadata and should prioritize AppImage/source install first.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/snap/snapcraft.yaml:18-70`
+  - Code references: desktop helper part, Qt/QML build packages, stage
+    packages.
+  - Plan mapping: Apex release notes need a dependency inventory for Qt/PySide,
+    plugins, graphics backends, and desktop integration.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/scripts/build-appimage.sh:1-33`
+  - Code references: build dir, version, qmake check, AppDir creation, install
+    targets.
+  - Plan mapping: Apex AppImage build needs deterministic build dirs, version
+    labeling, clean install roots, and no dependence on a source checkout at
+    runtime.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/scripts/build-appimage.sh:37-47`
+  - Code references: QML import relocation.
+  - Plan mapping: Apex packaging must inspect bundled QML/PySide resources and
+    avoid missing-plugin runtime failures.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/scripts/build-appimage.sh:50-82`
+  - Code references: `linuxdeploy`, Qt plugin, platform plugins, excluded SQL
+    libraries, AppImage output name.
+  - Plan mapping: Apex AppImage release must record toolchain choices,
+    excluded libraries, Qt plugins, checksum, and clean-machine evidence.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/packaging/debian/control:9-20`
+  - Code references: Qt/QML build dependencies and runtime dependencies.
+  - Plan mapping: Apex visual extra must keep graphical dependencies optional
+    and absent from the base CLI install.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/packaging/rpm/cool-retro-term.spec:34-57`
+  - Code references: RPM Qt build/runtime requirements.
+  - Plan mapping: supports cross-distro dependency inventory and package
+    verification.
+- Source:
+  `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/packaging/debian/cool-retro-term.1:15-43`
+  - Code references: user-facing command options in man page.
+  - Plan mapping: Apex visual packaging should document source install,
+    AppImage invocation, profile selection, doctor, dry-run, live-run, and
+    workdir/project path flags.
+
+### Apex Design-To-Reference Traceability
+
+| Apex plan item | Reference anchors |
+| --- | --- |
+| Preserve event-wrapper boundary | `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/README.md:11`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml:24-37`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/PreprocessedTerminal.qml:96-128` |
+| Split `Main.qml` into app shell/components | `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/main.qml:27-45`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalWindow.qml:26-52`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalTabs.qml:124-154` |
+| Multi-stage render/effect pipeline | `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ShaderTerminal.qml:72-200`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/app.pro:57-95`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/resources.qrc:51-112` |
+| Event-row persistence/phosphor trail | `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/BurnInEffect.qml:24-128`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/burn_in.frag:21-36`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag:161-166` |
+| Bloom/glow/ambient frame | `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalContainer.qml:56-82`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TerminalFrame.qml:24-49`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/terminal_static.frag:72-98` |
+| Scanline/pixel/subpixel rendering modes | `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:104-110`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml:56-72`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/shaders/terminal_dynamic.frag:66-117` |
+| Profile persistence/import/export | `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:160-363`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsGeneralTab.qml:25-180`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/Storage.qml:24-88` |
+| Font controls and stable text layout | `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsTerminalTab.qml:29-172`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fontmanager.cpp:426-528`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/fontlistmodel.cpp:48-60` |
+| Quality tiers and performance pacing | `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/TimeManager.qml:22-45`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/SettingsAdvancedTab.qml:72-149`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/ApplicationSettings.qml:48-53` |
+| Desktop/AppImage release lane | `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/cool-retro-term.desktop:1-16`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/packaging/appdata/cool-retro-term.appdata.xml:1-40`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/scripts/build-appimage.sh:1-82` |
+| Clean-room license gates | `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/packaging/debian/copyright:1-11`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/packaging/rpm/cool-retro-term.spec:19-25`, `/home/aiwithapex/projects/apex-infinite-cli/EXAMPLE/cool-retro-term/app/qml/resources.qrc:19-118` |
+
 ## Product Identity
 
 Working product name for this design lane:

@@ -14,7 +14,11 @@ prompt/routing tests. This PRD focuses the standalone package on a polished,
 testable operator console while preserving the existing autonomous workflow
 contract.
 
-The near-term product direction is a Rich-based terminal experience with explicit plain-output fallbacks, then a raw lifecycle event boundary for future visual surfaces. A later Linux visual wrapper may build on that event boundary, but the base CLI must remain lightweight, scriptable, and safe for headless operation.
+The completed terminal upgrade provides a Rich-based operator console, explicit
+plain-output fallbacks, and a raw lifecycle event boundary. The next product
+lane is Apex Infinite Hyperterminal: a Linux-native, event-driven visual command
+surface that uses the Python CLI as the workflow engine while keeping graphical
+dependencies out of the base CLI install.
 
 ## Goals
 
@@ -23,16 +27,23 @@ The near-term product direction is a Rich-based terminal experience with explici
 3. Add explicit, validated UI configuration and CLI flags for themes, plain output, ASCII output, compact output, and event streaming.
 4. Maintain backward compatibility for existing `~/.apex-infinite/history.db` files and prompt/routing behavior.
 5. Provide a raw lifecycle event stream that future visual surfaces can consume without scraping terminal output.
-6. Explore a standalone Linux visual wrapper as an optional companion surface without adding graphical dependencies to the base CLI.
+6. Promote the standalone Linux visual wrapper into an event-driven
+   Hyperterminal command surface without adding graphical dependencies to the
+   base CLI.
+7. Ship the visual lane with persisted profiles, workflow-aware effects, first-run setup, doctor UX, desktop integration, and clean-room release evidence.
 
 ## Non-Goals
 
 - Replacing Codex CLI or changing the Apex Spec staged workflow.
 - Rewriting the manager or summarizer prompt contract unless a scoped session explicitly changes prompt behavior and updates tests and docs together.
 - Requiring `cool-retro-term`, qmltermwidget, QTermWidget, PyQt, an external terminal emulator, or a graphical display for normal CLI use.
-- Copying `cool-retro-term` code, QML, shaders, images, icons, fonts, resource manifests, profile data, or build scripts.
+- Copying `cool-retro-term` code, QML, shaders, generated shader blobs, images,
+  icons, fonts, resource manifests, profile data, package metadata, terminal
+  widget code, or build scripts.
 - Migrating or renaming the legacy SQLite `cc_response` column.
 - Shipping macOS or Windows visual-wrapper support in this project.
+- Turning the visual wrapper into a general-purpose terminal emulator, shell,
+  web dashboard, or landing page.
 - Broadly rebuilding the root Apex Spec skill package except where CLI integration docs or command routing require it.
 
 ## Users and Use Cases
@@ -42,7 +53,8 @@ The near-term product direction is a Rich-based terminal experience with explici
 - **Operator**: Runs Apex Infinite CLI against initialized projects and needs clear progress, errors, history, and safe interruption.
 - **Apex Spec maintainer**: Develops and verifies the CLI, command prompts, docs, tests, and release artifacts.
 - **Automation environment**: Runs the CLI in dry-run, redirected, non-TTY, CI, log-file, or headless contexts where stable plain output matters.
-- **Future visual wrapper developer**: Builds optional UI surfaces from raw lifecycle events without depending on Rich output internals.
+- **Visual app operator**: Runs the Linux Hyperterminal surface and needs the same workflow control as the CLI with richer state visibility.
+- **Visual wrapper developer**: Builds event-derived QML surfaces, profile persistence, effects, packaging, and release verification without depending on Rich output internals.
 
 ### Key Use Cases
 
@@ -51,7 +63,9 @@ The near-term product direction is a Rich-based terminal experience with explici
 3. Operator monitors a long-running Codex subprocess with clear elapsed-time, timeout, error, and completion states.
 4. Operator inspects recent history for a project and expands detail with `--verbose`.
 5. Automation runs the CLI with plain or ASCII output and receives deterministic logs without styled control data.
-6. Future wrapper consumes JSONL lifecycle events and renders its own display without scraping terminal frames.
+6. Visual wrapper consumes JSONL lifecycle events and renders its own display without scraping terminal frames.
+7. Operator launches Apex Infinite Hyperterminal, configures provider/model/project on first run, runs doctor, and starts with a dry run before live operation.
+8. Operator saves, duplicates, imports, exports, and resets visual profiles without changing shared CLI config or exposing secrets.
 
 ## Requirements
 
@@ -74,15 +88,21 @@ The near-term product direction is a Rich-based terminal experience with explici
 - Developer can test renderer behavior with injected Rich `Console(record=True, width=...)` objects.
 - Developer can verify config parsing, Click flags, prompt routing, subprocess behavior, history rendering, plain mode, `NO_COLOR`, and non-TTY behavior through pytest.
 - CLI can emit opt-in line-buffered JSONL lifecycle events to `--event-stream PATH` without changing normal human output.
-- Developer can import an event emitter API for tests and future wrappers.
+- Developer can import an event emitter API for tests and visual wrappers.
 
 ### Deferred Requirements
 
-- Operator can launch a standalone Linux visual wrapper that uses the Python CLI as the workflow engine.
-- Operator can control wrapper theme, effect intensity, font, scaling, and plain fallback without affecting base CLI behavior.
-- Future wrapper can demonstrate glow, curvature, flicker, phosphor trails, and scanline overlays that Rich cannot faithfully render.
+- Operator can launch Apex Infinite Hyperterminal as a standalone Linux visual app using the Python CLI as the workflow engine.
+- Operator can use a first-run visual setup flow for provider, model, Codex binary, project selection, doctor checks, and dry-run launch.
+- Operator can control visual profile, rendering mode, quality tier, effect intensity, font family, font scale, font width, line spacing, reduced effects, and plain fallback without affecting base CLI behavior.
+- Operator can save, duplicate, rename, delete, import, export, reset, and automatically reload versioned visual profiles stored under XDG config/state locations.
+- Operator can inspect a full-window command surface with run controls, mission state rail, spec map, event core, signal panel, and visual profile drawer.
+- Operator can see workflow-aware visual effects triggered by real events such as run start, provider preflight, manager decision, iteration progress, stop, completion, timeout, stderr, and malformed JSONL.
+- Developer can split visual wrapper state into a visual event adapter, display state store, QML bridge, reusable scene components, effect pipeline, and presentation shell.
+- Developer can add registered CLI lifecycle events for doctor, config, Codex flags, autonomy policy, spec system detection, session resolution, task progress, artifact detection, duration ticks, and wrapper capability resolution.
 - Developer can package PySide6/Qt Quick/QML wrapper dependencies as an optional extra separate from base CLI installation.
-- Developer can document pywebview plus xterm.js as a backup if a true terminal-emulator viewport becomes mandatory.
+- Developer can publish original desktop metadata, app icon, AppStream metadata, AppImage artifact, SHA256 checksum, dependency inventory, license notices, and clean-machine release evidence.
+- Developer can document pywebview plus xterm.js as a backup only if a future accepted requirement makes a true terminal-emulator viewport mandatory.
 
 ## Non-Functional Requirements
 
@@ -94,6 +114,9 @@ The near-term product direction is a Rich-based terminal experience with explici
 - **Compatibility**: Existing `~/.apex-infinite/history.db` files must remain readable without migration, and the legacy `cc_response` column must remain intact.
 - **Portability**: Base CLI must run on Python 3.10+ with terminal-only dependencies and no graphical runtime dependency.
 - **Maintainability**: Renderer, config, event, subprocess, DB, and prompt-routing changes must have focused tests before a session is validated.
+- **Visual Performance**: The visual wrapper must target 60fps, limit active animated elements to 3 per viewport region, and provide Balanced, Battery, Low Effects, and Plain fallbacks when shader or graphics capability is insufficient.
+- **Visual Release Quality**: Hyperterminal completion requires offscreen smoke launch, desktop screenshot smoke for high/balanced/low/plain profiles, pixel nonblank checks, reduced-effects checks, malformed JSONL checks, clean base install checks, visual extra install checks, and AppImage clean-machine launch checks.
+- **Clean Room**: Release verification must confirm 0 tracked `EXAMPLE/` files and no copied reference QML, shaders, generated shader blobs, images, icons, fonts, profiles, manifests, build scripts, terminal-widget code, or package metadata.
 
 ## Constraints and Dependencies
 
@@ -107,10 +130,18 @@ The near-term product direction is a Rich-based terminal experience with explici
 - `EXAMPLE/cool-retro-term` is reference-only and ignored by Git.
 - `cool-retro-term` material is GPL-family reference material; product work must use clean-room visual translation only.
 - PySide6/Qt Quick/QML is allowed only for an optional Linux visual wrapper path, with LGPLv3/commercial obligations documented.
-- PyQt, qmltermwidget, QTermWidget, copied QML, copied shaders, copied assets, copied fonts, and copied terminal-emulator code are excluded unless a future explicit decision changes scope.
+- PyQt, qmltermwidget, QTermWidget, copied QML, copied shaders, copied
+  generated shader blobs, copied assets, copied fonts, copied profile data,
+  copied resource manifests, copied package metadata, copied build scripts, and
+  copied terminal-emulator code are excluded unless a future explicit decision
+  changes scope.
 - The CLI must preserve existing prompt contract behavior unless
   `src/apex_infinite/cli.py`, tests, README, and prompt-contract docs are
   updated together.
+- Visual wrapper profile files are stored under `${XDG_CONFIG_HOME:-~/.config}/apex-infinite/visual-profiles.json`.
+- Visual wrapper runtime window state can be stored under `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/visual-state.json`.
+- The first visual binary artifact is `apex-infinite-visual-linux-x86_64.AppImage` with SHA256 checksum and release notices.
+- `pyside6-deploy` is evaluated first for visual packaging; direct Nuitka or another path requires documented evidence before use.
 
 ## Phases
 
@@ -120,6 +151,7 @@ This system delivers the product via phases. Each phase is implemented via multi
 |-------|------|----------|--------|
 | 00 | Apex Infinite CLI Upgrade | 8 | Complete |
 | 01 | Smoke Remediation And Release Hardening | 6 | Complete |
+| 02 | Apex Infinite Hyperterminal | 14 | Planned |
 
 ## Phase 00: Apex Infinite CLI Upgrade
 
@@ -177,6 +209,47 @@ Completed session stubs are archived under `.spec_system/archive/phases/phase_01
 | 05 | Agent Config Semantics | Codex config parsing |
 | 06 | Documentation And Release Verification | Smoke docs and final verification |
 
+## Phase 02: Apex Infinite Hyperterminal
+
+### Source
+
+Phase 02 is planned from
+`docs/ongoing-projects/revolutionary-linux-terminal-design-plan.md`, which
+promotes the existing source-mode visual wrapper into a production Linux command
+surface.
+
+### Objectives
+
+1. Extract visual state from the QML bridge into event-derived Python models and fixtures.
+2. Persist versioned XDG visual profiles with import, export, reset, migration, corruption handling, and safe config boundaries.
+3. Redesign the visual app into a full-window command surface with run controls, mission rail, spec map, event core, signal panel, and profile drawer.
+4. Add QML-only high-design effects, quality tiers, reduced-effects enforcement, and screenshot smoke checks before custom shader work.
+5. Expand CLI events only for facts the wrapper needs, keeping payloads raw, secret-free, and independent from visual choices.
+6. Add graphical doctor and first-run setup so a clean Linux user can configure, verify, and start with dry run from the app.
+7. Add original clean-room shader effects, desktop metadata, AppImage packaging, license notices, checksums, and clean-machine verification.
+8. Finish with a matching terminal CLI polish pass that preserves plain and machine-output contracts.
+
+### Sessions
+
+Planned session stubs are defined by `phasebuild`.
+
+| Session | Name | Source Theme |
+|---------|------|--------------|
+| 01 | Visual State Model | Event-derived display state and fixtures |
+| 02 | Visual Profile Persistence | XDG profiles, import/export, corruption handling |
+| 03 | QML Shell Components | Split reusable command-surface components |
+| 04 | Command Surface Redesign | Event log, status rail, run command strip |
+| 05 | QML High-Design Effects | Glow, scanlines, frame treatment, quality tiers |
+| 06 | Event-Reactive Motion | Lifecycle-triggered effects and fallback checks |
+| 07 | CLI Event Expansion | Missing machine-readable workflow facts |
+| 08 | Graphical Doctor And First Run | Config setup, doctor, dry-run default |
+| 09 | Shader Pipeline Spike | Original shaders and capability detection |
+| 10 | Shader Production Promotion | Accepted effects, fallbacks, tests |
+| 11 | Desktop Metadata And Icon | Original icon, desktop file, AppStream draft |
+| 12 | AppImage Release Candidate | Build, inspect, checksum, notices |
+| 13 | Clean Linux Verification | Clean-machine launch and blocker fixes |
+| 14 | Terminal CLI Polish | Matching Rich theme and docs pass |
+
 ## Technical Stack
 
 - Python 3.10+ - base CLI runtime and standard library support.
@@ -188,7 +261,11 @@ Completed session stubs are archived under `.spec_system/archive/phases/phase_01
 - Codex CLI - autonomous agent execution through `codex exec`.
 - pytest, pytest-mock, pytest-cov - automated verification.
 - black and pylint - formatting and linting for Python code.
-- PySide6 with Qt Quick/QML - optional deferred Linux visual wrapper path.
+- PySide6 with Qt Quick/QML - optional Linux Hyperterminal visual app path.
+- QML scene components - command surface, status rail, event core, spec map, signal panel, settings drawer, controls, and effects.
+- Qt Quick ShaderEffect - optional clean-room shader effects when capability detection and fallbacks pass.
+- XDG config/state files - visual profile persistence and runtime window state.
+- AppImage packaging - first binary visual wrapper release artifact.
 
 ## Success Criteria
 
@@ -200,8 +277,17 @@ Completed session stubs are archived under `.spec_system/archive/phases/phase_01
 - [x] SQLite history rows remain raw and backward compatible with existing databases.
 - [x] JSONL event stream emits raw lifecycle facts without Rich markup.
 - [x] README and deep-dive docs describe UI flags, config, event stream, and troubleshooting.
-- [x] No reference source, shader, image, icon, font, resource manifest, or literal profile data is copied into the CLI.
+- [x] No reference source, QML, shader, generated shader blob, image, icon,
+  font, resource manifest, package metadata, build script, terminal-widget
+  code, or literal profile data is copied into the CLI.
 - [x] Optional Linux wrapper path has documented dependency, license, packaging, and interface boundaries.
+- [ ] Apex Infinite Hyperterminal opens as the first screen of the visual app, not a dashboard or landing page.
+- [ ] Visual state is derived from registered events or explicit wrapper controls, not raw JSONL parsing in QML or Rich output scraping.
+- [ ] Visual profiles, rendering modes, quality tiers, and effect preferences persist across launches.
+- [ ] Workflow-aware visual effects react to real lifecycle events while reduced-effects and plain fallback modes remain usable.
+- [ ] Graphical first-run setup and doctor let a clean Linux user configure and start with dry run without editing source files.
+- [ ] Desktop launcher and AppImage work on a clean supported Linux machine with checksum, notices, inventory, and clean-room evidence.
+- [ ] Terminal CLI polish preserves `--event-stream - --machine-output`, redirected output, and plain-output contracts.
 
 ## Risks
 
@@ -212,6 +298,11 @@ Completed session stubs are archived under `.spec_system/archive/phases/phase_01
 - **Dependency creep slows base CLI use**: Finish Rich milestones first and keep wrapper dependencies optional.
 - **GPL contamination concerns**: Use `cool-retro-term` only as visual reference and document no-copy boundaries.
 - **Wrapper diverges from CLI behavior**: Keep one workflow engine and make the wrapper a display/runtime shell over JSONL events.
+- **Visual complexity hides workflow state**: Make the first viewport the actual command surface, keep event log readable, and bind effects to workflow facts rather than decoration.
+- **Shader work overruns core UX**: Complete QML-only high design, profile persistence, and command-surface architecture before custom shader promotion.
+- **Graphics capability varies across Linux systems**: Probe shader and scene graph support, then fall back automatically to low-effects or plain modes.
+- **Profile persistence corrupts user state**: Use versioned schemas, atomic writes, backup-on-overwrite, migration stubs, and visible corruption recovery.
+- **Desktop packaging bundles inappropriate dependencies**: Inspect Qt plugins and generated bundle contents, document license path, and verify no GPL-only Qt modules are bundled.
 - **CLI entry point becomes harder to maintain**: Split renderer, config,
   event, DB, or subprocess helpers when that lowers risk versus extending
   `src/apex_infinite/cli.py`.
@@ -223,10 +314,11 @@ Completed session stubs are archived under `.spec_system/archive/phases/phase_01
   plan.
 - The repository should be treated as a single standalone package rooted at this
   directory.
+- Apex Infinite Hyperterminal is the visual lane name, not a command rename. The command names remain `apex-infinite` and `apex-infinite-visual` unless a future release explicitly changes them.
 - Prompt routing should remain stable during UI work: `docs/prompt-contract.md`
   and the upgrade plan both require prompt changes to be made only with matching
   tests and docs.
-- `cool-retro-term` is inspiration only: the upgrade plan records GPL/license boundaries and forbids copying source, shader, asset, font, or profile data.
+- `cool-retro-term` is inspiration only: the upgrade and Hyperterminal plans record GPL/license boundaries and forbid copying source, shader, asset, font, profile, manifest, build, terminal-widget, or package metadata.
 
 ### Conflict Resolutions
 
@@ -234,9 +326,10 @@ Completed session stubs are archived under `.spec_system/archive/phases/phase_01
   interpretation is single-repo planning with sessions scoped to the standalone
   repository root.
 - Visual direction references `cool-retro-term`, while license boundaries forbid copying. The chosen interpretation is clean-room visual translation: use concepts such as terminal mood, status hierarchy, and effect categories while creating independent tokens, code, docs, and assets.
+- The older PRD treated the Linux wrapper as exploratory, while the Hyperterminal plan makes it a planned product lane. The chosen interpretation is to add Phase 02 while preserving completed Phase 00 and Phase 01 records.
 
 ## Open Decisions
 
-1. Decide after the wrapper spike whether Session 07 productization should proceed with PySide6/QML or document a blocker and defer.
-2. Decide the first Linux wrapper release artifact format after dependency and packaging evidence is gathered.
-3. Decide whether a true terminal-emulator viewport becomes mandatory; if it does, evaluate the documented pywebview plus xterm.js backup path.
+1. Decide which QML-only effects earn promotion into original shader effects after command-surface architecture and capability detection are stable.
+2. Decide whether `pyside6-deploy` remains the packaging path after inspecting generated bundle contents; document evidence before using direct Nuitka or another approach.
+3. Decide final original icon and asset provenance before desktop metadata and AppImage release.

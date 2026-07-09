@@ -2,13 +2,15 @@
 
 **Companion to**: [PRD.md](PRD.md)
 **Created**: 2026-07-02
-**Status**: Authoritative standalone UX source for the Apex Infinite CLI UI upgrade
+**Status**: Authoritative standalone UX source for the Apex Infinite CLI UI upgrade and Apex Infinite Hyperterminal design lane
 
 This document is intended to survive deletion of the original research inputs.
 It incorporates the relevant UX facts from the local retro-terminal reference
 tree, the Apex Infinite CLI upgrade plan, the current CLI implementation, and
-the current CLI docs. Future planning and implementation should use this file
-and `PRD.md` as the durable product source of truth.
+the current CLI docs. It also incorporates the durable requirements from
+`docs/ongoing-projects/revolutionary-linux-terminal-design-plan.md`. Future
+planning and implementation should use this file and `PRD.md` as the durable
+product source of truth.
 
 ---
 
@@ -16,12 +18,14 @@ and `PRD.md` as the durable product source of truth.
 
 ### Emotional Targets
 
-Focused command, accountable momentum, restrained retro authority.
+Focused command, accountable momentum, reactive depth, Linux-native authority.
 
 The interface should make a long autonomous development run feel controlled and
 observable. The retro mood is a disciplined operator-console layer, not a toy
 theme. Every visible element must help the operator understand state, risk,
-current work, captured output, or the next handoff.
+current work, captured output, or the next handoff. The visual app should feel
+like a production Linux command center, not a website, landing page, or generic
+dashboard.
 
 ### Aesthetic Identity
 
@@ -44,20 +48,22 @@ build scripts, or terminal-emulator code.
 
 ### Signature Moment
 
-The screenshot-worthy moment is the iteration frame: one compact operational
-cycle shows project, provider, model, selected theme, dry-run state, iteration,
-elapsed time, current operation, manager decision, prompt preview, Codex
-execution status, response summary, DB log confirmation, and next command or
-stop state in a stable scan-friendly order.
+The screenshot-worthy moment is the Hyperterminal command surface during an
+active run: the run command strip is armed, the mission state rail shows
+provider/model/spec status, the event core receives a manager decision pulse,
+the spec map shows phase/session progress, and the signal panel isolates any
+stderr, timeout, malformed event, or provider fault without hiding the command
+log.
 
 ### Micro-Narrative
 
 Arrival -> Orientation -> Engagement -> Action -> Resolution
 
 ```text
-Launch/config -> Boot panel -> Iteration frame -> Manager decision
-              -> Prompt preview -> Codex execution -> Result/log
-              -> Next command, pause, completion, or safety stop
+Launch/config -> Boot panel or first-run setup -> Command surface
+              -> Manager decision -> Prompt preview -> Codex execution
+              -> Event core and signal panel -> Next command, pause,
+                 completion, doctor action, or safety stop
 ```
 
 The user should feel that the system is booting an autonomous instrument,
@@ -71,9 +77,12 @@ next command without drama.
 - Terminal-first behavior remains scriptable, headless-safe, and plain-output
   compatible.
 - Styled output never becomes stored workflow data.
-- Effects are low by default, configurable, and easy to disable.
-- The future Linux wrapper is a companion display for the same workflow engine,
-  not a fork of the CLI behavior.
+- The first visual screen is the actual command surface, not a product tour.
+- Rich visual effects are allowed by default when the machine supports them,
+  but reduced-effects and plain modes must stay readable and intentional.
+- Effects react to real workflow facts, not arbitrary decoration.
+- Apex Infinite Hyperterminal is a companion display for the same workflow
+  engine, not a fork of the CLI behavior.
 
 ---
 
@@ -153,6 +162,54 @@ streaming in `src/apex_infinite/events.py`, and the optional visual wrapper in
   display, environment fallbacks, subprocess display, provider preflight, event
   output, and optional wrapper behavior.
 
+### Hyperterminal Design Lane
+
+The production visual app is Apex Infinite Hyperterminal. This name describes
+the visual mode only; command names remain `apex-infinite` and
+`apex-infinite-visual` unless a later release explicitly renames them.
+
+The final visual architecture is layered:
+
+```text
+Python CLI workflow engine
+  -> registered JSONL events / importable event API
+  -> visual event adapter
+  -> visual state store
+  -> QML bridge
+  -> scene components
+  -> effect pipeline
+  -> presentation shell
+```
+
+The visual wrapper must not own manager decisions, prompt building, Codex
+execution, history logging, stop conditions, or safety behavior. It may own
+presentation state, visual preferences, layout state, profile persistence, and
+explicitly confirmed shared config writes.
+
+The first viewport is the operator console. The primary zones are:
+
+- **Run Command Strip**: Project path selector, start command selector,
+  dry-run/live-run segmented control, max-iteration stepper, start, stop,
+  resume, doctor, and autonomy summary.
+- **Mission State Rail**: Run status, stage, iteration, provider, model, Codex
+  binary, config source, event stream mode, and history DB status.
+- **Spec Map**: `.spec_system/` status, phase/session identity, current
+  command, task checklist progress, carry-forward warnings, and validation
+  status when events provide them.
+- **Event Core**: Virtualized structured event rows for startup, provider
+  preflight, manager decision, command, response, pause, error, stop,
+  completion, and summary states, with search, filter, pin, copy, and export.
+- **Signal Panel**: Provider health, recent stderr summary, malformed event
+  count, runtime duration, last machine event, and safe artifact links.
+- **Visual Profile Drawer**: Theme family, rendering mode, quality tier, effect
+  intensity, font family, font scale, font width, line spacing, reduced effects,
+  plain fallback, save, duplicate, import, export, and reset.
+
+Proposed Python modules for the visual lane are `profile_store.py`,
+`render_caps.py`, `visual_state.py`, `doctor.py`, and `assets.py`. Proposed QML
+families are shell components, command-surface components, reusable controls,
+and original Apex effect components.
+
 ### Planned UX Commitments
 
 The UI upgrade must add a renderer/config/event boundary without changing the
@@ -213,6 +270,34 @@ Resolution rules:
 - `--event-stream -` is allowed only with `--machine-output`, so JSONL never
   mixes with Rich or plain human output.
 
+Hyperterminal visual commitments:
+
+- The visual app uses the CLI as the workflow engine and consumes registered
+  events or an importable event API; it never scrapes Rich output, plain
+  terminal text, SQLite history rows, ANSI captures, or terminal-control
+  sequences.
+- Wrapper-only visual settings are stored under
+  `${XDG_CONFIG_HOME:-~/.config}/apex-infinite/visual-profiles.json`.
+- Runtime window state can be stored under
+  `${XDG_STATE_HOME:-~/.local/state}/apex-infinite/visual-state.json`.
+- Visual profile schema includes version, name, theme name, rendering mode,
+  quality tier, effect intensity, font family, font scale, font width, line
+  spacing, reduced effects, plain fallback, effect toggles, and layout density.
+- Profile operations include save current, duplicate, rename, delete custom,
+  reset built-in, import JSON, export JSON, validate schema/version, reject
+  non-ASCII names for now, and never write provider secrets.
+- Quality tiers are Cinematic, Balanced, Battery, Low Effects, and Plain.
+- Rendering modes are `modern-crisp`, `scanline`, `pixel-grid`, `subpixel`,
+  and `cinematic`.
+- First-run setup detects missing shared CLI config, presents provider choices,
+  captures model and Codex binary, chooses a project, runs doctor, defaults to
+  dry run, and requires explicit confirmation before writing shared CLI config.
+- Desktop productization includes original icon, `.desktop` file, AppStream
+  metadata, launcher actions, AppImage artifact, SHA256 checksum, dependency
+  inventory, Qt/PySide6 notices, and clean-machine verification.
+- `pyside6-deploy` is evaluated first for packaging. Direct Nuitka or another
+  path requires written evidence before use.
+
 ### External Verification Facts
 
 These facts were checked on 2026-07-02 and are captured here so implementation
@@ -247,7 +332,9 @@ They are requirements as concepts only, not implementation data.
 - Profile families: amber CRT, green CRT, DOS-like high contrast, blue/cyan
   variants, old computer moods, minimal "boring" mode, and e-ink-like quiet
   mode. Apex Infinite CLI first ships `auto`, `crt-green`, `crt-amber`,
-  `ibm-dos`, and `plain`.
+  `ibm-dos`, and `plain`. Hyperterminal adds Apex-owned profiles:
+  `apex-reactor`, `operator-amber`, `blueprint-dos`, `whiteout-lab`,
+  `blackbox`, and `incident-red`.
 - Settings organization: general/profile settings, terminal/font settings,
   effects settings, advanced/performance settings, import/export/persistence,
   and small reusable controls.
@@ -261,7 +348,9 @@ They are requirements as concepts only, not implementation data.
   quality, and low-effects fallbacks.
 - Render pipeline concepts: source terminal surface, optional bloom source,
   dynamic effect pass, static final pass, frame pass, frame buffer, and timing
-  driver.
+  driver. Hyperterminal translates this into an independent QML scene graph
+  with explicit event source, state compositor, effect buffer, postprocess
+  pass, and presentation frame.
 - Wrapper controls: theme selector, effect intensity, font/scaling, reduced
   effects, plain fallback, copy/log actions, settings import/export, fullscreen,
   and zoom.
@@ -272,17 +361,18 @@ Clean-room limits:
 
 - Rich may translate only mood, hierarchy, labels, simple separators, and
   settings vocabulary.
-- The Linux wrapper ships as a Phase 01 optional visual mode after the event
-  boundary and wrapper spike. It should independently implement glow,
-  scanlines, flicker, curvature, trails, and frame treatment after the event
-  boundary is available.
+- The Linux wrapper ships as the Phase 02 Hyperterminal design lane. It should
+  independently implement glow, scanlines, flicker, curvature, trails, frame
+  treatment, quality tiers, and event-reactive effects after the event boundary
+  is available.
 - The base CLI must not require Qt, PySide6, PyQt, qmltermwidget,
   QTermWidget, a graphical display, an external terminal emulator, or the
   reference application.
 - The selected wrapper path is PySide6 with Qt Quick/QML as an optional
   Linux-only extra. PyQt, qmltermwidget, QTermWidget, copied QML, copied
-  shaders, copied assets, copied fonts, copied profile data, and copied
-  terminal-emulator code are excluded.
+  shaders, generated reference shader blobs, copied assets, copied fonts,
+  copied profile data, copied manifests, copied package metadata, copied build
+  scripts, and copied terminal-emulator code are excluded.
 - The first binary wrapper artifact is an x86_64 Linux AppImage named in the
   pattern `apex-infinite-visual-linux-x86_64.AppImage`, published with SHA256
   checksums, license notices, and a separate source/dev install path through
@@ -429,9 +519,9 @@ box glyphs, or carriage-return-only live output.
 **Error states**: Plain mode must still show errors, timeouts, help,
 interrupts, manager reasons, prompt previews, DB log notices, and completion.
 
-### Flow 9: Emit Lifecycle Events For Future Surfaces
+### Flow 9: Emit Lifecycle Events For Visual Surfaces
 
-**Trigger**: Operator passes `--event-stream PATH`, or a future wrapper launches
+**Trigger**: Operator passes `--event-stream PATH`, or Hyperterminal launches
 the CLI as a subprocess.
 **Goal**: Provide raw machine-readable lifecycle facts without scraping human
 output.
@@ -453,7 +543,7 @@ machine-output mode and as visible human errors otherwise.
 ### Flow 10: Configure A Visual Theme
 
 **Trigger**: Operator edits `config.yaml` or passes `--theme`, `--plain`,
-`--ascii`, `--compact`, or future wrapper settings.
+`--ascii`, `--compact`, or Hyperterminal settings.
 **Goal**: Select a readable presentation without changing workflow behavior.
 
 ```text
@@ -467,12 +557,91 @@ to boot, iteration, history, errors, and completion.
 **Error states**: Invalid names or malformed override values fail fast with the
 invalid field and accepted values.
 
+### Flow 11: Operate Apex Infinite Hyperterminal
+
+**Trigger**: Operator launches `apex-infinite-visual` from source install,
+desktop launcher, or AppImage.
+**Goal**: Run the same autonomous workflow through a full-window visual command
+surface.
+
+```text
+Launch -> Resolve visual profile -> Detect render capabilities
+      -> Command surface -> Start or resume -> Event adapter
+      -> Visual state store -> Mission rail, spec map, event core,
+         signal panel, and effects
+```
+
+**Happy path**: The first screen is usable. The operator can select project,
+mode, command, max iterations, and doctor/start/stop/resume actions while the
+event core and status panels update from registered lifecycle events.
+**Error states**: Missing CLI, missing PySide6, malformed JSONL, missing Codex,
+missing provider config, shader unsupported, software backend, non-zero exit,
+and timeout show visible recovery states without crashing or scraping terminal
+frames.
+
+### Flow 12: Manage Visual Profiles
+
+**Trigger**: Operator opens the visual profile drawer.
+**Goal**: Persist, reuse, and exchange visual settings without touching secrets
+or shared workflow behavior.
+
+```text
+Open drawer -> Change profile/rendering/quality/font/effects/layout
+           -> Save, duplicate, import, export, reset, or delete
+           -> Validate schema -> Atomic write or visible error
+```
+
+**Happy path**: Restarting the app restores the selected visual profile, custom
+profiles can be exported/imported, and built-in profiles can be reset.
+**Error states**: Corrupt JSON, unsupported schema version, non-ASCII profile
+name, invalid quality tier, invalid rendering mode, and failed write preserve a
+backup when possible and never modify provider secrets.
+
+### Flow 13: Graphical First Run And Doctor
+
+**Trigger**: A clean Linux user opens the visual app without complete shared CLI
+config, or clicks Doctor.
+**Goal**: Configure enough state to run safely and understand launch readiness.
+
+```text
+Detect missing config -> Provider/model/Codex/project steps
+      -> Codex flag compatibility -> Doctor checks
+      -> Pass/warn/fail summary -> Dry-run default
+      -> Explicit config write confirmation
+```
+
+**Happy path**: The user can choose provider, model, Codex binary, project, run
+doctor, see pass/warn/fail results, and start with dry run without editing
+source files.
+**Error states**: Missing provider key, missing Codex, incompatible flags,
+invalid project, config write denial, and doctor failure remain actionable and
+do not start live mode accidentally.
+
+### Flow 14: Desktop Launch And AppImage Verification
+
+**Trigger**: Operator launches from `.desktop` metadata, AppStream entry,
+launcher action, or the AppImage.
+**Goal**: Start the visual app from normal Linux desktop surfaces with
+documented release evidence.
+
+```text
+Launcher/AppImage -> Runtime dependency check -> Command surface
+                  -> Doctor or safe dry run -> Clean shutdown
+```
+
+**Happy path**: Desktop launcher opens the app, AppImage does not depend on the
+source checkout or repo `.venv`, checksum/notices are published, and safe dry
+run is available when feasible.
+**Error states**: Missing Qt plugin, missing provider config, missing Codex,
+failed AppImage mount, and missing display/backend support produce a visual
+failure state or documented CLI error, not an unexplained crash.
+
 ---
 
 ## 4. Screen Inventory
 
-For this product, "screen" means a distinct terminal surface, output mode, event
-surface, or future wrapper view.
+For this product, "screen" means a distinct terminal surface, output mode,
+event surface, or Hyperterminal view.
 
 | Screen | Entry/Route | Purpose | Key Components |
 |--------|-------------|---------|----------------|
@@ -496,9 +665,17 @@ surface, or future wrapper view.
 | ASCII Output Mode | `--ascii` | Avoid non-ASCII glyphs while allowing color if supported | ASCII separators, ASCII status markers |
 | Compact Output Mode | `--compact` | Reduce vertical space without losing semantics | Short labels, fewer blank lines, no hidden critical states |
 | Event Stream | `--event-stream PATH` | Machine-readable lifecycle boundary | JSONL events, raw payload facts, no markup |
-| Linux Wrapper Main Window | Optional future mode | Event-driven visual console | Read-only log viewport, status panels, theme selector, effect controls |
-| Linux Wrapper Settings | Optional future mode | Configure visual-only wrapper preferences | Theme, effect level, font/scaling, reduced effects, plain fallback |
-| Wrapper Failure Surface | Optional future mode | Show subprocess or malformed-event failures | Missing CLI, non-zero exit, timeout, malformed JSON, reconnect guidance |
+| Hyperterminal Command Surface | `apex-infinite-visual` | Operate the visual Linux app from the first viewport | Run command strip, mission state rail, spec map, event core, signal panel, visual profile drawer |
+| Run Command Strip | Hyperterminal main window | Start, stop, resume, dry-run/live-run, doctor, and command setup | Project selector, command selector, mode segmented control, max-iteration stepper, autonomy summary |
+| Mission State Rail | Hyperterminal main window | Keep run state visible while events stream | Status, stage, iteration, provider, model, Codex binary, config source, event stream, history DB |
+| Spec Map | Hyperterminal main window | Show Apex Spec project and workflow progress | `.spec_system/` status, phase/session, current command, task progress, validation/carry-forward warnings |
+| Event Core | Hyperterminal main window | Render structured lifecycle rows | Virtualized log rows, search, filter, pin, copy, export, event classes |
+| Signal Panel | Hyperterminal main window | Isolate health and faults | Provider health, stderr summary, malformed event count, duration, last event, safe artifact links |
+| Visual Profile Drawer | Hyperterminal main window | Configure persisted visual-only preferences | Profile, rendering mode, quality tier, effects, font, layout, import/export/reset |
+| Graphical First Run | Hyperterminal startup | Configure clean Linux setup before first dry run | Provider/model/Codex/project steps, doctor, dry-run default, config write confirmation |
+| Graphical Doctor | Hyperterminal startup or toolbar | Diagnose launch readiness | Pass/warn/fail rows, Codex flags, provider checks, recovery actions |
+| Desktop Launch Surface | `.desktop`, AppStream, AppImage | Start visual app from Linux desktop packaging | Launcher actions, AppImage runtime checks, notices, checksum expectations |
+| Wrapper Failure Surface | Hyperterminal | Show subprocess, capability, or malformed-event failures | Missing CLI, missing PySide6, non-zero exit, timeout, malformed JSONL, shader fallback, reconnect guidance |
 
 ---
 
@@ -527,10 +704,17 @@ apex-infinite
 |   \-- Compact ledger with optional verbose expansion
 |-- Event stream
 |   \-- JSONL side channel for wrappers/tests
-\-- Optional Linux wrapper
-    |-- Main visual console
-    |-- Settings
-    \-- Failure surface
+\-- apex-infinite-visual
+    |-- Graphical first run and doctor
+    |-- Hyperterminal command surface
+    |   |-- Run command strip
+    |   |-- Mission state rail
+    |   |-- Spec map
+    |   |-- Event core
+    |   |-- Signal panel
+    |   \-- Visual profile drawer
+    |-- Desktop launcher and AppImage entry points
+    \-- Failure surface and fallback modes
 ```
 
 **Navigation pattern**: CLI flags determine entry mode. Inside normal runs, the
@@ -538,7 +722,7 @@ only interactive navigation is startup selection and emergency help/interrupt
 input.
 
 **Deep linking**: Project history is scoped by normalized project path. Event
-streams are addressed by file path. Future wrapper views consume event names and
+streams are addressed by file path. Hyperterminal views consume event names and
 payloads, not Rich terminal frames.
 
 **State ownership**: The CLI workflow engine owns manager decisions, prompt
@@ -568,6 +752,19 @@ behavior. Renderers and wrappers display this state but do not fork it.
 - `--plain`, `--ascii`, and `--compact` are orthogonal where possible:
   plain disables color/effects, ascii changes glyphs, compact changes density.
 
+### Visual Profile And Capability Resolution
+
+- The visual app resolves profile, rendering mode, quality tier, reduced
+  effects, plain fallback, and detected render capabilities before showing an
+  effect-heavy scene.
+- Capability detection chooses shader, QML-only, low-effects, or plain fallback
+  without crashing unsupported graphics environments.
+- Profile writes are explicit, versioned, atomic where possible, and preserve a
+  backup before overwriting user data.
+- Import/export validates schema and rejects secrets, unsupported versions, and
+  non-ASCII names for now.
+- Shared CLI config writes happen only through explicit first-run confirmation.
+
 ### Loading States
 
 - LLM summarization shows the number of prior rows and retry state.
@@ -578,6 +775,8 @@ behavior. Renderers and wrappers display this state but do not fork it.
   refresh, or carriage-return animation.
 - Wrapper mode may animate event arrivals, but active status remains pinned and
   readable.
+- Hyperterminal event rows are virtualized so long runs do not shift primary
+  controls or make the active status rail disappear.
 
 ### Notifications
 
@@ -626,14 +825,16 @@ behavior. Renderers and wrappers display this state but do not fork it.
 
 - Primary surfaces: boot panel, iteration frame, manager decision, prompt
   preview, execution status, response panel, history ledger, pause states,
-  completion states, and user-facing wrapper views.
+  completion states, Hyperterminal command surface, run command strip, mission
+  rail, spec map, event core, signal panel, profile drawer, graphical first
+  run, doctor, and user-facing visual failure states.
 - Developer/admin/debug surfaces: pytest output, renderer fixture recordings,
-  raw event JSONL files, config validation traces, wrapper spike logs, and
+  raw event JSONL files, config validation traces, visual spike logs, and
   reference-clean-room audit notes.
 - Excluded from primary UI: renderer internals, route ownership notes,
   frame/glyph diagnostics, visual test scaffolding labels, raw event dumps,
-  shader reference details, copied profile metadata, and implementation-only
-  file paths.
+  shader reference details, copied profile metadata, arbitrary effect demos,
+  package build internals, and implementation-only file paths.
 
 ---
 
@@ -654,15 +855,40 @@ hide commands, errors, handoffs, or captured output.
 - Error/help/interrupt/completion text is never animated over or replaced by
   transient spinners.
 
-### Future Wrapper
+### Hyperterminal
 
 - Event arrival may use subtle opacity or position changes.
 - Active status remains pinned while the log scrolls.
 - Theme and settings controls show immediate state changes.
 - Effects may include independently implemented glow, scanlines, flicker,
-  curvature, phosphor trails, and frame treatment.
+  curvature, phosphor trails, bloom, procedural noise, chroma/subpixel edge
+  treatment, jitter, sync distortion, ambient frame light, and frame treatment.
 - Reduced effects keeps state visible through text, color, and simple layout
   changes rather than removing status feedback.
+- Run start creates a short surface charge.
+- Provider preflight success sends a low-intensity signal sweep.
+- Provider preflight failure creates a visible red fault lock.
+- New manager decisions pulse around the decision panel.
+- New iterations add a soft persistence trail to the event core.
+- Operator stop drains glow immediately and freezes final state.
+- Successful completion performs a restrained completion sweep.
+- Non-zero exit, stderr, malformed JSONL, and timeout use distinct error
+  signatures.
+
+### Delivery Stages
+
+1. QML-only high design with structured shell, glow, scanlines, frame
+   treatment, pulse, virtualized rows, profile persistence, quality tiers,
+   reduced effects, plain fallback, and screenshot smoke checks.
+2. Clean-room shader layer with original curvature, glass, bloom, procedural
+   noise, chroma, persistence, jitter, sync distortion, capability probing, and
+   automatic fallback.
+3. Workflow-aware rendering with effect intensity bound to run state, severity,
+   task progress, provider health, autonomy policy, config source, and doctor
+   results.
+4. Production hardening with offscreen smoke, software-backend fallback,
+   desktop screenshots, pixel nonblank checks, no-overlap checks, memory checks,
+   reduced/plain verification, and clean base install verification.
 
 ### Animation Constraints
 
@@ -682,6 +908,8 @@ hide commands, errors, handoffs, or captured output.
 
 Dense and information-rich, with enough rhythm to separate phases of work. The
 base CLI should feel like one instrument panel, not unrelated print statements.
+The visual app should feel like a Linux-native command center: first viewport
+as the real operating surface, not a product explanation or marketing hero.
 
 ### Visual Hierarchy
 
@@ -707,6 +935,10 @@ modes use simple line labels.
   scrolling.
 - Let wrapper frame treatment stay full-window and functional; do not put the
   primary terminal viewport inside decorative cards.
+- The Hyperterminal command surface uses stable zones: run command strip,
+  mission state rail, spec map, event core, signal panel, and profile drawer.
+- Controls must not resize or shift when events arrive, errors occur, or
+  profiles change.
 
 ---
 
@@ -719,13 +951,13 @@ modes use simple line labels.
 | `100 columns` | Comfortable terminal | Full iteration frame, concise panels, response summaries |
 | `120+ columns` | Wide terminal | Wider response/history columns without extra decorative noise |
 | `non-TTY/log` | CI, redirected output, dumb terminal | Plain line output, no color, no live rendering, no box glyphs |
-| `wrapper small window` | Future visual wrapper | Collapsible side/status areas, log remains primary |
-| `wrapper large window` | Future visual wrapper | Pinned status panels plus wide read-only log viewport |
+| `Hyperterminal small window` | Visual app minimum | Command strip and event core remain primary; rails collapse before log readability is sacrificed |
+| `Hyperterminal large window` | Visual app desktop | Mission rail, spec map, event core, signal panel, and profile drawer can be visible without nested cards |
 
 **Approach**: Terminal-width adaptive, with plain-output fallbacks ahead of
 visual polish.
 
-**Touch targets**: Future wrapper controls must be at least 44x44px. Base CLI
+**Touch targets**: Hyperterminal controls must be at least 44x44px. Base CLI
 interactions remain keyboard-first.
 
 ---
@@ -736,7 +968,7 @@ interactions remain keyboard-first.
 terminal constraints.
 
 - Keyboard navigation: All base CLI interactions must be keyboard-accessible.
-  Future wrapper controls require normal tab order and visible focus.
+  Hyperterminal controls require normal tab order and visible focus.
 - Screen reader: Plain mode should produce sequential, meaningful text without
   relying on Rich layout. Live statuses must also emit durable state changes.
 - Color contrast: Styled themes must keep normal text, muted text, warnings,
@@ -780,6 +1012,30 @@ independent token names and values. Do not copy reference profile colors.
 | `ibm-dos` | Crisp DOS-like contrast with minimal effects | High-legibility retro mode |
 | `plain` | Deterministic unstyled text | Logs, CI, non-TTY, dumb terminals |
 
+### Hyperterminal Profile Intents
+
+These profile names, colors, and constants are Apex-owned and must be
+independently designed.
+
+| Profile | Intent | Primary Use |
+|---------|--------|-------------|
+| `apex-reactor` | Deep black command surface with green-white active signal, red fault charge, and high bloom | Default cinematic Hyperterminal profile |
+| `operator-amber` | Warm amber command surface with strong maintenance/warning emphasis and low blue content | Long operator sessions and low-light rooms |
+| `blueprint-dos` | Blue-black base with precise cyan vector lines and crisp pixel-grid structure | Spec navigation, status maps, and screenshots |
+| `whiteout-lab` | High-contrast light mode for bright rooms and documentation captures | Accessibility and presentation mode |
+| `blackbox` | Minimal dark surface with restrained effects | Long unattended runs and low distraction |
+| `incident-red` | Error investigation mode with stronger event classification and fault isolation | Debugging failures, timeouts, malformed events, and provider faults |
+
+### Rendering Modes
+
+| Mode | Intent |
+|------|--------|
+| `modern-crisp` | High-readability default when effects are disabled |
+| `scanline` | Horizontal line treatment without copying reference formulas |
+| `pixel-grid` | Cell-grid treatment for log rows and status modules |
+| `subpixel` | Fine RGB-style edge treatment implemented from original Apex code |
+| `cinematic` | Full postprocess pipeline with curvature, glow, persistence, ambient frame, jitter, and event-reactive pulse |
+
 ### Status Vocabulary
 
 Use stable labels across themes and plain mode:
@@ -808,7 +1064,7 @@ Use stable labels across themes and plain mode:
 - **Monospace**: Primary typography for every base CLI surface.
 - **Scale ratio**: Terminal emphasis scale: normal, dim, bold, panel title,
   alert title. Do not depend on viewport-width font scaling.
-- **Minimum body size**: Controlled by terminal. Future wrapper should default
+- **Minimum body size**: Controlled by terminal. Hyperterminal should default
   to a readable system monospace size and expose scaling controls.
 
 ### Spacing Scale
@@ -823,7 +1079,7 @@ Terminal spacing uses rows and columns:
 8 columns: table padding or status grouping when width allows
 ```
 
-Future wrapper spacing uses an 8px base scale:
+Hyperterminal spacing uses an 8px base scale:
 
 ```text
 4, 8, 12, 16, 24, 32, 48, 64
@@ -832,7 +1088,7 @@ Future wrapper spacing uses an 8px base scale:
 ### Elevation And Depth
 
 Base CLI depth comes from ordering, borders, labels, and muted text. Do not
-simulate physical depth with heavy boxes inside boxes. Future wrapper may use
+simulate physical depth with heavy boxes inside boxes. Hyperterminal may use
 subtle glow, dark glass, and frame treatment, but text legibility remains the
 priority.
 
@@ -844,7 +1100,7 @@ Rich milestone:
 - Disable decorative separators in `plain` and compact modes.
 - Never write box glyphs, ANSI escapes, or Rich markup to SQLite history.
 
-Future wrapper:
+Hyperterminal:
 
 - Effects may include independently implemented glow, scanlines, flicker,
   curvature, phosphor trail, and frame treatment.
@@ -873,10 +1129,21 @@ Future wrapper:
 | Alert Block | Help, interrupt, timeout, error | Uses text labels plus color/severity; impossible to miss in plain mode |
 | DB Log Notice | End of iteration | Confirms history write without exposing debug internals |
 | Event Emitter | Event stream | Writes raw JSONL facts and exposes importable API for tests/wrappers |
-| Wrapper Log Viewport | Future Linux wrapper | Read-only event-driven operational log, not a terminal emulator clone |
-| Wrapper Status Panels | Future Linux wrapper | Show provider/model, project, iteration, operation, elapsed time, stop state |
-| Wrapper Settings Panel | Future Linux wrapper | Theme, effect intensity, font/scaling, reduced effects, plain fallback |
-| Wrapper Failure Surface | Future Linux wrapper | Shows malformed events, missing CLI, subprocess exit, timeout, and recovery |
+| Visual Event Adapter | Hyperterminal | Converts registered events into display-state updates without QML parsing raw JSONL |
+| Visual State Store | Hyperterminal | Holds run health, stage, provider, model, iteration, current spec, task progress, errors, and artifacts |
+| Profile Store | Hyperterminal | Persists versioned visual profiles under XDG config with import/export/reset and corruption handling |
+| Render Capabilities Resolver | Hyperterminal | Detects graphics backend, shader support, software mode, and quality tier fallback |
+| Doctor Adapter | Hyperterminal | Presents CLI doctor checks as pass/warn/fail visual rows |
+| App Shell | Hyperterminal | Full-window command-center frame that owns stable responsive zones |
+| Run Command Strip | Hyperterminal | Project/start command controls, dry-run/live-run mode, max iterations, start/stop/resume/doctor |
+| Mission State Rail | Hyperterminal | Provider/model/stage/iteration/config/event/history state that stays visible during long runs |
+| Spec Map | Hyperterminal | `.spec_system/`, phase/session, current command, task progress, and validation/carry-forward state |
+| Event Core | Hyperterminal | Virtualized structured lifecycle log with typed rows, search, filter, pin, copy, and export |
+| Signal Panel | Hyperterminal | Provider health, stderr summary, malformed event count, duration, last event, and safe artifacts |
+| Visual Profile Drawer | Hyperterminal | Profile, rendering mode, quality, effects, font, layout, import/export/reset |
+| QML Controls | Hyperterminal | Apex button, toggle, slider, segmented control, and status cell components |
+| Effect Surface | Hyperterminal | QML-only and shader-backed glow, scanline, phosphor trail, curvature, distortion, and frame treatment |
+| Wrapper Failure Surface | Hyperterminal | Shows malformed events, missing CLI, missing PySide6, subprocess exit, timeout, shader fallback, and recovery |
 
 ---
 
@@ -918,6 +1185,24 @@ Use stable snake_case names:
 - `run_stopped`
 - `event_stream_error`
 
+### Candidate Event Additions For Hyperterminal
+
+Add these only when a visual surface needs the fact and tests define the file
+stream plus stdout-machine-output behavior:
+
+- `doctor_started`
+- `doctor_check`
+- `doctor_finished`
+- `config_resolved`
+- `codex_flags_resolved`
+- `autonomy_policy_resolved`
+- `spec_system_detected`
+- `spec_session_resolved`
+- `task_progress`
+- `artifact_detected`
+- `run_duration_tick`
+- `wrapper_capabilities_resolved`
+
 ### Payload Rules
 
 - Include timestamp, project path key, iteration number when applicable,
@@ -934,13 +1219,15 @@ Use stable snake_case names:
 
 ### Wrapper Contract
 
-The Phase 01 Linux wrapper:
+The Phase 02 Hyperterminal visual app:
 
 - Launches or observes the Python CLI as the workflow engine.
 - Consumes JSONL events or an importable event emitter API.
+- Keeps raw JSONL parsing in Python adapter/state code; QML consumes display
+  state, models, and invokable actions.
 - Ships with PySide6 and Qt Quick/QML as an optional Linux-only extra.
-- Renders a read-only event log viewport, operational panels, and a full-window
-  CRT glass scene composed from lifecycle events.
+- Renders a read-only event core, operational panels, and a full-window command
+  surface composed from lifecycle events.
 - Implements independently designed glow, scanlines, curvature, flicker,
   phosphor trails, ambient frame light, and status-panel choreography.
 - Does not embed a pseudo-terminal or terminal-emulator viewport in the selected
@@ -948,10 +1235,15 @@ The Phase 01 Linux wrapper:
 - Does not scrape Rich frames.
 - Does not depend on the reference terminal application.
 - Does not use PyQt, qmltermwidget, QTermWidget, copied QML, copied shaders,
-  copied assets, copied fonts, copied profile data, or copied terminal-emulator
-  code.
+  copied generated shader blobs, copied assets, copied fonts, copied profile
+  data, copied manifests, copied build scripts, copied package metadata, or
+  copied terminal-emulator code.
 - Keeps graphical dependencies optional and Linux-scoped.
 - Documents PySide6 LGPLv3/commercial obligations and packaging requirements.
+- Stores visual profiles and runtime visual state in XDG locations and never
+  writes provider secrets.
+- Ships as a real Linux app with desktop metadata, AppStream metadata, launcher
+  actions, AppImage, checksum, notices, and clean-machine verification.
 - Uses pywebview plus xterm.js only as a backup if a future accepted
   requirement needs a fully interactive terminal emulator, PTY behavior,
   curses-like applications, or raw ANSI fidelity.
@@ -982,8 +1274,9 @@ Release requirements:
 
 ## 14. Implementation Coverage Matrix
 
-This matrix captures the source plan's UX scope without making exact session
-numbering authoritative. `phasebuild` owns final session stubs and counts.
+This matrix captures the completed CLI UX scope plus the Phase 02
+Hyperterminal scope without making final session stubs authoritative.
+`phasebuild` owns final session files and counts.
 
 | Coverage Area | UX Deliverables | Verification |
 |---------------|-----------------|--------------|
@@ -992,9 +1285,16 @@ numbering authoritative. `phasebuild` owns final session stubs and counts.
 | Live execution and history | Elapsed subprocess status, preserved capture semantics, compact history ledger, verbose history expansion | Fake subprocess tests for success, stderr-only, non-zero, timeout, dry-run, missing binary |
 | Documentation and samples | README/runbook/history/prompt-contract/troubleshooting updates, ASCII transcripts or asciinema casts, clean-room note | Docs describe implemented flags, fallback modes, event stream, no-copy boundary |
 | Event stream boundary | `--event-stream PATH`, `--machine-output`, guarded stdout JSONL mode, importable emitter API, raw event payloads | Dry-run event order tests, no markup/ANSI/reference tokens |
-| Linux wrapper spike | PySide6/QML prototype, read-only event-driven log, full-window CRT glass scene, effects feasibility, license/dependency assessment | Prototype launches/displays events and documents performance, packaging, and license evidence |
-| Wrapper productization | Optional Linux visual mode with settings, failure surfaces, AppImage release path, and source/dev optional extra | Wrapper smoke tests, AppImage smoke test, failure-mode tests, license notices |
-| Release verification | Compatibility, docs, clean-room audit, smoke run, fallback behavior, source encoding | Full applicable test suite, ASCII/LF checks, no copied reference material |
+| Visual state foundation | Python visual state model, event adapter, run health, provider/model/config/Codex/spec/task/error/artifact state | Unit tests from JSONL fixtures, QML does not parse raw JSONL |
+| Profile persistence | XDG profile store, versioned schema, import/export, reset, migration stubs, corruption handling | Profile schema tests, atomic write/backup tests, invalid profile tests, no secrets |
+| App shell redesign | Full-window command surface, reusable QML shell/controls, run strip, mission rail, spec map, event core, signal panel, drawer | QML lint, no overlap checks, minimum-size checks, readable event rows |
+| QML high-design effects | Glow, scanlines, frame treatment, pulse, persistence, quality tiers, reduced/plain enforcement | Offscreen smoke, desktop screenshots, pixel nonblank, reduced/plain checks |
+| CLI event expansion | Registered doctor/config/Codex/autonomy/spec/task/artifact/duration/capability events | File-stream and stdout-machine-output event tests, secret/markup/ANSI exclusion |
+| Graphical doctor and first run | Provider/model/Codex/project setup, doctor pass/warn/fail summaries, dry-run default, explicit config write | Clean user flow tests, missing provider/Codex/project checks, no accidental live mode |
+| Clean-room shader pipeline | Original shaders, capability detection, shader fallback, provenance for generated outputs | Shader source review, generated artifact review, software-backend fallback, performance tiers |
+| Desktop and AppImage release | Original icon, `.desktop`, AppStream, launcher actions, AppImage, checksum, notices, dependency inventory | AppImage clean-machine launch, visual extra source install, license inventory review |
+| Terminal CLI polish | Rich theme/status hierarchy polish, autonomy summary, compact progress/diagnostics | Plain output, redirected output, `--event-stream - --machine-output`, and regression tests |
+| Release verification | Compatibility, docs, clean-room audit, smoke run, fallback behavior, source encoding | Full applicable test suite, `git diff --check`, ASCII/LF checks, no tracked `EXAMPLE/`, no copied reference material |
 
 ---
 
@@ -1028,22 +1328,42 @@ numbering authoritative. `phasebuild` owns final session stubs and counts.
   prompt-contract docs change together.
 - The base CLI remains usable without Qt, PySide6, PyQt, qmltermwidget,
   QTermWidget, a graphical display, or an external terminal emulator.
-- The Linux visual wrapper ships as an optional PySide6/QML surface after the
-  event-stream boundary and wrapper spike.
+- Apex Infinite Hyperterminal opens as the usable visual command surface on the
+  first screen, not a landing page or demo dashboard.
+- The visual app consumes registered events through a Python adapter/state
+  layer; QML does not parse raw JSONL and no visual surface scrapes Rich output.
+- The command surface includes run command strip, mission state rail, spec map,
+  event core, signal panel, and visual profile drawer.
+- Visual profiles, rendering modes, quality tiers, effect intensity, font
+  controls, reduced effects, and plain fallback persist across launches.
+- Event-reactive effects respond to real workflow states such as run start,
+  provider preflight, manager decision, iteration progress, stop, completion,
+  timeout, stderr, and malformed events.
+- Low-effects and plain modes are intentionally designed and verified, not
+  broken versions of high-effects mode.
+- Graphical first run can configure provider, model, Codex binary, project,
+  doctor, and dry-run default without editing source files.
 - The first visual-wrapper binary release artifact is an x86_64 Linux AppImage
   with checksum and license notices.
 - The selected wrapper does not require a terminal-emulator viewport.
-- No reference source, shader, image, icon, font, resource manifest, literal
-  color/profile data, or build script is copied into the product.
+- Desktop launcher and AppImage work on a clean supported Linux machine.
+- No reference source, QML, shader, generated shader blob, image, icon, font,
+  profile data, resource manifest, package metadata, terminal-widget code, or
+  build script is copied into the product.
 - All authored files stay ASCII-only with Unix LF line endings.
 
 ---
 
 ## 16. Anti-Patterns To Avoid
 
-- Do not copy reference source, QML, shader code, shader constants, profile
-  JSON, literal colors, images, icons, fonts, resource manifests, terminal
-  emulator code, or build scripts.
+- Do not copy reference source, QML, shader code, shader constants, generated
+  shader blobs, profile JSON, literal colors, images, icons, fonts, resource
+  manifests, package metadata, terminal emulator code, or build scripts.
+- Do not make the Hyperterminal first screen a landing page, marketing hero,
+  explanatory dashboard, or decorative demo shell.
+- Do not animate arbitrary decoration. Visual effects must respond to workflow
+  facts or explicit user profile choices.
+- Do not put raw JSONL parsing or workflow decision logic in QML.
 - Do not make the base CLI require Qt, PySide6, PyQt, qmltermwidget,
   QTermWidget, a graphical display, or an external terminal emulator.
 - Do not make operators run Apex Infinite CLI inside another terminal emulator
@@ -1060,6 +1380,8 @@ numbering authoritative. `phasebuild` owns final session stubs and counts.
 - Do not turn primary operator surfaces into debug dashboards. Renderer tests,
   raw event payloads, and frame diagnostics belong in developer surfaces.
 - Do not use decorative effects that make text harder to read.
+- Do not commit generated packaging output unless a release session explicitly
+  scopes it.
 - Do not add brittle full-frame snapshot tests where semantic renderer tests
   would be more stable.
 - Do not ship binary screenshots in source docs; use ASCII transcripts or
@@ -1071,65 +1393,66 @@ numbering authoritative. `phasebuild` owns final session stubs and counts.
 
 ### Working Assumptions
 
-- Apex Infinite CLI is terminal-first and operator-facing, not a web or
-  marketing surface. Evidence: `PRD.md`, the CLI README, operator runbook, and
-  current implementation all describe a Python CLI around manager decisions,
-  Codex subprocess execution, SQLite history, and terminal output. It is safe
-  to proceed because this UX PRD defines terminal surfaces plus optional wrapper
-  surfaces only.
-- The first visual milestone should use Rich only. Evidence: Rich is already a
-  runtime dependency, the base CLI must stay lightweight, and the functional
-  PRD defers graphical dependencies to an optional Linux wrapper. It is safe
-  because wrapper-only effects are separated behind the event boundary.
+- Apex Infinite CLI remains terminal-first and operator-facing at the base
+  package layer, while Phase 02 adds a Linux visual product lane. Evidence:
+  `PRD.md`, the CLI README, operator runbook, current implementation, and the
+  Hyperterminal plan all keep the Python CLI as workflow engine. It is safe to
+  proceed because graphical dependencies stay isolated in the optional visual
+  package path.
+- The first Phase 02 visual milestone should stabilize state, profiles, and
+  QML-only high design before custom shaders. Evidence: the Hyperterminal plan
+  orders visual state, profile persistence, shell redesign, and QML effects
+  before shader work. It is safe because shader complexity is gated behind a
+  working command surface and fallback model.
 - `auto` should resolve to `crt-green` only for capable interactive terminals
   and to `plain` for constrained output. Evidence: the product PRD and source
   plan both require this fallback model. It is safe because invalid user theme
   configuration still fails fast.
 - The reference terminal project informs UX vocabulary but not implementation
   data. Evidence: the reference material is GPL-family and the product PRD
-  forbids copying source, shaders, assets, fonts, profile data, or build
-  scripts. It is safe because the PRD records clean-room translation boundaries
-  as explicit product requirements.
+  forbids copying source, QML, shaders, generated shader blobs, assets, fonts,
+  profile data, manifests, package metadata, build scripts, and terminal-widget
+  code. It is safe because the PRD records clean-room translation boundaries as
+  explicit product requirements.
 - Operational telemetry is part of the product only when it helps the operator.
   Status strip, elapsed time, timeout, provider/model, manager decision, prompt
   preview, DB log confirmation, and history ledger are primary surfaces because
   the product is an autonomous workflow runner. Renderer internals and raw event
   payload dumps remain developer/debug surfaces.
-- The user named the examples source in plural, while the repo's available
-  source tree used a singular examples directory. It is safe to use that actual
-  local tree as the intended source because it was the only matching local
-  source and every detailed reference in the plan pointed there.
+- The Hyperterminal plan names the local `EXAMPLE/cool-retro-term/` tree as
+  conceptual source material only. It is safe to use the plan's extracted
+  concepts because this UX PRD records forbidden translations and clean-room
+  gates instead of copying implementation data.
 - This UX PRD must be self-contained with respect to the source example tree
   and upgrade plan. It is safe because this file embeds the relevant current
   behavior, visual concepts, no-copy boundaries, configuration rules, event
   requirements, wrapper direction, acceptance checks, and resolved decisions.
-- The optional visual wrapper should optimize for a custom event-composed scene
-  rather than a terminal-emulator viewport. Evidence: the current CLI product
-  needs lifecycle facts, logs, status, and captured responses rather than an
-  interactive shell; the local reference's strongest visual ideas come from
-  source/effects/frame composition; Qt Quick supports custom shader effects; and
-  xterm.js is specifically useful when browser-based terminal emulation is a
-  product requirement. It is safe because pywebview plus xterm.js remains a
-  documented backup for a future interactive-terminal requirement.
+- Hyperterminal should optimize for a custom event-composed scene rather than a
+  terminal-emulator viewport. Evidence: the current CLI product needs lifecycle
+  facts, logs, status, and captured responses rather than an interactive shell;
+  the reference's strongest visual ideas come from source/effects/frame
+  composition; Qt Quick supports custom shader effects; and xterm.js is
+  specifically useful when browser-based terminal emulation is a product
+  requirement. It is safe because pywebview plus xterm.js remains a documented
+  backup for a future interactive-terminal requirement.
 
 ### Conflict Resolutions
 
-- The functional PRD defines Phase 00 with 5 sessions and Phase 01 with 2
-  sessions, while the detailed upgrade plan includes a broader 8-session
-  planning split with release verification. The UX PRD resolves this by
-  defining coverage areas and acceptance criteria without making exact session
-  numbering authoritative. `phasebuild` owns final phase/session structure.
+- The completed product history contains Phase 00 and Phase 01, while the
+  Hyperterminal plan defines a new 14-session visual lane. The chosen
+  interpretation is to preserve completed phase records and add Phase 02 as the
+  planned Hyperterminal scope. `phasebuild` owns final phase/session structure.
 - The visual source is a full graphical terminal emulator with tabs, menus,
   settings dialogs, shader passes, copied assets, and external submodules,
   while Apex Infinite CLI is a Python workflow manager. The chosen
   interpretation is clean-room visual translation: Rich gets status hierarchy,
-  framing, profile-like themes, and low-fidelity separators; the optional Linux
-  wrapper later gets event-driven visual effects without depending on the
-  reference app, qmltermwidget, or QTermWidget.
-- The current CLI already uses Rich but does not yet have the planned UI flags,
-  `ui` config, event stream, renderer boundary, compact history ledger, or
-  wrapper. This document labels those as planned requirements, not current
-  shipped behavior.
+  framing, profile-like themes, and low-fidelity separators; Hyperterminal gets
+  event-driven visual effects without depending on the reference app,
+  qmltermwidget, or QTermWidget.
+- Older UX source material described the visual wrapper as optional future
+  productization, while the Hyperterminal plan promotes it to a planned product
+  lane. The chosen interpretation is Phase 02 Hyperterminal with base CLI
+  dependency isolation and explicit release gates.
 - `NO_COLOR` normally means no color, while explicit `--theme` can opt back
   into styled output per the source plan. The chosen interpretation is that
   environmental constraints set safe defaults, while explicit operator choices
@@ -1154,10 +1477,11 @@ Open UX Decisions: none.
    `--machine-output` requires `--event-stream`, disables Rich/plain human
    rendering, disables terminal bell and desktop notifications, and guarantees
    stdout is JSONL-only when paired with `--event-stream -`.
-2. **Linux wrapper productization**: Ship the PySide6/Qt Quick/QML wrapper as
-   the Phase 01 optional visual mode after the event-stream boundary and wrapper
-   spike. The spike remains a verification gate for performance, packaging, and
-   license evidence, not an open product-direction decision.
+2. **Hyperterminal productization**: Ship the PySide6/Qt Quick/QML wrapper as
+   the Phase 02 Apex Infinite Hyperterminal visual lane. The visual app uses the
+   Python CLI as workflow engine, keeps graphical dependencies optional and
+   Linux-scoped, and treats QML-only design, shaders, packaging, and clean-room
+   release evidence as verification gates.
 3. **First wrapper release artifact**: Publish an x86_64 Linux AppImage named
    `apex-infinite-visual-linux-x86_64.AppImage`, with SHA256 checksums, license
    notices, and a source/developer install path through the optional Python
@@ -1166,6 +1490,9 @@ Open UX Decisions: none.
 4. **Terminal-emulator viewport**: Do not require a terminal-emulator viewport
    for the selected wrapper architecture. The wrapper should render lifecycle
    events and captured output through native QML models/views inside a
-   full-window CRT glass scene. Evaluate pywebview plus xterm.js only if a
+   full-window Hyperterminal command surface. Evaluate pywebview plus xterm.js only if a
    future accepted requirement needs an interactive shell, PTY behavior,
    curses-like applications, or raw ANSI terminal fidelity.
+5. **Visual lane name**: Use `Apex Infinite Hyperterminal` as the visual mode
+   name only. Keep `apex-infinite` and `apex-infinite-visual` as command names
+   unless a later release explicitly changes them.
