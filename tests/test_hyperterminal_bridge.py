@@ -3,11 +3,17 @@
 import json
 from pathlib import Path
 
+from apex_infinite_visual import main as visual_main
 from apex_infinite_visual.main import (
     VisualWrapperOptions,
     build_bridge_class,
     build_fixture_event_lines,
     parse_args,
+)
+from apex_infinite_visual.render_caps import (
+    BACKEND_HARDWARE,
+    BACKEND_SOFTWARE,
+    RenderCapabilities,
 )
 
 
@@ -109,6 +115,19 @@ def make_bridge(tmp_path, **overrides):
     """Build a bridge with fake Qt modules."""
     bridge_class = build_bridge_class(fake_qt_modules())
     return bridge_class(bridge_options(tmp_path, **overrides))
+
+
+def render_caps(recommended_tier, backend=BACKEND_HARDWARE, offscreen=False):
+    """Build deterministic render capabilities for bridge tests."""
+    return RenderCapabilities(
+        platform="offscreen" if offscreen else "xcb",
+        backend=backend,
+        offscreen=offscreen,
+        shaders_available=backend == BACKEND_HARDWARE,
+        shader_modules=("surface_postprocess",),
+        recommended_tier=recommended_tier,
+        reduced_effects_forced=recommended_tier in {"low-effects", "plain"},
+    )
 
 
 def run_fixture(bridge):
@@ -218,6 +237,51 @@ def test_profile_restore_at_startup(tmp_path):
     second = make_bridge(tmp_path, restore_profile=True)
     assert second.activeProfile == "ops"
     assert second.themeName == "incident-red"
+
+
+def test_profile_restore_reapplies_capability_clamps(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        visual_main,
+        "_detect_caps_safely",
+        lambda: render_caps("cinematic"),
+    )
+    first = make_bridge(tmp_path)
+    first.setQualityTier("cinematic")
+    first.saveProfile("ops")
+
+    monkeypatch.setattr(
+        visual_main,
+        "_detect_caps_safely",
+        lambda: render_caps("low-effects", backend=BACKEND_SOFTWARE, offscreen=True),
+    )
+    second = make_bridge(tmp_path, restore_profile=True)
+
+    assert second.activeProfile == "ops"
+    assert second.qualityTier == "low-effects"
+    assert second.effectiveQualityTier == "low-effects"
+    assert second.reducedEffects is True
+    assert second.effectFps == 12
+
+
+def test_profile_save_load_preserves_manual_effect_toggles(tmp_path):
+    bridge = make_bridge(tmp_path)
+
+    bridge.setEffectEnabled("glow", False)
+    bridge.saveProfile("manual-effects")
+
+    payload = json.loads((tmp_path / "profiles.json").read_text(encoding="ascii"))
+    profile = next(
+        entry for entry in payload["profiles"] if entry["name"] == "manual-effects"
+    )
+    assert profile["effects"]["glow"] is False
+
+    bridge.setEffectEnabled("glow", True)
+    assert bridge.glowEnabled is True
+
+    bridge.loadProfile("manual-effects")
+
+    assert bridge.profileError == ""
+    assert bridge.glowEnabled is False
 
 
 def test_quality_tier_slot_validates_and_updates(tmp_path):

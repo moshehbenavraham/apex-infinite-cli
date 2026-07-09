@@ -159,6 +159,7 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             self._profile_store: ProfileStore | None = None
             self._profile_error = ""
             self._active_profile = ""
+            self._profile_effect_overrides: dict[str, bool] = {}
             self._doctor_rows: list[dict[str, object]] = []
             self._doctor_status = ""
             self._doctor_ready = True
@@ -170,11 +171,14 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             self._font_families = list(FONT_FAMILIES)
             self._rendering_modes = list(RENDERING_MODES)
             self._quality_tiers = list(QUALITY_TIERS)
-            self._glow_enabled = False
-            self._scanlines_enabled = False
-            self._flicker_enabled = False
-            self._curvature_enabled = False
+            (
+                self._glow_enabled,
+                self._scanlines_enabled,
+                self._flicker_enabled,
+                self._curvature_enabled,
+            ) = (False, False, False, False)
             self._sync_effects_from_settings()
+            self._apply_profile_effects(self._profile_effect_overrides)
             self._running = False
             self._queue: queue.Queue[tuple[str, str]] = queue.Queue()
             self._worker: threading.Thread | None = None
@@ -976,7 +980,9 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             if store is None:
                 return
             try:
-                store.save_current(name, self._settings, effects=self._current_effects())
+                store.save_current(
+                    name, self._settings, effects=self._current_effects()
+                )
                 self._active_profile = name
                 self._profile_error = ""
             except ProfileStoreError as exc:
@@ -989,10 +995,12 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             store = self._ensure_profile_store()
             if store is None:
                 return
+            effects: dict[str, bool] = {}
             try:
                 profile = store.get(name)
                 self._settings = profile.to_settings()
                 self._apply_capabilities()
+                effects = dict(profile.effects)
                 self._active_profile = name
                 self._profile_error = ""
                 store.set_last_profile(name)
@@ -1001,6 +1009,7 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 self.profilesChanged.emit()
                 return
             self._sync_effects_from_settings()
+            self._apply_profile_effects(effects)
             self.effectsChanged.emit()
             self.profilesChanged.emit()
 
@@ -1090,8 +1099,10 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             if not name:
                 return
             try:
-                self._settings = store.get(name).to_settings()
+                profile = store.get(name)
+                self._settings = profile.to_settings()
                 self._apply_capabilities()
+                self._profile_effect_overrides = dict(profile.effects)
                 self._active_profile = name
             except (ProfileStoreError, WrapperSettingsError) as exc:
                 self._profile_error = str(exc)
@@ -1332,6 +1343,19 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
             self._flicker_enabled = self._settings.effect_enabled("flicker")
             self._curvature_enabled = self._settings.effect_enabled("curvature")
 
+        def _apply_profile_effects(self, effects: dict[str, bool]) -> None:
+            if not effects:
+                return
+            available = self._settings.effects_available
+            if "glow" in effects:
+                self._glow_enabled = bool(effects["glow"]) and available
+            if "scanlines" in effects:
+                self._scanlines_enabled = bool(effects["scanlines"]) and available
+            if "flicker" in effects:
+                self._flicker_enabled = bool(effects["flicker"]) and available
+            if "curvature" in effects:
+                self._curvature_enabled = bool(effects["curvature"]) and available
+
         def _current_effects(self) -> dict[str, bool]:
             return {
                 **self._settings.effect_map(),
@@ -1349,7 +1373,9 @@ def build_bridge_class(qt):  # pylint: disable=too-many-statements
                 return
             try:
                 store.save_current(
-                    SESSION_PROFILE_NAME, self._settings, effects=self._current_effects()
+                    SESSION_PROFILE_NAME,
+                    self._settings,
+                    effects=self._current_effects(),
                 )
             except ProfileStoreError:
                 pass

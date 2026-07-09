@@ -381,7 +381,10 @@ def _profile_from_payload(payload: Any, rename_to: str | None = None) -> VisualP
 
 
 def _validate_effect_map(effects: dict[str, bool]) -> None:
-    if not all(key in EFFECT_NAMES and isinstance(value, bool) for key, value in effects.items()):
+    if not all(
+        key in EFFECT_NAMES and isinstance(value, bool)
+        for key, value in effects.items()
+    ):
         raise ProfileStoreError("profile effects must map known effects to booleans")
 
 

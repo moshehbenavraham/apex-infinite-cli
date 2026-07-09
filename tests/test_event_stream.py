@@ -309,6 +309,20 @@ def test_spec_system_snapshot_reports_phases_and_prd(tmp_path):
     assert snapshot["latest_phase"] == "phase02"
 
 
+def test_spec_system_snapshot_reports_canonical_prd_layout(tmp_path):
+    prd_dir = tmp_path / ".spec_system" / "PRD"
+    (prd_dir / "phase_01").mkdir(parents=True)
+    (prd_dir / "phase_02").mkdir()
+    (prd_dir / "PRD.md").write_text("# PRD\n", encoding="ascii")
+
+    snapshot = apex_infinite.build_spec_system_snapshot(str(tmp_path))
+
+    assert snapshot["detected"] is True
+    assert snapshot["has_prd"] is True
+    assert snapshot["phase_count"] == 2
+    assert snapshot["latest_phase"] == "phase_02"
+
+
 @pytest.mark.parametrize("event_name", ["", "bad event", "unknown_event"])
 def test_event_emitter_rejects_invalid_event_names(event_name):
     stream = FlushTrackingStream()
