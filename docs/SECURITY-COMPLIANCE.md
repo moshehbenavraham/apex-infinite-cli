@@ -1,7 +1,7 @@
 # Security & Compliance
 
 > Cumulative security posture and GDPR compliance record. Updated between phases via carryforward.
-> **Line budget**: 1000 max | **Last updated**: Phase 00 (2026-07-03)
+> **Line budget**: 1000 max | **Last updated**: Phase 01 (2026-07-03)
 
 ---
 
@@ -9,17 +9,19 @@
 
 ### Overall: AT RISK
 
-Phase 00 release verification passed for source-mode release of the base CLI
-and optional Linux visual wrapper. The posture remains AT RISK because local
-history retention, autonomous execution controls, provider-bound data transfer
-disclosure, and recurring dependency governance still need follow-up work.
+Phase 01 smoke remediation passed with no new session security findings, no
+known vulnerable dependencies from local `pip-audit`, and no provider secrets
+or display artifacts found in smoke events. The posture remains AT RISK because
+local history retention, broad autonomous execution policy, provider-bound data
+transfer disclosure, and recurring dependency governance still need follow-up
+work.
 
 | Metric | Value |
 |--------|-------|
 | Open Findings | 4 |
 | Critical/High | 0 |
 | Medium/Low | 4 |
-| Phases Audited | 1 |
+| Phases Audited | 2 |
 | Last Clean Phase | -- |
 
 ---
@@ -42,12 +44,12 @@ No open critical or high findings.
   - Status: Open
   - Opened: P00 (2026-07-03)
 
-- **[P00-S02] Autonomous execution flags need an explicit operator safety gate**
+- **[P00-S02] Autonomous execution flags need explicit operator safety policy**
   - Severity: Medium
-  - File: `src/apex_infinite/config.yaml`
-  - Description: Default real-run configuration can grant broad autonomous approval for target-project changes.
-  - Remediation: Require review of target path, provider, model, and execution flags before non-dry-run loops, or ship a safer documented default.
-  - Status: Open
+  - File: `src/apex_infinite/config.yaml`, `src/apex_infinite/cli.py`, `README.md`
+  - Description: Phase 01 validates configured Codex flags and documents effective command review, but the shipped real-run default still grants broad autonomous bypass behavior for target-project changes.
+  - Remediation: Add an explicit opt-in/narrower permission model or document an accepted-risk release policy before broader distribution.
+  - Status: Open, partially mitigated in P01 by startup validation and operator documentation
   - Opened: P00 (2026-07-03)
 
 - **[P00-S03] Provider-bound data transfer disclosure is incomplete**
@@ -106,7 +108,7 @@ implemented, the local-tool privacy posture is non-compliant.
 
 ### Current Vulnerabilities
 
-No known vulnerable dependencies from the Phase 00 local audit.
+No known vulnerable dependencies from the Phase 01 local audit.
 
 | Package | Version | Severity | CVE | Status |
 |---------|---------|----------|-----|--------|
@@ -118,6 +120,7 @@ Notes:
 - Development dependencies include pytest, pytest-cov, pytest-mock, black, pylint, and pip-audit.
 - Optional wrapper dependencies remain isolated in the `visual` extra and include PySide6 and Nuitka.
 - Recurring dependency audit automation and dependency locking remain open under [P00-S04].
+- Phase 01 package build and audit passed locally; `apex-infinite-cli` was skipped by `pip-audit` because it is not on PyPI.
 
 ---
 
@@ -148,6 +151,7 @@ Recently closed items. Compressed after 2 phases.
 
 | Phase | Sessions | Security | GDPR | Findings Opened | Findings Closed |
 |-------|----------|----------|------|-----------------|-----------------|
+| P01 | 6 | AT RISK | NON-COMPLIANT / LOCAL TOOL | 0 | 0 |
 | P00 | 8 | AT RISK | NON-COMPLIANT / LOCAL TOOL | 6 | 2 |
 
 ---
@@ -155,7 +159,7 @@ Recently closed items. Compressed after 2 phases.
 ## Recommendations
 
 1. Add retention, purge, and redaction behavior for local history or explicitly document the accepted local-data risk.
-2. Require explicit operator review of provider, model, target path, and execution flags before non-dry-run autonomous execution.
+2. Decide the release policy for broad Codex bypass behavior: explicit opt-in/narrower permissions, or accepted-risk documentation before broader distribution.
 3. Document provider-bound data transfer expectations and warn operators not to place secrets or personal data in prompts or target-project outputs.
 4. Add dependency locking or recurring vulnerability scanning in CI.
 5. Keep the base CLI free of graphical dependencies and preserve the clean-room boundary for future visual-wrapper artifacts.

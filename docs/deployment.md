@@ -1,0 +1,68 @@
+# Deployment
+
+## Local Dev
+
+Create the repository environment:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -e ".[dev,visual]"
+```
+
+Run a smoke-oriented dry run:
+
+```bash
+.venv/bin/apex-infinite --path "$PWD" --start plansession --dry-run --max-iterations 1
+```
+
+Stop local Ollama when it is no longer needed:
+
+```bash
+./scripts/ollama-docker.sh down
+```
+
+## CI/CD Pipeline
+
+The repository defines one GitHub Actions workflow at
+`.github/workflows/quality.yml`. It runs on `push` and `pull_request`, installs
+the package with the `dev` extra on Python 3.10, and runs:
+
+```bash
+python -m black --check src tests
+python -m pylint src/apex_infinite src/apex_infinite_visual
+python -m mypy
+```
+
+The workflow does not publish packages, create releases, deploy services, run
+dependency audits, or build visual-wrapper binaries.
+
+## Release Artifact Build
+
+Local release verification builds source and wheel artifacts outside the
+repository:
+
+```bash
+.venv/bin/python -m build --outdir /tmp/apex-infinite-cli-smoke-dist
+```
+
+Use the full release smoke matrix in
+[Operator runbook](operator-runbook.md#local-release-smoke-procedure) before a
+public release.
+
+## Release And Rollback
+
+- Release: manual. Build artifacts with `python -m build`, review smoke
+  evidence, and publish through an external packaging process if one is chosen.
+- Rollback: manual. Reinstall a known-good build or commit through the target
+  environment's package process. No automated rollback workflow is present.
+- Optional visual-wrapper binary release: gated. Future binary publication must
+  complete generated-bundle review, license/module review, notices, checksums,
+  and source/relink instructions.
+
+## Operational Gates
+
+- Do not publish real event streams, local history DBs, provider keys, or smoke
+  homes from `/tmp`.
+- Keep PySide6 and graphical dependencies out of the base CLI install.
+- Re-run dependency audit before release or dependency changes.

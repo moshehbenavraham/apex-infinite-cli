@@ -38,6 +38,18 @@ Each Apex Spec command ends with a `Next command:` handoff. The manager LLM uses
 that line as the primary routing signal, or sends concise custom instructions to
 Codex CLI when a fix must happen before the next command.
 
+## Quick Start
+
+After installing the package and configuring a provider, one command starts the
+autonomous workflow loop for an initialized Apex Spec project:
+
+```bash
+apex-infinite --path /path/to/apex-spec-project --start plansession
+```
+
+Run the same command with `--dry-run` first when checking a new target project,
+provider, model, Codex binary, autonomy flags, or reasoning effort.
+
 ## Supported Commands
 
 The CLI recognizes the staged Apex Spec commands and routes them through the
@@ -497,15 +509,22 @@ substitution rules, wrapper checks, and nested Codex smoke guidance.
 
 ## Deep-Dive Docs
 
+- [Onboarding](docs/onboarding.md)
+- [Development guide](docs/development.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Environments](docs/environments.md)
+- [Deployment](docs/deployment.md)
 - [Operator runbook](docs/operator-runbook.md)
 - [Event stream contract](docs/event-stream.md)
 - [History DB reference](docs/history-db.md)
 - [Prompt contract](docs/prompt-contract.md)
 - [Troubleshooting guide](docs/troubleshooting.md)
+- [Incident response](docs/runbooks/incident-response.md)
 - [Visual wrapper productization](docs/visual-wrapper-productization.md)
 - [Visual wrapper spike](docs/visual-wrapper-spike.md)
 - [Visual wrapper boundary](docs/visual-wrapper-boundary.md)
 - [Transcript samples](docs/transcripts/README_transcripts.md)
+- [Contributing](CONTRIBUTING.md)
 
 ## Notes
 
